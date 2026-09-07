@@ -81,19 +81,46 @@ function LibrarySettings() {
     void refreshCatalogStatus();
   }, [refreshCatalogStatus]);
 
+  // Update URL field to show first enabled source's location
   useEffect(() => {
-    if (catalogStatus?.catalogUrl && !url) setUrl(catalogStatus.catalogUrl);
+    if (catalogStatus?.sources?.length > 0) {
+      const firstEnabled = catalogStatus.sources.find((s) => s.enabled);
+      if (firstEnabled) {
+        setUrl(firstEnabled.location || '');
+      } else {
+        setUrl('');
+      }
+    } else if (catalogStatus?.catalogUrl && !url) {
+      setUrl(catalogStatus.catalogUrl);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catalogStatus?.catalogUrl]);
+  }, [catalogStatus?.sources, catalogStatus?.catalogUrl, url]);
 
   const handleLoad = async () => {
     setLoading(true);
-    await loadCatalog(url.trim());
+    // Load from the first enabled source, or fallback to catalogUrl
+    const firstEnabled = catalogStatus?.sources?.find((s) => s.enabled);
+    const sourceId = firstEnabled?.id;
+    if (sourceId) {
+      await void loadCatalogBySource(sourceId);
+    } else if (catalogStatus?.catalogUrl) {
+      await loadCatalog(catalogStatus.catalogUrl);
+    }
     setLoading(false);
   };
 
   const running = backfill?.status === 'running';
   const pct = backfill && backfill.total ? Math.round((backfill.done / backfill.total) * 100) : 0;
+
+  // Load catalog by source ID
+  const loadCatalogBySource = async (sourceId: string) => {
+    try {
+      const status = await void ctx?.archive?.refreshSource(sourceId);
+      void refreshCatalogStatus();
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : 'Failed to load source');
+    }
+  };
   const rawgSet =
     (settings as unknown as Record<string, string>).rawgApiKey === '***set***' ||
     !!((settings as unknown as Record<string, string>).rawgApiKey || '').trim();
@@ -128,26 +155,66 @@ function LibrarySettings() {
       {/* 1. Catalog source */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>1. Game catalog</h3>
       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
-        Paste the URL of a <code>games.json</code> file (FPKGi format).
+        Add one or more game catalog URLs or local files. Games from all enabled sources are merged and deduplicated by PKG URL.
       </p>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-        <input
-          type="url"
-          placeholder="https://…/GAMES.json"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          style={inputStyle}
-        />
-        <button onClick={() => void handleLoad()} disabled={loading || !url.trim()} style={btnStyle(true)}>
-          {loading ? 'Loading…' : 'Load catalog'}
-        </button>
-      </div>
-      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>
-        {catalogStatus?.configured ? (
-          <>Loaded: <strong style={{ color: 'var(--text-secondary)' }}>{catalogStatus.count} games</strong>
-          {catalogStatus.fetchedAt && <> · fetched {new Date(catalogStatus.fetchedAt).toLocaleDateString()}</>}</>
+      {/* Source list */}
+      <div style={{ marginBottom: '12px' }}>
+        {catalogStatus?.sources?.length > 0 ? (
+          <>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+              {catalogStatus.sources.length} source{'s' + (catalogStatus.sources.length !== 1 ? ':' : ':')}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {catalogStatus.sources.map((s) => (
+                <span
+                  key={s.id}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '4px 8px',
+                    backgroundColor: s.enabled ? 'var(--bg-tertiary)' : 'var(--bg-muted)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <Toggle
+                    checked={s.enabled}
+                    onChange={(v) => void toggleSource(s.id, v)}
+                  />
+                  {s.label || `Catalog ${s.id.slice(-4)}`}
+                  {s.enabled && <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }>({s.count} games)</span>}
+                </span>
+              ))}
+            </div>
+          </>
         ) : (
-          <>No catalog loaded yet.</>
+          <div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+              No catalogs loaded
+            </div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+              <button
+                onClick={() => void addSource('url')}
+                style={btnStyle(false)}
+                title="Add URL catalog"
+              >
+                URL
+              </button>
+              <button
+                onClick={() => void addSource('file')}
+                style={btnStyle(false)}
+                title="Add local file catalog"
+              >
+                File
+              </button>
+            </div>
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              Paste a games.json URL or browse a local file
+            </p>
+          </div>
         )}
       </div>
 

@@ -289,6 +289,36 @@ export const useAppStore = create<AppState>((set, get) => ({
       return true;
     } catch (err) {
       addToast('error', err instanceof Error ? err.message : 'Could not load catalog URL');
+
+  toggleSource: async (sourceId: string, enabled: boolean) => {
+    try {
+      if (backend) {
+        await tryLive((api) =>
+          (api as unknown as { toggleSource: (id: string, en: boolean) => Promise<void> }).toggleSource(sourceId, enabled)
+        );
+      } else {
+        await httpApi.patch("/api/catalog/sources/" + sourceId, { enabled });
+      }
+      void refreshCatalogStatus();
+    } catch (err) {
+      addToast("error", err instanceof Error ? err.message : "Failed to toggle source");
+    }
+  },
+  loadCatalogBySource: async (sourceId: string) => {
+    try {
+      if (backend) {
+        await tryLive((api) =>
+          (api as unknown as { loadCatalogBySource: (id: string) => Promise<void> }).loadCatalogBySource(sourceId)
+        );
+      } else {
+        await httpApi.post("/api/catalog/sources/" + sourceId + "/refresh");
+      }
+      void refreshCatalogStatus();
+    } catch (err) {
+      addToast("error", err instanceof Error ? err.message : "Failed to load source");
+    }
+  },
+
       return false;
     }
   },
