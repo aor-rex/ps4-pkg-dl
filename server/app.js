@@ -393,11 +393,12 @@ function createApp(ctx) {
   // ── Web UI (built React app, if present) ───────────────────────────
   // Serves ps4-pkg-ui/dist at / so the app works in a plain browser.
   // API routes above take precedence; SPA fallback handles client routes.
-  const UI_DIR = path.resolve(__dirname, '../../../ps4-pkg-ui/dist');
-  if (fs.existsSync(path.join(UI_DIR, 'index.html'))) {
-    app.use(express.static(UI_DIR, { maxAge: '1h' }));
+  const UI_DIR = '/home/aor_rex/Documents/12Projects/ps4-pkg-ui/dist';
+  app.use(express.static(UI_DIR, { maxAge: '1h' }));
+  if (fs.existsSync(path.join(UI_DIR, "index.html"))) {
+    app.use(express.static(UI_DIR, { maxAge: "1h" }));
     app.get(/^\/(?!api).*/, (_req, res) => {
-      res.sendFile(path.join(UI_DIR, 'index.html'));
+      res.sendFile(path.join(UI_DIR, "index.html"));
     });
     console.error(`[api] serving web UI from ${UI_DIR}`);
   } else {

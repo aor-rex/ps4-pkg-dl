@@ -2,12 +2,12 @@
   "name": "ps4-pkg-dl",
   "version": "0.1.0",
   "description": "Desktop app for browsing and downloading PS4 packages from the Internet Archive FPKGi catalog",
-  "main": "src/main/index.js",
+  "main": "main/index.js",
   "bin": {
-    "ps4dl": "src/cli/index.js"
+    "ps4dl": "cli/index.js"
   },
   "scripts": {
-    "cli": "node src/cli/index.js",
+    "cli": "node cli/index.js",
     "server": "node server/index.js",
     "start": "electron .",
     "dev": "electron . --dev",
