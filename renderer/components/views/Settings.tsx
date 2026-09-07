@@ -128,7 +128,7 @@ function LibrarySettings() {
       {/* 1. Catalog source */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>1. Game catalog</h3>
       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
-        Paste the URL of a <code>games.json</code> file (FPKGi format). The app never ships with one — your library, your source.
+        Paste the URL of a <code>games.json</code> file (FPKGi format).
       </p>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
         <input
@@ -173,12 +173,11 @@ function LibrarySettings() {
       {/* 3. archive.org login (for login-gated items) */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>3. archive.org login</h3>
       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
-        Some collection items return 401 without login. Log in at archive.org in your browser, copy the{' '}
-        <code>logged-in-user</code> and <code>logged-in-sig</code> cookies (DevTools → Application → Cookies),
-        and paste them here as <code>logged-in-user=...; logged-in-sig=...</code>.{' '}
+        Log in at archive.org in your browser, copy the <code>logged-in-user</code> and <code>logged-in-sig</code> cookies (DevTools → Application → Cookies),
+        and paste them here as <code>logged-in-user=...; logged-in-sig=...</code>. These cookies are required for login-gated items.
         {(settings as unknown as Record<string, string>).iaCookie === '***set***' || ((settings as unknown as Record<string, string>).iaCookie || '').trim()
           ? 'Cookie is set.'
-          : 'No cookie set — public items still download fine.'}
+          : 'Public items still download fine.'}
       </p>
       <div style={{ marginBottom: '24px', maxWidth: '520px' }}>
         <input
