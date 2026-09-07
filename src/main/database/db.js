@@ -93,7 +93,37 @@ class DatabaseManager {
         FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
       );
 
-      -- Download history
+      -- Game metadata (RAWG enrichment, keyed by CUSA title id)
+      CREATE TABLE IF NOT EXISTS metadata (        title_id TEXT PRIMARY KEY,
+        rawg_id INTEGER,
+        rawg_slug TEXT,
+        name TEXT,
+        genres TEXT,
+        description TEXT,
+        metacritic INTEGER,
+        rating REAL,
+        screenshots TEXT,
+        trailers TEXT,
+        match_confidence TEXT,
+        fetched_at TEXT DEFAULT (datetime('now'))
+      );
+
+      -- Catalog sightings: first-seen date per CUSA (powers "New" view).
+      -- Rows are only ever inserted, never updated.
+      CREATE TABLE IF NOT EXISTS catalog_sightings (
+        title_id TEXT PRIMARY KEY,
+        first_seen TEXT DEFAULT (datetime('now'))
+      );
+    `);
+
+    // Guarded migration for pre-existing databases
+    try {
+      this.db.exec('ALTER TABLE metadata ADD COLUMN ps4 INTEGER DEFAULT NULL');
+    } catch {
+      /* column already exists */
+    }
+
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS downloads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         game_id INTEGER,

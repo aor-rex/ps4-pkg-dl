@@ -12,6 +12,7 @@ class DownloadManager extends EventEmitter {
    * @param {number} [options.maxConcurrent=2] - Max concurrent downloads (1-5)
    * @param {number} [options.retryCount=3] - Default retry count
    * @param {number} [options.retryDelay=30000] - Default retry delay (ms)
+   * @param {Object} [options.defaultHeaders] - Extra HTTP headers for every download
    */
   constructor(options = {}) {
     super();
@@ -20,6 +21,7 @@ class DownloadManager extends EventEmitter {
     this.maxConcurrent = Math.min(5, Math.max(1, options.maxConcurrent || 2));
     this.retryCount = options.retryCount || 3;
     this.retryDelay = options.retryDelay || 30000;
+    this.defaultHeaders = options.defaultHeaders || null;
     
     // Download collections
     this.downloads = new Map(); // id -> DownloadEngine
@@ -51,6 +53,7 @@ class DownloadManager extends EventEmitter {
       filename: config.filename || null,
       retryCount: this.retryCount,
       retryDelay: this.retryDelay,
+      headers: config.headers || this.defaultHeaders || null,
     });
     
     const downloadInfo = {
@@ -323,6 +326,13 @@ class DownloadManager extends EventEmitter {
    */
   setDownloadDir(dir) {
     this.downloadDir = dir;
+  }
+
+  /**
+   * Set default headers (e.g. archive.org login Cookie)
+   */
+  setDefaultHeaders(headers) {
+    this.defaultHeaders = headers || null;
   }
   
   /**

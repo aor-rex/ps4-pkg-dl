@@ -16,6 +16,7 @@ class DownloadEngine extends EventEmitter {
    * @param {number} [options.retryDelay=30000] - Delay between retries (ms)
    * @param {number} [options.timeout=300000] - Download timeout (ms)
    * @param {number|null} [options.speedLimit=null] - Speed limit in bytes/s (null = unlimited)
+   * @param {Object} [options.headers] - Extra HTTP headers (e.g. archive.org login Cookie)
    */
   constructor(options) {
     super();
@@ -28,6 +29,7 @@ class DownloadEngine extends EventEmitter {
     this.retryDelay = options.retryDelay || 30000;
     this.timeout = options.timeout || 300000;
     this.speedLimit = options.speedLimit || null;
+    this.headers = options.headers || null;
     
     this.downloader = null;
     this.state = 'idle'; // idle, downloading, paused, resumed, completed, failed, cancelled, retrying
@@ -63,6 +65,7 @@ class DownloadEngine extends EventEmitter {
       override: false, // Don't override existing files
       fileName: this.filename,
       timeout: this.timeout,
+      headers: this.headers || {},
       httpsRequestOptions: {},
       resume: true, // Enable resume support
       removeOnStop: false, // Keep partial files on pause

@@ -23,6 +23,19 @@ const DEFAULT_SETTINGS = {
   customExtractDir: '',
   deleteArchiveAfterExtract: false,
   
+  // Catalog sources (user-supplied games.json — empty by default, Settings → Library).
+  // [{id, type:'url'|'file', location, label, enabled}]
+  catalogs: [],
+  catalogTtlHours: 24,
+  apiPort: 3100,
+  // archive.org login cookie ("logged-in-user=...; logged-in-sig=...") —
+  // required because the FPKG items return 401 without it.
+  iaCookie: '',
+
+  // Metadata (RAWG enrichment — dev/operator key only, never shipped)
+  rawgApiKey: '',
+  metadataTtlDays: 30,
+
   // Network
   downloadTimeout: 300, // seconds
   connectionTimeout: 30, // seconds
@@ -155,13 +168,13 @@ class SettingsManager {
   }
   
   /**
-   * Check if yt-dlp is available
+   * Remove a setting key (used by migrations)
    */
-  async checkYtDlp() {
-    const { checkYtDlp } = require('./scraper/mirror-resolver');
-    return await checkYtDlp(this.settings.ytdlpPath);
+  remove(key) {
+    delete this.settings[key];
+    this.save();
   }
-  
+
   /**
    * Get config file path
    */

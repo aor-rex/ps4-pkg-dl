@@ -1,972 +1,295 @@
 #!/usr/bin/env node
-
+/** ps4dl CLI — thin wrapper over the archive catalog + download engine + API server. */
 const { Command } = require('commander');
-const path = require('path');
+const { bootstrapContext } = require('../server/context');
+const { createApp } = require('../server/app');
 
-// Initialize components
-const { scrapeCategoryMulti, scrapeGameDetail, searchGames, BASE_URL: DLPSGAME_URL } = require('../main/scraper/dlpsgame');
-const { searchGames: searchPkgps4, scrapeGameDetail: scrapePkgps4, BASE_URL: PKGPS4_URL } = require('../main/scraper/pkgps4');
-const { searchGames: searchSuperpsx, scrapeGameDetail: scrapeSuperpsx, BASE_URL: SUPERPSX_URL } = require('../main/scraper/superpsx');
-const { resolveMirror, checkYtDlp } = require('../main/scraper/mirror-resolver');
-const { DownloadManager } = require('../main/downloader/manager');
-const { Extractor } = require('../main/extractor/extractor');
-const { SettingsManager } = require('../main/settings');
-const { Logger } = require('../main/logger');
-
-// Phase 2: Database, caching, notifications
-const { dbManager } = require('../main/database/db');
-const { DownloadHistory } = require('../main/database/downloads');
-const { GameCache, CACHE_TTL_HOURS } = require('../main/database/cache');
-const { NotificationManager } = require('../main/notifications');
-
-// Initialize database
-dbManager.initialize();
-const downloadHistory = new DownloadHistory();
-const gameCache = new GameCache();
-const notifications = new NotificationManager();
-
-// Initialize logger
-const logger = new Logger({ level: 'info' });
-
-// Initialize settings
-const settings = new SettingsManager();
-settings.load();
-
-// Apply notification preferences
-notifications.setPreferences({
-  downloadComplete: settings.get('notifyOnComplete'),
-  downloadFailed: settings.get('notifyOnFailed'),
-  extractComplete: settings.get('notifyOnExtractComplete'),
-  soundAlert: settings.get('soundAlert'),
-});
-
-// Initialize download manager
-const downloadManager = new DownloadManager({
-  downloadDir: settings.getDownloadDir(),
-  maxConcurrent: settings.get('maxConcurrentDownloads'),
-  retryCount: settings.get('retryCount'),
-  retryDelay: settings.get('retryDelay') * 1000,
-});
-
-// Initialize extractor
-const extractor = new Extractor({
-  extractTo: settings.get('extractTo'),
-  customDir: settings.get('customExtractDir') || null,
-  deleteAfterExtract: settings.get('deleteArchiveAfterExtract'),
-  formats: settings.get('extractFormats'),
-});
-
-// Initialize CLI
+const ctx = bootstrapContext();
 const program = new Command();
 
-program
-  .name('ps4dl')
-  .description('PS4 PKG Downloader - Browse and download PS4 games from dlpsgame.com')
-  .version('0.1.0');
+program.name('ps4dl').description('PS4 PKG Downloader — Internet Archive FPKGi catalog').version('0.1.0');
 
-// ─────────────────────────────────────────────
-// SEARCH COMMAND
-// ─────────────────────────────────────────────
+function printList(items, total, page, pages) {
+  console.log('─'.repeat(100));
+  console.log(`${'#'.padEnd(4)} ${'Title'.padEnd(45)} ${'CUSA'.padEnd(12)} ${'Region'.padEnd(8)} ${'Size'}`);
+  console.log('─'.repeat(100));
+  items.forEach((g, i) => {
+    const n = String((page - 1) * items.length + i + 1).padEnd(4);
+    const t = (g.title.length > 43 ? g.title.slice(0, 40) + '...' : g.title).padEnd(45);
+    console.log(`${n} ${t} ${(g.titleId || '').padEnd(12)} ${(g.region || '').padEnd(8)} ${g.size}`);
+  });
+  console.log('─'.repeat(100));
+  console.log(`Page ${page}/${pages} — ${total} total`);
+}
+
 program
   .command('search <query>')
-  .description('Search for PS4 games by title')
-  .option('-p, --pages <number>', 'Maximum pages to scrape', '3')
-  .option('-s, --source <scraper>', 'Source to use: dlpsgame, pkgps4, superpsx', 'dlpsgame')
-  .option('--no-cache', 'Skip cache and scrape live')
-  .action(async (query, options) => {
-    const maxPages = parseInt(options.pages);
-    const useCache = options.cache !== false;
-    const source = options.source.toLowerCase();
-    
-    // Select scraper based on source
-    let scraper;
-    let baseUrl;
-    switch (source) {
-      case 'pkgps4':
-        scraper = { search: searchPkgps4, detail: scrapePkgps4 };
-        baseUrl = PKGPS4_URL;
-        break;
-      case 'superpsx':
-        scraper = { search: searchSuperpsx, detail: scrapeSuperpsx };
-        baseUrl = SUPERPSX_URL;
-        break;
-      case 'dlpsgame':
-      default:
-        scraper = { search: searchGames, detail: scrapeGameDetail };
-        baseUrl = DLPSGAME_URL;
-    }
-    
-    console.log(`\n🔍 Searching for: "${query}" (source: ${source}, up to ${maxPages} pages)...\n`);
-    
-    try {
-      // Try cache first
-      if (useCache) {
-        const cachedResults = gameCache.search(query);
-        if (cachedResults.length > 0) {
-          console.log(`Found ${cachedResults.length} cached PS4 game(s):\n`);
-          printGameList(cachedResults);
-          console.log(`\n💡 Use "ps4dl info <slug>" to view game details`);
-          console.log(`💡 Use --no-cache to scrape fresh data\n`);
-          return;
-        }
-      }
-      
-      // Scrape live
-      const results = await scraper.search(query, maxPages);
-      
-      if (results.length === 0) {
-        console.log('No PS4 games found matching your search.');
-        return;
-      }
-
-      // Save to cache
-      for (const game of results) {
-        gameCache.saveGame(game);
-      }
-      
-      console.log(`Found ${results.length} PS4 game(s):\n`);
-      printGameList(results.map(g => ({
-        id: null,
-        title: g.title,
-        slug: g.slug,
-        cover: g.cover,
-        mirrorCount: null,
-      })));
-      
-      console.log(`\n💡 Use "ps4dl info <slug>" to view game details`);
-    } catch (error) {
-      logger.error(`Search failed: ${error.message}`);
-      process.exit(1);
-    }
+  .description('Search the archive catalog')
+  .option('-p, --page <n>', 'Page number', '1')
+  .option('-l, --limit <n>', 'Results per page', '20')
+  .option('-r, --region <r>', 'Filter by region (USA/EUR/...)', '')
+  .action(async (query, opts) => {
+    const res = await ctx.archive.list({
+      q: query,
+      region: opts.region,
+      page: parseInt(opts.page, 10),
+      limit: parseInt(opts.limit, 10),
+    });
+    if (!res.total) return console.log('No games found.');
+    printList(res.items, res.total, res.page, res.pages);
   });
 
-// ─────────────────────────────────────────────
-// INFO COMMAND
-// ─────────────────────────────────────────────
 program
-  .command('info <slug>')
-  .description('View detailed information about a game')
-  .option('-s, --source <scraper>', 'Source to use: dlpsgame, pkgps4, superpsx', 'dlpsgame')
-  .option('--no-cache', 'Skip cache and scrape live')
-  .action(async (slug, options) => {
-    const source = options.source.toLowerCase();
-    
-    // Select scraper based on source
-    let scraper;
-    let baseUrl;
-    switch (source) {
-      case 'pkgps4':
-        scraper = { search: searchPkgps4, detail: scrapePkgps4 };
-        baseUrl = PKGPS4_URL;
-        break;
-      case 'superpsx':
-        scraper = { search: searchSuperpsx, detail: scrapeSuperpsx };
-        baseUrl = SUPERPSX_URL;
-        break;
-      case 'dlpsgame':
-      default:
-        scraper = { search: searchGames, detail: scrapeGameDetail };
-        baseUrl = DLPSGAME_URL;
-    }
-    
-    const gameUrl = slug.startsWith('http') ? slug : `${baseUrl}/${slug}/`;
-    const useCache = options.cache !== false;
-    
-    try {
-      // Try cache first
-      if (useCache) {
-        const cachedGame = gameCache.getBySlug(slug);
-        if (cachedGame && gameCache.isCached(slug)) {
-          console.log(`\n📋 Loaded from cache: ${cachedGame.title}\n`);
-          printGameDetail(cachedGame);
-          return;
-        }
-      }
-      
-      // Scrape live
-      console.log(`\n📋 Fetching game details...\n`);
-      const game = await scraper.detail(gameUrl);
-      
-      // Save to cache
-      gameCache.saveFullGame(game);
-      
-      printGameDetail(game);
-    } catch (error) {
-      logger.error(`Failed to fetch game info: ${error.message}`);
-      process.exit(1);
-    }
+  .command('browse')
+  .description('Browse the catalog (paginated)')
+  .option('-p, --page <n>', 'Page number', '1')
+  .option('-l, --limit <n>', 'Results per page', '20')
+  .action(async (opts) => {
+    const res = await ctx.archive.list({ page: parseInt(opts.page, 10), limit: parseInt(opts.limit, 10) });
+    printList(res.items, res.total, res.page, res.pages);
   });
 
-// ─────────────────────────────────────────────
-// DOWNLOAD COMMAND
-// ─────────────────────────────────────────────
 program
-  .command('download <slug>')
-  .description('Download a game file')
-  .requiredOption('-m, --mirror <host>', 'Mirror to use (e.g., MediaFire, Viking File, Akiabox)')
-  .option('-u, --url <url>', 'Direct mirror URL (skip scraping)')
-  .option('-l, --label <label>', 'Download label', 'Download')
-  .option('-i, --interactive', 'Open browser for manual interaction (e.g., captchas)', false)
-  .option('-s, --source <scraper>', 'Source to use: dlpsgame, pkgps4, superpsx', 'dlpsgame')
-  .action(async (slug, options) => {
-    let mirrorUrl = options.url;
-    const isInteractive = options.interactive === true;
-    const source = options.source.toLowerCase();
-    
-    // Select scraper based on source
-    let scraper;
-    let baseUrl;
-    switch (source) {
-      case 'pkgps4':
-        scraper = { detail: scrapePkgps4 };
-        baseUrl = PKGPS4_URL;
-        break;
-      case 'superpsx':
-        scraper = { detail: scrapeSuperpsx };
-        baseUrl = SUPERPSX_URL;
-        break;
-      case 'dlpsgame':
-      default:
-        scraper = { detail: scrapeGameDetail };
-        baseUrl = DLPSGAME_URL;
-    }
-    
-    // If no direct URL provided, scrape it from the game page
-    if (!mirrorUrl) {
-      const gameUrl = slug.startsWith('http') ? slug : `${baseUrl}/${slug}/`;
-      
-      console.log(`\n🔍 Scraping game page for ${options.mirror} link (source: ${source})...`);
-      
-      try {
-        const game = await scraper.detail(gameUrl);
-        
-        // Find the requested mirror
-        let foundMirror = null;
-        for (const group of game.downloads) {
-          for (const m of group.mirrors) {
-            if (m.host.toLowerCase().includes(options.mirror.toLowerCase())) {
-              foundMirror = m;
-              break;
-            }
-          }
-          if (foundMirror) break;
-        }
-        
-        if (!foundMirror) {
-          console.error(`\n❌ Mirror "${options.mirror}" not found for this game.`);
-          console.log('\nAvailable mirrors:');
-          for (const group of game.downloads) {
-            console.log(`  ${group.type}:`);
-            for (const m of group.mirrors) {
-              console.log(`    • ${m.host}`);
-            }
-          }
-          process.exit(1);
-        }
-        
-        mirrorUrl = foundMirror.url;
-        console.log(`✓ Found ${options.mirror} link`);
-      } catch (error) {
-        logger.error(`Failed to scrape game page: ${error.message}`);
+  .command('info <titleId>')
+  .description('Show all PKG variants for a CUSA id (e.g. CUSA09267)')
+  .action(async (titleId) => {
+    const variants = await ctx.archive.getVariants(titleId);
+    if (!variants.length) return console.log(`No game found for ${titleId}`);
+    console.log(`\n${variants[0].title} — ${variants.length} variant(s):\n`);
+    variants.forEach((v, i) => {
+      console.log(`  ${i + 1}. [${v.region}] v${v.version} — ${v.size}\n     ${v.pkgUrl}`);
+    });
+    console.log();
+  });
+
+program
+  .command('download <titleIdOrUrl>')
+  .description('Queue a direct PKG download (CUSA id uses first variant; pass full URL for exact)')
+  .action(async (titleIdOrUrl) => {
+    let entry;
+    if (/^https?:\/\//i.test(titleIdOrUrl)) entry = await ctx.archive.getByPkgUrl(titleIdOrUrl);
+    else {
+      const variants = await ctx.archive.getVariants(titleIdOrUrl);
+      if (!variants.length) {
+        console.error(`No game found for ${titleIdOrUrl}`);
         process.exit(1);
       }
+      entry = variants[0];
+      if (variants.length > 1) console.log(`Note: ${variants.length} variants; downloading first (${entry.region} v${entry.version}). Pass full PKG URL for exact.`);
     }
-    
-    // Resolve the mirror URL to a direct download URL
-    console.log(`\n🔗 Resolving download link from ${options.mirror}...`);
-    console.log(`   URL: ${mirrorUrl.substring(0, 80)}...\n`);
-    
-    let directUrl;
-    try {
-      const result = await resolveMirror(mirrorUrl, { 
-        ytdlpPath: settings.get('ytdlpPath'),
-        headless: !isInteractive,
-      });
-      
-      if (!result.success) {
-        console.error(`\n❌ Failed to resolve link: ${result.error}`);
-        process.exit(1);
-      }
-      
-      directUrl = result.directUrl;
-      console.log(`✓ Resolved direct URL`);
-    } catch (error) {
-      logger.error(`Link resolution failed: ${error.message}`);
+    if (!entry) {
+      console.error('PKG not found in catalog.');
       process.exit(1);
     }
-    
-    // Start the download
-    const downloadDir = settings.getDownloadDir();
-    console.log(`\n📥 Starting download to: ${downloadDir}\n`);
-
-    // Create download history record
-    const historyId = downloadHistory.create({
-      gameTitle: slug,
-      fileType: options.label,
-      mirrorHost: options.mirror,
-      mirrorUrl: mirrorUrl,
-      directUrl: directUrl,
-      status: 'queued',
-    });
-
-    const downloadId = downloadManager.add({
-      url: directUrl,
-      destination: downloadDir,
-      label: options.label,
-      source: options.mirror,
-      gameTitle: slug,
-    });
-
-    // Update history with manager ID
-    // (historyId is DB ID, downloadId is manager ID — they're different)
-    
-    // Track progress
-    const progressInterval = setInterval(() => {
-      const status = downloadManager.getStatus(downloadId);
-      if (!status) return;
-      
-      if (status.state === 'downloading') {
-        const percent = status.stats.percent.toFixed(1).padStart(5);
-        const speed = formatSpeed(status.stats.speed);
-        const eta = formatEta(status.stats.eta);
-        
-        const barWidth = 30;
-        const filledWidth = Math.round((status.stats.percent / 100) * barWidth);
-        const emptyWidth = barWidth - filledWidth;
-        const bar = '█'.repeat(filledWidth) + '░'.repeat(emptyWidth);
-        
-        process.stdout.write(`\r  ${bar} ${percent}% | ${speed} | ETA: ${eta}`);
-      }
-    }, 500);
-    
-    // Listen for completion
-    downloadManager.on('download:complete', (data) => {
-      if (data.id === downloadId) {
-        clearInterval(progressInterval);
-        console.log(`\n\n✅ Download complete: ${data.filename}`);
-        console.log(`   Saved to: ${data.path}`);
-        
-        // Update database
-        downloadHistory.markCompleted(historyId, data.path, data.size);
-        
-        // Send notification
-        notifications.sendDownloadComplete(data.filename, data.path);
-        
-        // Trigger auto-extract if enabled
-        if (settings.get('autoExtract') && extractor.isArchive(data.path)) {
-          console.log(`\n📦 Auto-extracting archive...`);
-          extractFile(data.path);
-        }
-      }
-    });
-    
-    // Listen for errors
-    downloadManager.on('download:error', (data) => {
-      if (data.id === downloadId) {
-        clearInterval(progressInterval);
-        console.error(`\n\n❌ Download failed: ${data.error}`);
-        
-        // Update database
-        downloadHistory.markFailed(historyId, data.error);
-        
-        // Send notification
-        notifications.sendDownloadFailed(data.label || slug, data.error);
-      }
-    });
-    
-    // Mark as started in database
-    downloadHistory.markStarted(historyId);
-    
-    // Wait for download to finish (or fail)
-    await waitForDownload(downloadId);
+    const { id } = ctx.queuePkgDownload(entry);
+    console.log(`Queued: ${entry.title} (${entry.size}) — id ${id}`);
   });
 
-// ─────────────────────────────────────────────
-// RESOLVE COMMAND
-// ─────────────────────────────────────────────
-program
-  .command('resolve <url>')
-  .description('Resolve a file host URL to a direct download link')
-  .option('-i, --interactive', 'Open browser for manual interaction (e.g., captchas)', false)
-  .action(async (url, options) => {
-    const isInteractive = options.interactive === true;
-    console.log(`\n🔗 Resolving: ${url.substring(0, 80)}...\n`);
-    
-    try {
-      const result = await resolveMirror(url, { 
-        ytdlpPath: settings.get('ytdlpPath'),
-        headless: !isInteractive,
-      });
-      
-      if (result.success) {
-        console.log(`✓ Resolved successfully:`);
-        console.log(`  Direct URL: ${result.directUrl}`);
-        if (result.filename) console.log(`  Filename: ${result.filename}`);
-      } else {
-        console.error(`✗ Failed to resolve: ${result.error}`);
-      }
-    } catch (error) {
-      logger.error(`Resolution failed: ${error.message}`);
-      process.exit(1);
-    }
-  });
-
-// ─────────────────────────────────────────────
-// STATUS COMMAND
-// ─────────────────────────────────────────────
 program
   .command('status')
-  .description('Show active download status')
+  .description('Show download queue')
   .action(() => {
-    const all = downloadManager.getAll('all');
-    
-    if (all.length === 0) {
-      console.log('\n📭 No downloads in queue.\n');
-      return;
-    }
-    
-    console.log('\n📥 Downloads:\n');
-    console.log('─'.repeat(100));
-    
-    for (const dl of all) {
-      const stateIcon = getStateIcon(dl.state);
-      const percent = dl.stats?.percent?.toFixed(1) || '100.0';
-      const speed = dl.stats?.speed ? formatSpeed(dl.stats.speed) : '—';
-      const eta = dl.stats?.eta !== undefined && dl.stats.eta !== Infinity ? formatEta(dl.stats.eta) : '—';
-      
-      const label = dl.label || dl.filename || 'Unknown';
-      const labelTruncated = label.length > 35 ? label.substring(0, 32) + '...' : label;
-      
-      console.log(`  ${stateIcon} ${labelTruncated.padEnd(38)} ${percent.padStart(6)}%  ${speed.padStart(12)}  ${eta}`);
-      
-      if (dl.error) {
-        console.log(`     Error: ${dl.error}`);
-      }
-    }
-    
-    console.log('─'.repeat(100));
-    console.log(`\n  Active: ${downloadManager.getActiveCount()} | Queued: ${downloadManager.getQueueLength()} | Completed: ${downloadManager.getCompletedCount()}`);
-    console.log();
+    const all = ctx.listDownloads();
+    if (!all.length) return console.log('\nNo downloads in queue.\n');
+    for (const d of all) console.log(`  ${d.status.padEnd(10)} ${d.progress}%  ${d.label}`);
   });
 
-// ─────────────────────────────────────────────
-// EXTRACT COMMAND
-// ─────────────────────────────────────────────
 program
-  .command('extract <file>')
-  .description('Extract an archive file')
-  .option('-d, --destination <dir>', 'Extraction destination')
-  .option('--delete', 'Delete archive after extraction')
-  .action(async (file, options) => {
-    const filePath = path.resolve(file);
-    
-    console.log(`\n📦 Extracting: ${filePath}\n`);
-    
+  .command('catalog')
+  .description('Show catalog status / refresh')
+  .option('--refresh', 'Force re-fetch games.json from the archive')
+  .action(async (opts) => {
+    if (opts.refresh) await ctx.archive.refresh(true);
+    else await ctx.archive.ensure().catch(() => {});
+    console.log(ctx.archive.status());
+  });
+
+program
+  .command('catalog-set <url>')
+  .description('Validate + load a user-supplied games.json URL')
+  .action(async (url) => {
     try {
-      const result = await extractor.extract(filePath, {
-        destination: options.destination || null,
-        deleteAfterExtract: options.delete || false,
-      });
-      
-      if (result.success) {
-        console.log(`✅ Extracted ${result.fileCount} files to: ${result.destination}`);
-      } else {
-        console.error(`❌ Extraction failed: ${result.error}`);
-        process.exit(1);
-      }
-    } catch (error) {
-      logger.error(`Extraction failed: ${error.message}`);
+      const status = await ctx.archive.loadUrl(url);
+      ctx.settings.set('catalogUrl', status.catalogUrl);
+      console.log(`Catalog loaded: ${status.count} games`);
+    } catch (err) {
+      console.error(`Failed: ${err.message}`);
       process.exit(1);
     }
   });
 
-// ─────────────────────────────────────────────
-// CHECK COMMAND
-// ─────────────────────────────────────────────
 program
-  .command('check')
-  .description('Check yt-dlp and system configuration')
-  .action(async () => {
-    console.log('\n🔧 System Check:\n');
-    
-    // Check yt-dlp
-    const ytdlpPath = settings.get('ytdlpPath');
-    const ytdlpCheck = await checkYtDlp(ytdlpPath);
-    
-    if (ytdlpCheck.available) {
-      console.log(`  ✓ yt-dlp: ${ytdlpPath} (version ${ytdlpCheck.version})`);
-    } else {
-      console.log(`  ✗ yt-dlp: Not found at "${ytdlpPath}"`);
-      console.log(`    Install: pip install yt-dlp`);
-      console.log(`    Or download from: https://github.com/yt-dlp/yt-dlp`);
+  .command('backfill')
+  .description('Enrich the whole catalog into the metadata DB (throttled, resumable)')
+  .option('--refresh', 'Re-enrich even fresh entries (default: fill missing only)')
+  .action(async (opts) => {
+    const state = await ctx.backfill.start(opts.refresh ? 'refresh' : 'missing');
+    if (state.status === 'error') {
+      console.error(`Cannot start: ${state.error}`);
+      process.exit(1);
     }
-    
-    // Check download directory
-    const downloadDir = settings.get('downloadDir');
-    if (require('fs').existsSync(downloadDir)) {
-      console.log(`  ✓ Download directory: ${downloadDir}`);
-    } else {
-      console.log(`  ⚠ Download directory does not exist: ${downloadDir}`);
-    }
-    
-    // Check settings
-    console.log(`\n  Settings file: ${settings.getConfigPath()}`);
-    console.log(`  Max concurrent downloads: ${settings.get('maxConcurrentDownloads')}`);
-    console.log(`  Auto-extract: ${settings.get('autoExtract') ? 'ON' : 'OFF'}`);
-    console.log(`  Extract formats: ${settings.get('extractFormats').join(', ')}`);
-    console.log(`  Delete after extract: ${settings.get('deleteArchiveAfterExtract') ? 'ON' : 'OFF'}`);
-    console.log();
-  });
-
-// ─────────────────────────────────────────────
-// SETTINGS COMMAND
-// ─────────────────────────────────────────────
-program
-  .command('settings')
-  .description('View or modify settings')
-  .argument('[key]', 'Setting key to view or modify')
-  .argument('[value]', 'New value for the setting')
-  .action((key, value) => {
-    const all = settings.getAll();
-    
-    if (!key) {
-      // Show all settings
-      console.log('\n⚙️  Settings:\n');
-      for (const [k, v] of Object.entries(all)) {
-        const displayValue = v === null ? 'null' : typeof v === 'object' ? JSON.stringify(v) : v;
-        console.log(`  ${k.padEnd(30)} ${displayValue}`);
-      }
-      console.log();
-      return;
-    }
-    
-    if (value !== undefined) {
-      // Set a setting
-      let parsedValue = value;
-      
-      // Parse boolean
-      if (value === 'true') parsedValue = true;
-      else if (value === 'false') parsedValue = false;
-      // Parse number
-      else if (!isNaN(value)) parsedValue = Number(value);
-      // Parse null
-      else if (value === 'null') parsedValue = null;
-      
-      settings.set(key, parsedValue);
-      console.log(`\n✓ Set "${key}" to "${parsedValue}"\n`);
-    } else {
-      // Get a setting
-      const val = settings.get(key);
-      if (val !== undefined) {
-        console.log(`\n  ${key}: ${val}\n`);
-      } else {
-        console.error(`\n✗ Unknown setting: ${key}\n`);
-        process.exit(1);
+    console.log(`Backfill running (${state.total} targets) — polling progress…`);
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 3000));
+      const s = ctx.backfill.snapshot();
+      const pct = s.total ? Math.round((s.done / s.total) * 100) : 100;
+      process.stdout.write(`\r  ${s.done}/${s.total} (${pct}%) exact:${s.exact} high:${s.high} missed:${s.missed.length} ${s.current ? s.current.titleId : ''}   `);
+      if (s.status !== 'running') {
+        console.log(`\n${s.status}: ${s.done}/${s.total} — exact ${s.exact}, high ${s.high}, missed ${s.missed.length}`);
+        if (s.missed.length) {
+          console.log('Missed:');
+          for (const m of s.missed.slice(0, 30)) console.log(`  ${m.titleId}  ${m.title}  (${m.reason})`);
+          if (s.missed.length > 30) console.log(`  …and ${s.missed.length - 30} more`);
+        }
+        break;
       }
     }
   });
-
-// ─────────────────────────────────────────────
-// HELPER FUNCTIONS
-// ─────────────────────────────────────────────
-
-/**
- * Wait for a download to complete or fail
- */
-function waitForDownload(downloadId) {
-  return new Promise((resolve) => {
-    const check = setInterval(() => {
-      const status = downloadManager.getStatus(downloadId);
-      if (!status) {
-        clearInterval(check);
-        resolve();
-        return;
-      }
-      
-      if (status.state === 'completed' || status.state === 'failed' || status.state === 'cancelled') {
-        clearInterval(check);
-        resolve();
-      }
-    }, 1000);
-    
-    // Timeout after 5 hours
-    setTimeout(() => {
-      clearInterval(check);
-      console.error('\n\n⏰ Download timed out (5 hours)');
-      resolve();
-    }, 5 * 60 * 60 * 1000);
-  });
-}
-
-/**
- * Extract a file with progress
- */
-async function extractFile(filePath) {
-  try {
-    const result = await extractor.extract(filePath);
-    
-    if (result.success) {
-      console.log(`✅ Extracted ${result.fileCount} files to: ${result.destination}`);
-    } else {
-      console.error(`❌ Extraction failed: ${result.error}`);
-    }
-  } catch (error) {
-    console.error(`❌ Extraction error: ${error.message}`);
-  }
-}
-
-/**
- * Format bytes/s to human-readable speed
- */
-function formatSpeed(bytesPerSecond) {
-  if (!bytesPerSecond || bytesPerSecond === 0) return '0 B/s';
-  
-  const units = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
-  let i = 0;
-  let speed = bytesPerSecond;
-  
-  while (speed >= 1024 && i < units.length - 1) {
-    speed /= 1024;
-    i++;
-  }
-  
-  return `${speed.toFixed(1)} ${units[i]}`;
-}
-
-/**
- * Format ETA seconds to human-readable
- */
-function formatEta(seconds) {
-  if (!seconds || seconds === Infinity) return '—';
-  
-  seconds = Math.round(seconds);
-  
-  if (seconds < 60) return `${seconds}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
-}
-
-/**
- * Get state icon emoji
- */
-function getStateIcon(state) {
-  const icons = {
-    idle: '⏳',
-    downloading: '⬇️',
-    paused: '⏸️',
-    completed: '✅',
-    failed: '❌',
-    cancelled: '⛔',
-    retrying: '🔄',
-  };
-  return icons[state] || '❓';
-}
-
-// Helper and formatting functions
-function printGameList(games) {
-  console.log('─'.repeat(80));
-  console.log(`${'#'.padEnd(4)} ${'Title'.padEnd(40)} ${'Slug'.padEnd(30)}`);
-  console.log('─'.repeat(80));
-  
-  games.forEach((game, i) => {
-    const num = String(i + 1).padEnd(4);
-    const title = game.title.length > 38 ? game.title.substring(0, 35) + '...' : game.title.padEnd(40);
-    const slug = game.slug.length > 28 ? game.slug.substring(0, 25) + '...' : game.slug.padEnd(30);
-    console.log(`${num} ${title} ${slug}`);
-  });
-  
-  console.log('─'.repeat(80));
-}
-
-function printGameDetail(game) {
-  console.log('═'.repeat(80));
-  console.log(`  ${game.title}`);
-  console.log('═'.repeat(80));
-  console.log();
-  
-  if (game.size) console.log(`  📦 Size: ${game.size}`);
-  if (game.region) console.log(`  🌍 Region: ${game.region}`);
-  if (game.version) console.log(`  🔖 Version: ${game.version}`);
-  if (game.date) console.log(`  📅 Date: ${game.date}`);
-  console.log(`  🔗 URL: ${game.url}`);
-  console.log();
-  
-  if (game.gallery && game.gallery.length > 0) {
-    console.log(`  📸 Gallery: ${game.gallery.length} image(s)`);
-    console.log();
-  }
-  
-  if (game.videos && game.videos.length > 0) {
-    console.log(`  🎬 Videos: ${game.videos.length} video(s)`);
-    game.videos.forEach((v, i) => {
-      console.log(`     ${i + 1}. ${v.title || 'Video'}: ${v.url}`);
-    });
-    console.log();
-  }
-  
-  if (game.description) {
-    console.log(`  📝 Description:`);
-    console.log(`  ${game.description.substring(0, 300)}${game.description.length > 300 ? '...' : ''}`);
-    console.log();
-  }
-  
-  if (game.downloads && game.downloads.length > 0) {
-    console.log(`  📥 Download Options:`);
-    console.log();
-    
-    for (const group of game.downloads) {
-      const sizeStr = group.size ? ` (${group.size})` : '';
-      console.log(`     ${group.type}${sizeStr}:`);
-      
-      for (const mirror of group.mirrors) {
-        console.log(`       • ${mirror.host}: ${mirror.url.substring(0, 80)}${mirror.url.length > 80 ? '...' : ''}`);
-      }
-      console.log();
-    }
-  } else {
-    console.log(`  ⚠️  No download links found`);
-    console.log();
-  }
-  
-  console.log('─'.repeat(80));
-  console.log(`\n💡 Use "ps4dl download <slug> --mirror <host>" to start download`);
-}
-
-// ─────────────────────────────────────────────
-// Phase 2: New Commands
-// ─────────────────────────────────────────────
 
 program
-  .command('history')
-  .description('Show download history')
-  .option('-s, --status <status>', 'Filter by status (all/downloading/completed/failed)', 'all')
-  .option('-l, --limit <number>', 'Max results', '20')
-  .action((options) => {
-    const status = options.status;
-    const limit = parseInt(options.limit);
-    const downloads = downloadHistory.getAll(status, limit);
-
-    if (downloads.length === 0) {
-      console.log('\n📭 No download history.\n');
-      return;
-    }
-
-    console.log('\n📥 Download History:\n');
-    console.log('─'.repeat(100));
-    console.log(`${'ID'.padEnd(6)} ${'Game'.padEnd(30)} ${'Mirror'.padEnd(15)} ${'Status'.padEnd(12)} ${'Progress'.padEnd(10)} ${'Size'}`);
-    console.log('─'.repeat(100));
-
-    for (const dl of downloads) {
-      const id = String(dl.id).padEnd(6);
-      const title = (dl.game_title || 'Unknown').substring(0, 28).padEnd(30);
-      const mirror = (dl.mirror_host || 'Unknown').substring(0, 13).padEnd(15);
-      const statusStr = dl.status.padEnd(12);
-      const progress = `${dl.progress.toFixed(1)}%`.padEnd(10);
-      const size = dl.filesize ? formatBytes(dl.filesize) : '—';
-      console.log(`${id} ${title} ${mirror} ${statusStr} ${progress} ${size}`);
-
-      if (dl.error_message) {
-        console.log(`     Error: ${dl.error_message.substring(0, 80)}`);
-      }
-    }
-
-    console.log('─'.repeat(100));
-    const counts = downloadHistory.getCounts();
-    console.log(`\n  Total: ${counts.all} | Completed: ${counts.completed} | Failed: ${counts.failed} | Active: ${counts.downloading + counts.paused + counts.queued}`);
-    const totalDownloaded = downloadHistory.getTotalDownloaded();
-    if (totalDownloaded > 0) {
-      console.log(`  Total Downloaded: ${formatBytes(totalDownloaded)}`);
-    }
-    console.log();
+  .command('server')
+  .description('Start the Express API server')
+  .option('-p, --port <n>', 'Port', String(ctx.settings.get('apiPort') || 3100))
+  .action((opts) => {
+    const port = parseInt(opts.port, 10);
+    ctx.archive.ensure().catch((e) => console.error(`catalog warmup failed: ${e.message}`));
+    createApp(ctx).listen(port, () => console.log(`API listening on http://localhost:${port}`));
   });
 
-// Cache commands
-const cacheCmd = program.command('cache').description('Manage game data cache');
-
-cacheCmd.command('stats').description('Show cache statistics').action(() => {
-  const stats = gameCache.getStats();
-  console.log('\n📦 Cache Statistics:\n');
-  console.log(`  Games cached: ${stats.games}`);
-  console.log(`  Mirrors cached: ${stats.mirrors}`);
-  console.log(`  Images cached: ${stats.images}`);
-  console.log(`  Videos cached: ${stats.videos}`);
-  console.log(`  Cache TTL: ${stats.ttlHours} hours`);
-  if (stats.oldestCached) console.log(`  Oldest entry: ${stats.oldestCached}`);
-  if (stats.newestCached) console.log(`  Newest entry: ${stats.newestCached}`);
-  console.log();
-});
-
-cacheCmd.command('clear').description('Clear all cached game data').action(() => {
-  gameCache.clearAll();
-  console.log('\n✓ Cache cleared.\n');
-});
-
-cacheCmd.command('clean').description('Remove expired cache entries').action(() => {
-  const cleaned = gameCache.clearExpired();
-  console.log(`\n✓ Removed ${cleaned} expired entries.\n`);
-});
-
-// Database command
 program
   .command('db')
-  .description('Show database information')
+  .description('Show database stats')
   .action(() => {
-    const dbStats = dbManager.getStats();
-    const cacheStats = gameCache.getStats();
-    const dlCounts = downloadHistory.getCounts();
-
-    console.log('\n🗄️  Database Info:\n');
-    console.log(`  Database: ${dbStats.dbPath}`);
-    console.log(`  Size: ${dbStats.dbSize}`);
-    console.log();
-    console.log(`  Games: ${dbStats.games}`);
-    console.log(`  Images: ${dbStats.images}`);
-    console.log(`  Videos: ${dbStats.videos}`);
-    console.log(`  Mirrors: ${dbStats.mirrors}`);
-    console.log(`  Downloads: ${dbStats.downloads}`);
-    console.log();
-    console.log(`  Download Counts:`);
-    console.log(`    Completed: ${dlCounts.completed}`);
-    console.log(`    Failed: ${dlCounts.failed}`);
-    console.log(`    Active: ${dlCounts.downloading + dlCounts.paused + dlCounts.queued}`);
-    const totalDownloaded = downloadHistory.getTotalDownloaded();
-    if (totalDownloaded > 0) {
-      console.log(`    Total Downloaded: ${formatBytes(totalDownloaded)}`);
-    }
-    console.log();
+    console.log(require('../main/database/db').dbManager.getStats());
   });
 
-// Download control commands
+// ── Metadata (RAWG enrichment) ───────────────────────────────────────
 program
-  .command('pause <id>')
-  .description('Pause a download by ID')
-  .action(async (id) => {
-    const dl = downloadHistory.getById(parseInt(id));
-    if (!dl) {
-      console.error(`\n✗ Download #${id} not found.\n`);
+  .command('enrich <titleId>')
+  .description('Enrich one CUSA with RAWG metadata (CUSA table → exact match → fallback)')
+  .option('--rawg-id <n>', 'Force a specific RAWG game id (manual override)')
+  .action(async (titleId, opts) => {
+    const variants = await ctx.archive.getVariants(titleId).catch(() => []);
+    const meta = await ctx.metadata.get(
+      titleId,
+      variants[0]?.title || '',
+      opts.rawgId ? { rawgId: parseInt(opts.rawgId, 10) } : {}
+    );
+    if (!meta) {
+      console.log(`No metadata match for ${titleId}. Try --rawg-id <id> from rawg.io.`);
       process.exit(1);
     }
-    downloadHistory.markPaused(parseInt(id));
-    await downloadManager.pause(dl.id);
-    console.log(`\n⏸ Paused download #${id}\n`);
+    console.log(`${meta.name} [${meta.titleId}] (${meta.confidence})`);
+    console.log(`  genres: ${(meta.genres || []).join(', ') || '—'}`);
+    console.log(`  metacritic: ${meta.metacritic ?? '—'}  rating: ${meta.rating ?? '—'}`);
+    console.log(`  screenshots: ${(meta.screenshots || []).length}  trailers: ${(meta.trailers || []).length}`);
+    if (meta.description) console.log(`  ${meta.description.slice(0, 200)}…`);
   });
 
-program
-  .command('resume <id>')
-  .description('Resume a paused download by ID')
-  .action(async (id) => {
-    const dl = downloadHistory.getById(parseInt(id));
-    if (!dl) {
-      console.error(`\n✗ Download #${id} not found.\n`);
-      process.exit(1);
-    }
-    downloadHistory.markStarted(parseInt(id));
-    await downloadManager.resume(dl.id);
-    console.log(`\n▶ Resumed download #${id}\n`);
-  });
+const metadataCmd = program.command('metadata').description('Metadata cache management');
 
-program
-  .command('cancel <id>')
-  .description('Cancel a download by ID')
-  .action(async (id) => {
-    const dl = downloadHistory.getById(parseInt(id));
-    if (!dl) {
-      console.error(`\n✗ Download #${id} not found.\n`);
-      process.exit(1);
-    }
-    downloadHistory.markCancelled(parseInt(id));
-    await downloadManager.cancel(dl.id, true);
-    console.log(`\n⛔ Cancelled download #${id}\n`);
-  });
-
-program
-  .command('retry <id>')
-  .description('Retry a failed download by ID')
-  .action(async (id) => {
-    const success = downloadHistory.retry(parseInt(id));
-    if (!success) {
-      console.error(`\n✗ Download #${id} not found or not in failed state.\n`);
-      process.exit(1);
-    }
-    console.log(`\n🔄 Queued download #${id} for retry.\n`);
-  });
-
-program
-  .command('retry-all')
-  .description('Retry all failed downloads')
-  .action(() => {
-    const count = downloadHistory.retryAllFailed();
-    console.log(`\n🔄 Queued ${count} failed downloads for retry.\n`);
-  });
-
-program
-  .command('clear-history')
-  .description('Clear download history')
-  .option('--completed', 'Clear only completed downloads')
-  .option('--failed', 'Clear only failed downloads')
-  .option('--all', 'Clear all history')
-  .action((options) => {
-    if (options.completed) {
-      const count = downloadHistory.clearCompleted();
-      console.log(`\n✓ Cleared ${count} completed downloads.\n`);
-    } else if (options.failed) {
-      const count = downloadHistory.clearFailed();
-      console.log(`\n✓ Cleared ${count} failed downloads.\n`);
-    } else if (options.all) {
-      const count = downloadHistory.clearAll();
-      console.log(`\n✓ Cleared all download history (${count} entries).\n`);
-    } else {
-      console.log('\nSpecify --completed, --failed, or --all\n');
-    }
-  });
-
-// Update the check command to include database info
-const originalCheck = program.commands.find(c => c.name() === 'check');
-if (originalCheck) {
-  program.commands = program.commands.filter(c => c.name() !== 'check');
-}
-
-program
-  .command('check')
-  .description('Check yt-dlp and system configuration')
+metadataCmd
+  .command('stats')
+  .description('Show enrichment coverage')
   .action(async () => {
-    console.log('\n🔧 System Check:\n');
-    
-    const ytdlpPath = settings.get('ytdlpPath');
-    const ytdlpCheck = await checkYtDlp(ytdlpPath);
-    
-    if (ytdlpCheck.available) {
-      console.log(`  ✓ yt-dlp: ${ytdlpPath} (version ${ytdlpCheck.version})`);
-    } else {
-      console.log(`  ✗ yt-dlp: Not found at "${ytdlpPath}"`);
-      console.log(`    Install: pip install yt-dlp`);
-      console.log(`    Or download from: https://github.com/yt-dlp/yt-dlp`);
-    }
-    
-    const downloadDir = settings.get('downloadDir');
-    if (require('fs').existsSync(downloadDir)) {
-      console.log(`  ✓ Download directory: ${downloadDir}`);
-    } else {
-      console.log(`  ⚠ Download directory does not exist: ${downloadDir}`);
-    }
-    
-    console.log(`\n  Settings file: ${settings.getConfigPath()}`);
-    console.log(`  Max concurrent downloads: ${settings.get('maxConcurrentDownloads')}`);
-    console.log(`  Auto-extract: ${settings.get('autoExtract') ? 'ON' : 'OFF'}`);
-    console.log(`  Extract formats: ${settings.get('extractFormats').join(', ')}`);
-    console.log(`  Delete after extract: ${settings.get('deleteArchiveAfterExtract') ? 'ON' : 'OFF'}`);
-    
-    // Database info
-    console.log(`\n  Database: ${dbManager.getDbPath()}`);
-    console.log(`  Database size: ${dbManager.formatBytes(dbManager.getDbSize())}`);
-    const dbStats = dbManager.getStats();
-    console.log(`  Games cached: ${dbStats.games}`);
-    console.log(`  Download history entries: ${dbStats.downloads}`);
-    
-    console.log();
+    await ctx.archive.ensure().catch(() => {});
+    console.log(JSON.stringify({ ...ctx.metadata.status(), ...ctx.metadata.stats(ctx.archive.games.length) }, null, 2));
   });
 
+metadataCmd
+  .command('export [file]')
+  .description('Export metadata snapshot (ships with the app so users run keyless)')
+  .action((file) => {
+    const fs = require('fs');
+    const out = file || require('path').join(process.cwd(), 'metadata-snapshot.json');
+    const rows = ctx.metadata.exportAll();
+    fs.writeFileSync(out, JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), metadata: rows }, null, 1));
+    console.log(`Exported ${rows.length} entries → ${out}`);
+  });
 
-// Parse arguments and run (must be at the very end after all commands)
+metadataCmd
+  .command('import <file>')
+  .description('Import a metadata snapshot (adds missing entries only)')
+  .action((file) => {
+    const fs = require('fs');
+    const snap = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const n = ctx.metadata.importAll(snap.metadata || snap);
+    console.log(`Imported ${n} entries from ${file}`);
+  });
+
+metadataCmd
+  .command('audit')
+  .description('Review matches for the current catalog (flags suspects for manual override)')
+  .action(async () => {
+    await ctx.archive.ensure().catch(() => {});
+    const seen = new Map();
+    for (const g of ctx.archive.games) {
+      const id = String(g.titleId || '').toUpperCase();
+      if (/^CUSA\d{5}$/.test(id) && !seen.has(id)) seen.set(id, g.title);
+    }
+    const db = require('../main/database/db').dbManager.getDb();
+    let ok = 0;
+    let missing = 0;
+    const suspects = [];
+    for (const [id, title] of seen) {
+      let row = null;
+      try {
+        row = db.prepare('SELECT name, match_confidence, ps4 FROM metadata WHERE title_id = ?').get(id);
+      } catch {
+        /* ignore */
+      }
+      if (!row) {
+        missing++;
+        console.log(`  ? ${id}  ${title}  (no metadata)`);
+        continue;
+      }
+      ok++;
+      // Names agreeing => fine even when RAWG forgot the PS4 tag (common).
+      // Suspect = low confidence, or PS4-untagged AND names disagreeing.
+      const namesAgree = similarEnough(title, row.name);
+      const suspect =
+        row.match_confidence === 'low' ||
+        !namesAgree;
+      const flag = suspect ? '  <-- CHECK' : '';
+      console.log(`  ${row.match_confidence === 'exact' ? '✓' : '~'} ${id}  ${title}  →  ${row.name}${row.ps4 === 0 ? ' [not tagged PS4]' : ''}${flag}`);
+      if (suspect) suspects.push({ id, title, rawgName: row.name, confidence: row.match_confidence });
+    }
+    console.log(`\n${ok}/${seen.size} enriched, ${missing} missing, ${suspects.length} suspects`);
+    if (suspects.length) console.log('Fix with: ps4dl metadata override <CUSA> <rawg-slug|id>');
+    function similarEnough(a, b) {
+      const norm = (s) =>
+        String(s || '').toLowerCase().replace(/[™®©]/g, '').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '');
+      const x = norm(a);
+      const y = norm(b);
+      if (!x || !y) return false;
+      if (x === y || x.includes(y) || y.includes(x)) return true;
+      const words = String(a).toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2);
+      if (!words.length) return false;
+      const hit = words.filter((w) => norm(b).includes(w.replace(/[^a-z0-9]/g, ''))).length;
+      return hit / words.length >= 0.5;
+    }
+  });
+
+metadataCmd
+  .command('override <cusa> <slugOrId>')
+  .description('Pin a manual RAWG match (slug or numeric id), stored in metadata-overrides.json')
+  .action(async (cusa, slugOrId) => {
+    const saved = ctx.metadata.setOverride(cusa, /^\d+$/.test(slugOrId) ? parseInt(slugOrId, 10) : slugOrId);
+    console.log(`Override saved: ${saved.titleId} → ${saved.override}`);
+    const variants = await ctx.archive.getVariants(saved.titleId).catch(() => []);
+    const meta = await ctx.metadata.get(saved.titleId, variants[0]?.title || '');
+    if (meta) console.log(`Verified: ${meta.name} (${meta.confidence})`);
+    else console.log('Override saved but could not resolve yet — check the slug/id.');
+  });
+
+program
+  .command('cusa')
+  .description('CUSA table status / refresh')
+  .option('--refresh', 'Force re-download the PlayStation-Titles snapshot')
+  .action(async (opts) => {
+    if (opts.refresh) await ctx.metadata.cusa.sync(true);
+    else await ctx.metadata.cusa.ensure().catch((e) => console.error(e.message));
+    console.log(ctx.metadata.cusa.status());
+  });
+
 program.parse(process.argv);
-

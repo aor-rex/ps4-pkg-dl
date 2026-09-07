@@ -1,15 +1,18 @@
 {
   "name": "ps4-pkg-dl",
   "version": "0.1.0",
-  "description": "Desktop app for browsing and downloading PS4 game packages from dlpsgame.com",
+  "description": "Desktop app for browsing and downloading PS4 packages from the Internet Archive FPKGi catalog",
   "main": "src/main/index.js",
   "bin": {
     "ps4dl": "src/cli/index.js"
   },
   "scripts": {
     "cli": "node src/cli/index.js",
+    "server": "node src/server/index.js",
     "start": "electron .",
-    "dev": "electron . --dev"
+    "dev": "electron . --dev",
+    "app": "electron .",
+    "app:dev": "electron . --dev"
   },
   "keywords": [
     "ps4",
@@ -23,13 +26,23 @@
   "dependencies": {
     "axios": "^1.15.0",
     "better-sqlite3": "^12.9.0",
-    "cheerio": "^1.0.0-rc.12",
     "commander": "^12.0.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "node-7z": "^3.0.0",
     "node-downloader-helper": "^2.1.0",
     "node-notifier": "^10.0.1",
-    "puppeteer": "^22.0.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2"
+    "ws": "^8.21.3"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.9.0": true,
+    "electron@41.10.7": true
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
+    "electron": "^41.10.7"
+  },
+  "overrides": {
+    "yargs": "^18.1.0"
   }
 }
