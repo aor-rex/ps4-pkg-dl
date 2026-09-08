@@ -20,11 +20,12 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', settings.theme || 'kinetic-vault');
   }, [settings.theme]);
 
-  // Boot backend bridge (Electron IPC or HTTP API — offline shows empty states)
+  // Boot backend bridge (Electron IPC or HTTP API — offline shows empty states).
+  // The initial browse load happens inside initLive after mode detection,
+  // so the grid never renders stale-empty on refresh.
   useEffect(() => {
     initLive();
-    void loadBrowse(1);
-  }, [initLive, loadBrowse]);
+  }, [initLive]);
 
   // "New" view = recently added to your library (first-seen tracking)
   useEffect(() => {

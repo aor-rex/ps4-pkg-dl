@@ -177,6 +177,10 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ backendMode: mode, liveMode: mode !== 'offline' });
       if (mode === 'offline') return;
       void get().refreshCatalogStatus();
+      // Initial browse load lives here (not in the App boot effect): loadBrowse
+      // early-returns while the mode is still unresolved, so firing it before
+      // detection completes leaves the grid permanently empty on refresh.
+      void get().loadBrowse(1);
       // resume backfill polling if a job is already running server-side
       void (async () => {
         try {
