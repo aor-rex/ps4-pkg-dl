@@ -391,19 +391,18 @@ function createApp(ctx) {
   });
 
   // ── Web UI (built React app, if present) ───────────────────────────
-  // Serves ps4-pkg-ui/dist at / so the app works in a plain browser.
+  // Serves renderer/dist at / so the app works in a plain browser.
   // API routes above take precedence; SPA fallback handles client routes.
-  const UI_DIR = '/home/aor_rex/Documents/12Projects/ps4-pkg-ui/dist';
-  app.use(express.static(UI_DIR, { maxAge: '1h' }));
-  if (fs.existsSync(path.join(UI_DIR, "index.html"))) {
-    app.use(express.static(UI_DIR, { maxAge: "1h" }));
+  const UI_DIR = path.join(__dirname, '..', 'renderer', 'dist');
+  if (fs.existsSync(path.join(UI_DIR, 'index.html'))) {
+    app.use(express.static(UI_DIR, { maxAge: '1h' }));
     app.get(/^\/(?!api).*/, (_req, res) => {
-      res.sendFile(path.join(UI_DIR, "index.html"));
+      res.sendFile(path.join(UI_DIR, 'index.html'));
     });
     console.error(`[api] serving web UI from ${UI_DIR}`);
   } else {
     app.get('/', (_req, res) => {
-      res.json({ name: 'ps4-pkg-dl API', version: '0.1.0', docs: API_DOCS, ui: 'build ps4-pkg-ui to serve the web app here' });
+      res.json({ name: 'ps4-pkg-dl API', version: '0.1.0', docs: API_DOCS, ui: 'run the renderer build (npm --prefix renderer run build) to serve the web app here' });
     });
   }
 

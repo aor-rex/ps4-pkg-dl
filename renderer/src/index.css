@@ -1,0 +1,283 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===========================
+   THEME: Steam-Inspired Dark
+   Per UI Specification
+   =========================== */
+
+:root {
+  /* Primary Colors - UI Spec Section 1.1 */
+  --bg-primary: #1b2838;
+  --bg-secondary: #1e2a3a;
+  --bg-tertiary: #2a475e;
+  --bg-topnav: #171d25;
+  --bg-sidebar: #171d25;
+  --bg-download-bar: #171d25;
+
+  /* Accent */
+  --accent: #66c0f4;
+  --accent-hover: #4ba3d4;
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #c7d5e0;
+  --text-muted: #8f98a0;
+
+  /* Borders & Dividers */
+  --border: #3a5068;
+
+  /* Status Colors */
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+
+  /* Aliases for component consistency */
+  --bg-surface: #1b2838;
+  --bg-surface-low: #171d25;
+  --bg-surface-high: #2a475e;
+  --bg-surface-highest: #1e2a3a;
+  --bg-surface-lowest: #151d28;
+  --bg-surface-dim: #1b2838;
+  --surface-bright: #3a5068;
+  --surface-container: #1e2a3a;
+  --surface-container-low: #171d25;
+  --surface-container-high: #2a475e;
+  --surface-container-highest: #1e2a3a;
+  --surface-lowest: #151d28;
+
+  --on-surface: #ffffff;
+  --on-surface-variant: #c7d5e0;
+  --text-on-accent: #1b2838;
+  --on-primary: #1b2838;
+  --on-primary-fixed: #1b2838;
+
+  --primary: #66c0f4;
+  --primary-container: #66c0f4;
+
+  --outline-variant: #3a5068;
+}
+
+/* AMOLED Theme */
+[data-theme="amoled"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #141414;
+  --bg-topnav: #050505;
+  --bg-sidebar: #050505;
+  --bg-download-bar: #050505;
+
+  --accent: #66c0f4;
+  --accent-hover: #4ba3d4;
+
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #666666;
+
+  --border: rgba(255,255,255,0.12);
+
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+
+  --bg-surface: #000000;
+  --bg-surface-low: #050505;
+  --bg-surface-high: #141414;
+  --bg-surface-highest: #1a1a1a;
+  --bg-surface-lowest: #030303;
+  --bg-surface-dim: #000000;
+  --surface-bright: #1a1a1a;
+  --surface-container: #0a0a0a;
+  --surface-container-low: #050505;
+  --surface-container-high: #141414;
+  --surface-container-highest: #1a1a1a;
+  --surface-lowest: #030303;
+
+  --on-surface: #ffffff;
+  --on-surface-variant: #b0b0b0;
+  --text-on-accent: #000000;
+  --on-primary: #000000;
+  --on-primary-fixed: #000000;
+
+  --primary: #66c0f4;
+  --primary-container: #66c0f4;
+
+  --outline-variant: rgba(255,255,255,0.12);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #f0f2f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e8eaed;
+  --bg-topnav: #ffffff;
+  --bg-sidebar: #ffffff;
+  --bg-download-bar: #ffffff;
+
+  --accent: #00658d;
+  --accent-hover: #005070;
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a5a;
+  --text-muted: #888899;
+
+  --border: #d0d5dd;
+
+  --success: #2e7d32;
+  --warning: #f57c00;
+  --error: #c62828;
+
+  --bg-surface: #ffffff;
+  --bg-surface-low: #f5f5f5;
+  --bg-surface-high: #e8eaed;
+  --bg-surface-highest: #e0e2e5;
+  --bg-surface-lowest: #fafafa;
+  --bg-surface-dim: #f0f2f5;
+  --surface-bright: #e0e2e5;
+  --surface-container: #ffffff;
+  --surface-container-low: #f5f5f5;
+  --surface-container-high: #e8eaed;
+  --surface-container-highest: #e0e2e5;
+  --surface-lowest: #fafafa;
+
+  --on-surface: #1a1a2e;
+  --on-surface-variant: #4a4a5a;
+  --text-on-accent: #ffffff;
+  --on-primary: #ffffff;
+  --on-primary-fixed: #ffffff;
+
+  --primary: #00658d;
+  --primary-container: #00658d;
+
+  --outline-variant: #d0d5dd;
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    overflow: hidden;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+}
+
+@layer components {
+  /* Transitions - UI Spec 1.6: All transitions 0.2s ease */
+  .transition-all {
+    transition: all 0.2s ease;
+  }
+
+  /* Card Hover - UI Spec 1.6 */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* Modal Animation - UI Spec 1.6: fade in/out 0.2s, slight upward slide (10px) */
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes modalFadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  .modal-enter {
+    animation: modalFadeIn 0.2s ease forwards;
+  }
+
+  /* Download Panel Slide - UI Spec 9.2: 0.3s ease from bottom */
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  @keyframes slideDown {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+  .slide-up {
+    animation: slideUp 0.3s ease forwards;
+  }
+
+  /* Progress Bar - UI Spec 1.6: smooth fill, no pulse */
+  .progress-fill {
+    transition: width 0.5s ease;
+  }
+
+  /* Tab Switching - UI Spec 1.6: underline slides 0.2s */
+  .tab-active {
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Spinner - UI Spec 11.2 */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* Skeleton Shimmer */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}

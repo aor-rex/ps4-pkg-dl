@@ -1,4 +1,5 @@
 node_modules/
+renderer/node_modules/
 .env
 .env.*
 *.local
@@ -6,3 +7,4 @@ metadata-snapshot*.json
 cusa-*.json
 *.log
 dist/
+renderer/dist/
