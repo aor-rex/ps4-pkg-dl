@@ -12,7 +12,7 @@ export default function TopNavBar() {
   // Dropdown uses the store's filteredGames (live search populates it); slice to 5
   const filteredGames = storeFiltered.slice(0, 5);
 
-  // Live search (Electron): debounced API call; browser dev filters mocks locally
+  // Live search: debounced server-side call (no-op while offline)
   const handleSearchInput = (value: string) => {
     setSearchQuery(value);
     setShowResults(true);

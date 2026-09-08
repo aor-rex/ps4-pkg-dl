@@ -30,7 +30,7 @@ function uiToDownload(d: UiDownload): Download {
 }
 
 interface AppState {
-  // Live backend mode (Electron) vs mock data (browser dev)
+  // Live backend (Electron/HTTP) vs offline empty states (server unreachable)
   liveMode: boolean;
   backendMode: BackendMode;
   detailLoading: boolean;
@@ -169,13 +169,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   liveMode: false,
   detailLoading: false,
   browseLoading: false,
-  backendMode: 'mock' as BackendMode,
+  backendMode: 'offline' as BackendMode,
 
   initLive: () => {
     void (async () => {
       const mode = await detectMode();
-      set({ backendMode: mode, liveMode: mode !== 'mock' });
-      if (mode === 'mock') return;
+      set({ backendMode: mode, liveMode: mode !== 'offline' });
+      if (mode === 'offline') return;
       void get().refreshCatalogStatus();
       // resume backfill polling if a job is already running server-side
       void (async () => {
@@ -472,7 +472,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   loadBrowse: async (page = 1, sort = 'title', order = 'asc') => {
     const { backendMode, selectedGenre } = get();
-    if (backendMode === 'mock' && !backend) return;
+    if (backendMode === 'offline' && !backend) return;
     set({ browseLoading: true });
     try {
       if (backend) {
@@ -496,7 +496,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   fetchLiveSearch: async (query) => {
     if (!query.trim()) return;
     const { backendMode, selectedGenre } = get();
-    if (backendMode === 'mock' && !backend) return;
+    if (backendMode === 'offline' && !backend) return;
     try {
       if (backend) {
         const results = await tryLive((api) => api.searchGames(query, 1));
@@ -516,7 +516,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ selectedGame: game, currentView: 'detail', settingsOpen: false });
     if (!game.slug) return;
     const { backendMode } = get();
-    if (backendMode === 'mock' && !backend) return;
+    if (backendMode === 'offline' && !backend) return;
     set({ detailLoading: true });
     const applyDetail = (items: unknown[], meta: unknown) =>
       variantsToGame(
@@ -645,7 +645,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   })),
 
   startDownload: async (mirror, game, fileType = 'PKG') => {
-    const { addToast, addDownload, backendMode } = get();
+    const { addToast, backendMode } = get();
     // mirror.url IS the direct PKG url in archive mode — queue it server-side.
     if (backendMode === 'http' || (!backend && (await detectMode()) === 'http')) {
       set({ backendMode: 'http', liveMode: true });
@@ -661,21 +661,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
     if (!backend) {
-      // Mock fallback (no server)
-      addDownload({
-        id: `d${Date.now()}`,
-        gameId: game?.id || '',
-        gameTitle: `${game?.title || 'Game'} - ${fileType}`,
-        fileType,
-        size: game?.size || '',
-        sizeBytes: game?.sizeBytes || 0,
-        source: mirror.host,
-        progress: 0,
-        speed: '0 MB/s',
-        eta: 'Calculating...',
-        status: 'active',
-      });
-      addToast('info', `Starting download from ${mirror.host}... (mock mode — start the API server)`);
+      // No server — never fake a download, surface the real state
+      addToast('error', 'Server unreachable — start the API server to download');
       return;
     }
     addToast('info', `Queueing ${mirror.host} download...`);

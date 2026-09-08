@@ -395,10 +395,13 @@ function createApp(ctx) {
   // API routes above take precedence; SPA fallback handles client routes.
   const UI_DIR = path.join(__dirname, '..', 'renderer', 'dist');
   if (fs.existsSync(path.join(UI_DIR, 'index.html'))) {
-    app.use(express.static(UI_DIR, { maxAge: '1h' }));
-    app.get(/^\/(?!api).*/, (_req, res) => {
-      res.sendFile(path.join(UI_DIR, 'index.html'));
-    });
+    // Hashed assets cache for an hour; the entry HTML never caches so UI
+    // updates reach the browser on plain refresh.
+    app.use(express.static(UI_DIR, { maxAge: '1h', index: false }));
+    const sendIndex = (_req, res) =>
+      res.sendFile(path.join(UI_DIR, 'index.html'), { headers: { 'Cache-Control': 'no-cache' } });
+    app.get('/', sendIndex);
+    app.get(/^\/(?!api).*/, sendIndex);
     console.error(`[api] serving web UI from ${UI_DIR}`);
   } else {
     app.get('/', (_req, res) => {

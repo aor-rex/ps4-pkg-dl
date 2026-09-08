@@ -5,7 +5,7 @@
  *  1. Electron IPC (`window.ps4dl` injected by preload) — full fidelity.
  *  2. HTTP API (`VITE_API_URL` / localStorage `ps4dl_api_url`,
  *     default `http://localhost:3100`) — works in any browser.
- *  3. No backend — Zustand mock data.
+ *  3. No backend — offline empty states (never fake data).
  */
 
 export interface Mirror {
@@ -293,7 +293,7 @@ const httpApi = {
   },
 };
 
-export type BackendMode = 'electron' | 'http' | 'mock';
+export type BackendMode = 'electron' | 'http' | 'offline';
 
 export const backend: Ps4DlApi | undefined = electronApi;
 export const isElectron = !!electronApi;
@@ -303,10 +303,10 @@ export { httpApi };
 /** Resolve which backend is usable right now (Electron wins, else HTTP probe). */
 export async function detectMode(): Promise<BackendMode> {
   if (electronApi) return 'electron';
-  return (await httpApi.ping()) ? 'http' : 'mock';
+  return (await httpApi.ping()) ? 'http' : 'offline';
 }
 
-/** Never throws — live failures resolve to null so UI can fall back to mocks */
+/** Never throws — live failures resolve to null so UI can show empty states */
 export async function tryLive<T>(fn: (api: Ps4DlApi) => Promise<T>): Promise<T | null> {
   if (!electronApi) return null;
   try {

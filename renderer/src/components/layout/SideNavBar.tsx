@@ -1,8 +1,6 @@
 import { Home, TrendingUp, Clock, FolderOpen } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 
-const FALLBACK_GENRES = ['Action', 'Adventure', 'RPG', 'Shooter', 'Platformer', 'Indie'];
-
 export default function SideNavBar() {
   const { currentView, setCurrentView, selectedGenre, setSelectedGenre, downloads, setSettingsOpen, availableGenres, liveMode } = useAppStore();
   const activeDownloads = downloads.filter((d) => d.status === 'active').slice(0, 3);
@@ -71,14 +69,12 @@ export default function SideNavBar() {
       {/* Divider - UI Spec 4.1.2 */}
       <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '12px 16px' }} />
 
-      {/* Genre Categories - from enriched metadata (API), fallback when cold */}
+      {/* Genre Categories - from enriched metadata (API) */}
       <div className="px-0 mb-3">
         <div className="text-xs uppercase px-4 pb-2" style={{ color: 'var(--text-muted)', letterSpacing: '1px', fontSize: '11px' }}>Genres</div>
+        {liveMode && availableGenres.length > 0 ? (
         <div>
-          {(liveMode && availableGenres.length
-            ? availableGenres.map((g) => ({ name: g.name, count: g.count }))
-            : FALLBACK_GENRES.map((name) => ({ name, count: null as number | null }))
-          ).map((genre) => (
+          {availableGenres.map((g) => ({ name: g.name, count: g.count })).map((genre) => (
             <button
               key={genre.name}
               onClick={() => {
@@ -114,6 +110,11 @@ export default function SideNavBar() {
             </button>
           ))}
         </div>
+        ) : (
+          <div style={{ padding: '0 16px', fontSize: '12px', color: 'var(--text-muted)' }}>
+            Genres appear after enrichment.
+          </div>
+        )}
       </div>
 
       {/* Divider */}

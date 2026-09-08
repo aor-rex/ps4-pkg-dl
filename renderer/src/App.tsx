@@ -20,7 +20,7 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', settings.theme || 'kinetic-vault');
   }, [settings.theme]);
 
-  // Boot backend bridge (Electron IPC or HTTP API — falls back to mocks)
+  // Boot backend bridge (Electron IPC or HTTP API — offline shows empty states)
   useEffect(() => {
     initLive();
     void loadBrowse(1);
