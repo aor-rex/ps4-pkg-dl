@@ -72,6 +72,7 @@ function LibrarySettings() {
     catalogStatus, refreshCatalogStatus,
     addCatalogSource, removeCatalogSource, toggleCatalogSource, refreshCatalogSource, uploadCatalogFile,
     backfill, backfillScope, setBackfillScope, startBackfill, cancelBackfill, retryMiss,
+    candidates, fetchCandidates, pinMatch, ignoreMiss, ignored, loadIgnored, unignoreMiss,
     addToast, setConfirmDialogOpen, setConfirmDialogMessage, setConfirmDialogOnConfirm,
   } = useAppStore();
   const [url, setUrl] = useState('');
@@ -79,11 +80,15 @@ function LibrarySettings() {
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [retrying, setRetrying] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [manualText, setManualText] = useState('');
+  const [pinning, setPinning] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void refreshCatalogStatus();
-  }, [refreshCatalogStatus]);
+    void loadIgnored();
+  }, [refreshCatalogStatus, loadIgnored]);
 
   const handleAddUrl = async () => {
     const clean = url.trim();
@@ -350,27 +355,166 @@ function LibrarySettings() {
               <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
                 Needs attention ({backfill.missed.length})
               </div>
-              <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
-                {backfill.missed.slice(0, 50).map((m) => (
-                  <div key={m.titleId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-                    <span>{m.titleId} · {m.title} <span style={{ color: 'var(--text-muted)' }}>({m.reason})</span></span>
-                    <button
-                      onClick={async () => {
-                        setRetrying(m.titleId);
-                        await retryMiss(m.titleId);
-                        setRetrying(null);
-                      }}
-                      disabled={retrying === m.titleId}
-                      style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '12px' }}
-                    >
-                      {retrying === m.titleId ? '…' : 'Retry'}
-                    </button>
-                  </div>
-                ))}
+              <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                {backfill.missed.slice(0, 50).map((m) => {
+                  const expanded = expandedId === m.titleId;
+                  const cand = candidates[m.titleId];
+                  const incumbent = m.rejected?.rawgId ?? null;
+                  return (
+                    <div key={m.titleId} style={{ padding: '6px 0', borderTop: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        <button
+                          onClick={() => {
+                            if (expanded) {
+                              setExpandedId(null);
+                            } else {
+                              setExpandedId(m.titleId);
+                              setManualText('');
+                              void fetchCandidates(m.titleId);
+                            }
+                          }}
+                          title={expanded ? 'Collapse' : 'Match manually'}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '12px', textAlign: 'left', padding: 0, flex: 1, minWidth: 0 }}
+                        >
+                          <span style={{ color: 'var(--accent)', marginRight: '6px' }}>{expanded ? '▾' : '▸'}</span>
+                          {m.titleId} · {m.title} <span style={{ color: 'var(--text-muted)' }}>({m.reason})</span>
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setRetrying(m.titleId);
+                            await retryMiss(m.titleId);
+                            setRetrying(null);
+                          }}
+                          disabled={retrying === m.titleId}
+                          style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '12px', marginLeft: '8px' }}
+                        >
+                          {retrying === m.titleId ? '…' : 'Retry'}
+                        </button>
+                      </div>
+                      {expanded && (
+                        <div style={{ marginTop: '8px', marginBottom: '4px', padding: '10px 12px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '6px' }}>
+                          {!cand || cand.loading ? (
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Searching RAWG…</div>
+                          ) : cand.error ? (
+                            <div style={{ fontSize: '12px', color: 'var(--error)' }}>{cand.error}</div>
+                          ) : cand.items.length === 0 ? (
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                              No RAWG candidates — paste a slug/id below, or ignore this title.
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '8px' }}>
+                              {cand.items.map((c) => {
+                                const isCurrent = incumbent != null && c.rawgId === incumbent;
+                                return (
+                                  <div key={c.rawgId} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    {c.image ? (
+                                      <img src={c.image} alt="" width={48} height={27} loading="lazy" referrerPolicy="no-referrer" style={{ width: '48px', height: '27px', objectFit: 'cover', borderRadius: '3px' }} />
+                                    ) : (
+                                      <div style={{ width: '48px', height: '27px', borderRadius: '3px', backgroundColor: 'var(--bg-primary)' }} />
+                                    )}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {c.name}
+                                        {isCurrent && (
+                                          <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 400, color: 'var(--warning)' }}>current pick</span>
+                                        )}
+                                      </div>
+                                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                        {c.released ? c.released.slice(0, 4) + ' · ' : ''}{c.slug || c.rawgId}{c.ps4 ? ' · PS4' : ''}
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={async () => {
+                                        setPinning(`${m.titleId}:${c.rawgId}`);
+                                        const ok = await pinMatch(m.titleId, String(c.rawgId));
+                                        if (ok) setExpandedId(null);
+                                        setPinning(null);
+                                      }}
+                                      disabled={pinning === `${m.titleId}:${c.rawgId}`}
+                                      style={{ background: 'none', border: '1px solid var(--accent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', padding: '3px 10px', borderRadius: '4px' }}
+                                    >
+                                      {pinning === `${m.titleId}:${c.rawgId}` ? '…' : 'Use this'}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '4px' }}>
+                            <input
+                              placeholder="RAWG slug or id"
+                              value={expanded ? manualText : ''}
+                              onChange={(e) => setManualText(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && manualText.trim()) {
+                                  void (async () => {
+                                    setPinning(`${m.titleId}:manual`);
+                                    const ok = await pinMatch(m.titleId, manualText.trim());
+                                    if (ok) { setExpandedId(null); setManualText(''); }
+                                    setPinning(null);
+                                  })();
+                                }
+                              }}
+                              style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px' }}
+                            />
+                            <button
+                              onClick={() => {
+                                if (!manualText.trim()) return;
+                                void (async () => {
+                                  setPinning(`${m.titleId}:manual`);
+                                  const ok = await pinMatch(m.titleId, manualText.trim());
+                                  if (ok) { setExpandedId(null); setManualText(''); }
+                                  setPinning(null);
+                                })();
+                              }}
+                              disabled={pinning === `${m.titleId}:manual` || !manualText.trim()}
+                              style={{ background: 'none', border: '1px solid var(--accent)', color: 'var(--accent)', cursor: 'pointer', fontSize: '11px', padding: '4px 10px', borderRadius: '4px', whiteSpace: 'nowrap' }}
+                            >
+                              Pin
+                            </button>
+                            <button
+                              onClick={() => {
+                                setConfirmDialogMessage(`Ignore ${m.titleId} (${m.title})? It stays out of future enrichment runs.`);
+                                setConfirmDialogOnConfirm(() => () => {
+                                  void (async () => {
+                                    await ignoreMiss(m.titleId, m.title);
+                                    if (expandedId === m.titleId) setExpandedId(null);
+                                  })();
+                                });
+                                setConfirmDialogOpen(true);
+                              }}
+                              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '11px', marginLeft: 'auto' }}
+                            >
+                              Ignore
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 {backfill.missed.length > 50 && (
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>…and {backfill.missed.length - 50} more (see CLI)</div>
                 )}
               </div>
+            </div>
+          )}
+          {ignored.length > 0 && (
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>
+                Ignored ({ignored.length})
+              </div>
+              {ignored.map((g) => (
+                <div key={g.titleId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  <span>{g.titleId}{g.title ? ` · ${g.title}` : ''}</span>
+                  <button
+                    onClick={() => void unignoreMiss(g.titleId)}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '12px' }}
+                  >
+                    Unignore
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

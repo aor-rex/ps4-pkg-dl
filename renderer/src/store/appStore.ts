@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { Game, Download, Settings, Mirror } from '../types';
 import { backend, tryLive, httpApi, detectMode } from '../lib/backend';
-import type { UiDownload, BackendMode, BackfillState, CatalogStatus } from '../lib/backend';
+import type { UiDownload, BackendMode, BackfillState, CatalogStatus, MetadataCandidate, IgnoredTitle } from '../lib/backend';
 import { entryToGame, variantsToGame } from '../lib/catalog';
 
 let pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -59,6 +59,13 @@ interface AppState {
   refreshBackfill: () => Promise<void>;
   cancelBackfill: () => Promise<void>;
   retryMiss: (titleId: string) => Promise<void>;
+  candidates: Record<string, { loading: boolean; items: MetadataCandidate[]; error: string | null }>;
+  fetchCandidates: (titleId: string) => Promise<void>;
+  pinMatch: (titleId: string, slugOrId: string) => Promise<boolean>;
+  ignoreMiss: (titleId: string, title: string) => Promise<void>;
+  ignored: IgnoredTitle[];
+  loadIgnored: () => Promise<void>;
+  unignoreMiss: (titleId: string) => Promise<void>;
 
   // Navigation
   currentView: string;
@@ -471,6 +478,92 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } catch {
       addToast('error', `Still no match for ${titleId} — try a RAWG id via CLI: ps4dl enrich ${titleId} --rawg-id <id>`);
+    }
+  },
+
+  candidates: {},
+  fetchCandidates: async (titleId) => {
+    const { candidates } = get();
+    if (candidates[titleId]?.items.length || candidates[titleId]?.loading) return;
+    set((s) => ({ candidates: { ...s.candidates, [titleId]: { loading: true, items: [], error: null } } }));
+    try {
+      const res = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { metadataCandidates: (t: string) => Promise<{ candidates: MetadataCandidate[] }> }).metadataCandidates(titleId)
+          )) as { candidates: MetadataCandidate[] } | null) ?? (await httpApi.metadataCandidates(titleId))
+        : await httpApi.metadataCandidates(titleId);
+      set((s) => ({ candidates: { ...s.candidates, [titleId]: { loading: false, items: res.candidates || [], error: null } } }));
+    } catch (err) {
+      set((s) => ({
+        candidates: { ...s.candidates, [titleId]: { loading: false, items: [], error: err instanceof Error ? err.message : 'Search failed' } },
+      }));
+    }
+  },
+  pinMatch: async (titleId, slugOrId) => {
+    const { addToast } = get();
+    try {
+      const meta = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { metadataOverride: (t: string, s: string) => Promise<{ name?: string }> }).metadataOverride(titleId, slugOrId)
+          )) as { name?: string } | null) ?? (await httpApi.metadataOverride(titleId, slugOrId))
+        : await httpApi.metadataOverride(titleId, slugOrId);
+      addToast('success', `Matched ${(meta as { name?: string }).name || titleId}`);
+      set((s) => ({
+        backfill: s.backfill ? { ...s.backfill, missed: s.backfill.missed.filter((m) => m.titleId !== titleId) } : s.backfill,
+      }));
+      void get().loadGenres();
+      return true;
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : `Could not pin match for ${titleId}`);
+      return false;
+    }
+  },
+  ignoreMiss: async (titleId, title) => {
+    const { addToast } = get();
+    try {
+      if (backend) {
+        await tryLive((api) =>
+          (api as unknown as { metadataIgnore: (t: string, n: string) => Promise<unknown> }).metadataIgnore(titleId, title)
+        );
+      } else {
+        await httpApi.metadataIgnore(titleId, title);
+      }
+      set((s) => ({
+        backfill: s.backfill ? { ...s.backfill, missed: s.backfill.missed.filter((m) => m.titleId !== titleId) } : s.backfill,
+      }));
+      await get().loadIgnored();
+      addToast('success', `Ignored ${titleId} — excluded from future runs`);
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : `Could not ignore ${titleId}`);
+    }
+  },
+  ignored: [],
+  loadIgnored: async () => {
+    try {
+      const list = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { metadataIgnored: () => Promise<{ ignored: IgnoredTitle[] }> }).metadataIgnored()
+          )) as { ignored: IgnoredTitle[] } | null) ?? (await httpApi.metadataIgnored())
+        : await httpApi.metadataIgnored();
+      set({ ignored: Array.isArray(list) ? list : (list as { ignored: IgnoredTitle[] }).ignored ?? [] });
+    } catch {
+      /* ignore — section stays hidden */
+    }
+  },
+  unignoreMiss: async (titleId) => {
+    const { addToast } = get();
+    try {
+      if (backend) {
+        await tryLive((api) =>
+          (api as unknown as { metadataUnignore: (t: string) => Promise<unknown> }).metadataUnignore(titleId)
+        );
+      } else {
+        await httpApi.metadataUnignore(titleId);
+      }
+      await get().loadIgnored();
+      addToast('success', `Unignored ${titleId} — back in the next run`);
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : `Could not unignore ${titleId}`);
     }
   },
 

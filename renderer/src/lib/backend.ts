@@ -79,6 +79,23 @@ export interface BackfillMiss {
   titleId: string;
   title: string;
   reason: string;
+  rejected?: { rawgId: number | null; slug: string | null; name: string } | null;
+}
+
+export interface MetadataCandidate {
+  rawgId: number;
+  slug: string | null;
+  name: string;
+  released: string | null;
+  image: string | null;
+  rating: number | null;
+  ps4: boolean;
+}
+
+export interface IgnoredTitle {
+  titleId: string;
+  title: string;
+  ignoredAt: string;
 }
 
 export interface BackfillState {
@@ -136,6 +153,11 @@ interface Ps4DlApi {
   backfillStatus(): Promise<unknown>;
   backfillCancel(): Promise<unknown>;
   enrichOne(titleId: string): Promise<unknown>;
+  metadataCandidates(titleId: string): Promise<unknown>;
+  metadataOverride(titleId: string, slugOrId: string): Promise<unknown>;
+  metadataIgnored(): Promise<unknown>;
+  metadataIgnore(titleId: string, title?: string): Promise<unknown>;
+  metadataUnignore(titleId: string): Promise<unknown>;
   addDownload(p: {
     url: string;
     label?: string;
@@ -269,6 +291,17 @@ const httpApi = {
   backfillCancel: () => http<BackfillState>('/api/jobs/backfill/cancel', { method: 'POST' }),
   enrichOne: (titleId: string) =>
     http<CatalogMetadata>('/api/metadata/enrich', { method: 'POST', body: JSON.stringify({ titleId }) }),
+  metadataCandidates: (titleId: string) =>
+    http<{ titleId: string; title: string; candidates: MetadataCandidate[] }>(
+      `/api/metadata/candidates?titleId=${encodeURIComponent(titleId)}`
+    ),
+  metadataOverride: (titleId: string, slugOrId: string) =>
+    http<CatalogMetadata>('/api/metadata/override', { method: 'POST', body: JSON.stringify({ titleId, slugOrId }) }),
+  metadataIgnored: () => http<{ ignored: IgnoredTitle[] }>('/api/metadata/ignored').then((r) => r.ignored),
+  metadataIgnore: (titleId: string, title?: string) =>
+    http('/api/metadata/ignore', { method: 'POST', body: JSON.stringify({ titleId, title: title || '' }) }),
+  metadataUnignore: (titleId: string) =>
+    http(`/api/metadata/ignore/${encodeURIComponent(titleId)}`, { method: 'DELETE' }),
   queueDownload: (entry: { pkgUrl?: string; titleId?: string; id?: string }) =>
     http<{ id: string }>('/api/downloads', { method: 'POST', body: JSON.stringify(entry) }),
   listDownloads: () =>

@@ -16,6 +16,13 @@ function overridesPath() {
   return path.join(dir, 'metadata-overrides.json');
 }
 
+/** Persisted ignore list for unresolvable titles (delisted, no RAWG entry). */
+function ignoredPath() {
+  const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return path.join(dir, 'metadata-ignored.json');
+}
+
 function resolveApiKey(settings) {
   if (process.env.RAWG_API_KEY && process.env.RAWG_API_KEY.trim()) return process.env.RAWG_API_KEY.trim();
   try {
@@ -119,6 +126,40 @@ class MetadataService {
     } catch {
       return {};
     }
+  }
+
+  /** Ignored titles never enter backfill targets or miss lists. */
+  getIgnored() {
+    try {
+      if (!fs.existsSync(ignoredPath())) return [];
+      const list = JSON.parse(fs.readFileSync(ignoredPath(), 'utf8'));
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  }
+
+  isIgnored(titleId) {
+    const id = normalizeCusa(titleId);
+    if (!id) return false;
+    return this.getIgnored().some((e) => String(e.titleId || '').toUpperCase() === id);
+  }
+
+  ignore(titleId, title = '') {
+    const id = normalizeCusa(titleId);
+    if (!id) throw new Error('Invalid CUSA id');
+    const list = this.getIgnored().filter((e) => String(e.titleId || '').toUpperCase() !== id);
+    list.push({ titleId: id, title: String(title || ''), ignoredAt: new Date().toISOString() });
+    fs.writeFileSync(ignoredPath(), JSON.stringify(list, null, 2));
+    return { titleId: id, ignored: true };
+  }
+
+  unignore(titleId) {
+    const id = normalizeCusa(titleId);
+    if (!id) throw new Error('Invalid CUSA id');
+    const list = this.getIgnored().filter((e) => String(e.titleId || '').toUpperCase() !== id);
+    fs.writeFileSync(ignoredPath(), JSON.stringify(list, null, 2));
+    return { titleId: id, ignored: false };
   }
 
   getCached(titleId) {

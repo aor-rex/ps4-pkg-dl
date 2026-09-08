@@ -24,6 +24,11 @@ contextBridge.exposeInMainWorld('ps4dl', {
   backfillStatus: () => ipcRenderer.invoke('backfill:status'),
   backfillCancel: () => ipcRenderer.invoke('backfill:cancel'),
   enrichOne: (titleId: string) => ipcRenderer.invoke('metadata:enrich', { titleId }),
+  metadataCandidates: (titleId: string) => ipcRenderer.invoke('metadata:candidates', { titleId }),
+  metadataOverride: (titleId: string, slugOrId: string) => ipcRenderer.invoke('metadata:override', { titleId, slugOrId }),
+  metadataIgnored: () => ipcRenderer.invoke('metadata:ignored'),
+  metadataIgnore: (titleId: string, title?: string) => ipcRenderer.invoke('metadata:ignore', { titleId, title }),
+  metadataUnignore: (titleId: string) => ipcRenderer.invoke('metadata:unignore', { titleId }),
 
   // Downloads
   addDownload: (payload) => ipcRenderer.invoke('downloads:add', payload),

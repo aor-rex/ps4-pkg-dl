@@ -101,6 +101,8 @@ class BackfillJob {
     if (scope === 'missing') {
       targets = targets.filter(([id]) => !this.metadata.getCached(id));
     }
+    // ignored titles never enter the run (no attempt, no miss row)
+    targets = targets.filter(([id]) => !this.metadata.isIgnored(id));
 
     this.running = true;
     this.cancelled = false;
@@ -130,9 +132,11 @@ class BackfillJob {
           this.state.missed.push({ titleId: id, title, reason: e.message || 'error' });
         }
         if (meta && meta.confidence === 'low') {
-          // bulk runs don't keep shaky matches — retry manually later
+          // bulk runs don't keep shaky matches — retry manually later.
+          // keep the rejected pick so the UI can show the incumbent.
+          const rejected = { rawgId: meta.rawgId ?? null, slug: meta.rawgSlug ?? null, name: meta.name || '' };
           this.metadata.remove(id);
-          this.state.missed.push({ titleId: id, title, reason: 'low confidence — verify manually' });
+          this.state.missed.push({ titleId: id, title, reason: 'low confidence — verify manually', rejected });
         } else if (meta) {
           if (meta.confidence === 'exact') this.state.exact++;
           else if (meta.confidence === 'manual') this.state.manual++;

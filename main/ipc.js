@@ -54,6 +54,40 @@ function registerIpcHandlers(ctx) {
     if (!meta) throw new Error(`No metadata match for ${titleId}`);
     return meta;
   });
+  ipcMain.handle('metadata:candidates', async (_e, { titleId } = {}) => {
+    const id = String(titleId || '').toUpperCase();
+    if (!/^CUSA\d{5}$/.test(id)) throw new Error('titleId (CUSA) required');
+    const variants = await ctx.archive.getVariants(id).catch(() => []);
+    if (!variants.length) throw new Error(`No game found for ${id}`);
+    const pool = await ctx.metadata.rawg.candidates(variants[0].title).catch(() => []);
+    return {
+      titleId: id,
+      title: variants[0].title,
+      candidates: pool.map((c) => ({
+        rawgId: c.rawgId, slug: c.slug, name: c.name,
+        released: c.released, image: c.backgroundImage, rating: c.rating, ps4: !!c.ps4,
+      })),
+    };
+  });
+  ipcMain.handle('metadata:override', async (_e, { titleId, slugOrId } = {}) => {
+    if (!titleId || slugOrId === undefined || String(slugOrId).trim() === '') {
+      throw new Error('Provide {titleId, slugOrId} (RAWG slug or numeric id)');
+    }
+    const pinned = ctx.metadata.setOverride(titleId, String(slugOrId).trim());
+    const variants = await ctx.archive.getVariants(pinned.titleId).catch(() => []);
+    const meta = await ctx.metadata.get(pinned.titleId, variants[0]?.title || '');
+    if (!meta) throw new Error(`Override saved, but it resolves to nothing for ${pinned.titleId}`);
+    return meta;
+  });
+  ipcMain.handle('metadata:ignored', async () => ({ ignored: ctx.metadata.getIgnored() }));
+  ipcMain.handle('metadata:ignore', async (_e, { titleId, title } = {}) => {
+    if (!titleId) throw new Error('titleId (CUSA) required');
+    return ctx.metadata.ignore(titleId, title || '');
+  });
+  ipcMain.handle('metadata:unignore', async (_e, { titleId } = {}) => {
+    if (!titleId) throw new Error('titleId (CUSA) required');
+    return ctx.metadata.unignore(titleId);
+  });
   ipcMain.handle('catalog:refresh', async () => ctx.archive.refresh(true));
   ipcMain.handle('catalog:add', async (_e, { type, location, label } = {}) => {
     const status = await ctx.archive.addSource({ type, location, label });

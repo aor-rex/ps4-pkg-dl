@@ -25,6 +25,11 @@ const API_DOCS = {
   'GET /api/settings': 'all settings',
   'PUT /api/settings': 'update settings (downloadDir, catalogUrl, ...)',
   'POST /api/metadata/enrich {titleId}': 'enrich one game now',
+  'GET /api/metadata/candidates?titleId=': 'RAWG candidate pool for manual matching',
+  'POST /api/metadata/override {titleId, slugOrId}': 'pin a manual match (persisted)',
+  'GET /api/metadata/ignored': 'titles excluded from enrichment',
+  'POST /api/metadata/ignore {titleId}': 'exclude a title from enrichment',
+  'DELETE /api/metadata/ignore/:titleId': 're-include a title',
   'GET /api/metadata/status': 'enrichment coverage',
   'POST /api/jobs/backfill {scope}': 'start backfill (missing|refresh)',
   'GET /api/jobs/backfill': 'backfill progress (poll for progress bar)',
@@ -267,6 +272,76 @@ function createApp(ctx) {
       const meta = await ctx.metadata.get(titleId, variants[0]?.title || '', rawgId ? { rawgId } : {});
       if (!meta) return res.status(404).json({ error: `No metadata match for ${titleId}` });
       res.json(meta);
+    })
+  );
+
+  // RAWG candidate pool for manual matching (pinning an override)
+  app.get(
+    '/api/metadata/candidates',
+    asyncHandler(async (req, res) => {
+      const titleId = String(req.query.titleId || '').toUpperCase();
+      if (!/^CUSA\d{5}$/.test(titleId)) return res.status(400).json({ error: 'titleId (CUSA) required' });
+      const variants = await ctx.archive.getVariants(titleId).catch(() => []);
+      if (!variants.length) return res.status(404).json({ error: `No game found for ${titleId}` });
+      const title = variants[0].title;
+      const pool = await ctx.metadata.rawg.candidates(title).catch(() => []);
+      res.json({
+        titleId,
+        title,
+        candidates: pool.map((c) => ({
+          rawgId: c.rawgId,
+          slug: c.slug,
+          name: c.name,
+          released: c.released,
+          image: c.backgroundImage,
+          rating: c.rating,
+          ps4: !!c.ps4,
+        })),
+      });
+    })
+  );
+
+  // Pin a manual match (persisted override, wins over automation)
+  app.post(
+    '/api/metadata/override',
+    asyncHandler(async (req, res) => {
+      const { titleId, slugOrId } = req.body || {};
+      if (!titleId || slugOrId === undefined || String(slugOrId).trim() === '') {
+        return res.status(400).json({ error: 'Provide {titleId, slugOrId} (RAWG slug or numeric id)' });
+      }
+      const pinned = ctx.metadata.setOverride(titleId, String(slugOrId).trim());
+      const variants = await ctx.archive.getVariants(pinned.titleId).catch(() => []);
+      const meta = await ctx.metadata.get(pinned.titleId, variants[0]?.title || '');
+      if (!meta) return res.status(404).json({ error: `Override saved, but it resolves to nothing for ${pinned.titleId}` });
+      res.status(201).json(meta);
+    })
+  );
+
+  app.get('/api/metadata/ignored', (_req, res) => {
+    res.json({ ignored: ctx.metadata.getIgnored() });
+  });
+
+  app.post(
+    '/api/metadata/ignore',
+    asyncHandler(async (req, res) => {
+      const { titleId, title } = req.body || {};
+      if (!titleId) return res.status(400).json({ error: 'titleId (CUSA) required' });
+      try {
+        res.status(201).json(ctx.metadata.ignore(titleId, title || ''));
+      } catch (err) {
+        res.status(400).json({ error: err.message });
+      }
+    })
+  );
+
+  app.delete(
+    '/api/metadata/ignore/:titleId',
+    asyncHandler(async (req, res) => {
+      try {
+        res.json(ctx.metadata.unignore(req.params.titleId));
+      } catch (err) {
+        res.status(400).json({ error: err.message });
+      }
     })
   );
 
