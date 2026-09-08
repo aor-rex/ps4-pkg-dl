@@ -72,7 +72,7 @@ function LibrarySettings() {
     catalogStatus, refreshCatalogStatus,
     addCatalogSource, removeCatalogSource, toggleCatalogSource, refreshCatalogSource, uploadCatalogFile,
     backfill, backfillScope, setBackfillScope, startBackfill, cancelBackfill, retryMiss,
-    addToast,
+    addToast, setConfirmDialogOpen, setConfirmDialogMessage, setConfirmDialogOnConfirm,
   } = useAppStore();
   const [url, setUrl] = useState('');
   const [adding, setAdding] = useState(false);
@@ -124,8 +124,9 @@ function LibrarySettings() {
   };
 
   const handleRemove = (id: string, label: string) => {
-    if (!window.confirm(`Remove catalog source "${label}"?`)) return;
-    void withBusy(id, () => removeCatalogSource(id));
+    setConfirmDialogMessage(`Remove catalog source "${label}"? Its games leave the library (metadata already saved stays).`);
+    setConfirmDialogOnConfirm(() => () => void withBusy(id, () => removeCatalogSource(id)));
+    setConfirmDialogOpen(true);
   };
 
   const running = backfill?.status === 'running';
@@ -313,7 +314,7 @@ function LibrarySettings() {
           ))}
         </label>
         {!running ? (
-          <button onClick={() => void startBackfill()} disabled={!catalogStatus?.configured} style={btnStyle(true)}>
+          <button onClick={() => void startBackfill()} disabled={!catalogStatus?.configured} title={catalogStatus?.configured ? 'Enrich the library' : 'Add a catalog source first'} style={btnStyle(true)}>
             Start backfill
           </button>
         ) : (
@@ -322,6 +323,11 @@ function LibrarySettings() {
           </button>
         )}
       </div>
+      {!catalogStatus?.configured && (
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+          Add a catalog source above before enriching.
+        </div>
+      )}
 
       {backfill && backfill.status !== 'idle' && (
         <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', marginBottom: '16px', maxWidth: '640px' }}>
