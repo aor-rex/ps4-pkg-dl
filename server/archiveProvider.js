@@ -173,6 +173,7 @@ class ArchiveProvider {
     if (this.sources.some((s) => s.id === source.id)) throw new Error('This source is already added.');
     const games = await this.fetchSourceGames(source); // validates before committing
     this.sources.push(source);
+    this._sourceGames.set(source.id, games);
     this.sourceState.set(source.id, { fetchedAt: Date.now(), count: games.length, error: null });
     this._merge();
     this.saveToDisk();
@@ -200,6 +201,7 @@ class ArchiveProvider {
     const s = this.sources.find((x) => x.id === id);
     if (!s) throw new Error(`Unknown source: ${id}`);
     const games = await this.fetchSourceGames(s);
+    this._sourceGames.set(s.id, games);
     this.sourceState.set(s.id, { fetchedAt: Date.now(), count: games.length, error: null });
     this._merge();
     this.saveToDisk();

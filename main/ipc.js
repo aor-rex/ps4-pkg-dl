@@ -55,6 +55,42 @@ function registerIpcHandlers(ctx) {
     return meta;
   });
   ipcMain.handle('catalog:refresh', async () => ctx.archive.refresh(true));
+  ipcMain.handle('catalog:add', async (_e, { type, location, label } = {}) => {
+    const status = await ctx.archive.addSource({ type, location, label });
+    ctx.syncSources();
+    return status;
+  });
+  ipcMain.handle('catalog:remove', async (_e, { id } = {}) => {
+    const status = await ctx.archive.removeSource(id);
+    ctx.syncSources();
+    return status;
+  });
+  ipcMain.handle('catalog:toggle', async (_e, { id, enabled } = {}) => {
+    const status = await ctx.archive.toggleSource(id, enabled !== false);
+    ctx.syncSources();
+    return status;
+  });
+  ipcMain.handle('catalog:refreshSource', async (_e, { id } = {}) => ctx.archive.refreshSource(id));
+  ipcMain.handle('catalog:upload', async (_e, { name, data } = {}) => {
+    if (!name || !data) throw new Error('Provide {name, data} with file content.');
+    const fs = require('fs');
+    const path = require('path');
+    const safeName = String(name).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'catalog.json';
+    const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl', 'catalog-uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    const filePath = path.join(dir, safeName);
+    fs.writeFileSync(filePath, Buffer.from(String(data), 'base64'));
+    const status = await ctx.archive.addSource({ type: 'file', location: filePath, label: safeName });
+    ctx.syncSources();
+    return status;
+  });
+  ipcMain.handle('dialog:chooseFile', async (_e, { filters } = {}) => {
+    const res = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: filters || [{ name: 'Catalog JSON', extensions: ['json'] }],
+    });
+    return res.canceled ? null : res.filePaths[0];
+  });
 
   ipcMain.handle('downloads:add', async (_e, { pkgUrl, titleId, id } = {}) => {
     let entry = null;

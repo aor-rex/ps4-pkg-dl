@@ -96,6 +96,17 @@ export interface BackfillState {
   catalogTotal: number;
 }
 
+export interface CatalogSource {
+  id: string;
+  type: 'url' | 'file';
+  location: string;
+  label: string;
+  enabled: boolean;
+  count?: number;
+  fetchedAt?: number | null;
+  error?: string | null;
+}
+
 export interface CatalogStatus {
   configured: boolean;
   catalogUrl: string | null;
@@ -103,6 +114,7 @@ export interface CatalogStatus {
   fetchedAt: string | null;
   stale: boolean;
   loaded: boolean;
+  sources: CatalogSource[];
 }
 
 interface Ps4DlApi {
@@ -112,6 +124,12 @@ interface Ps4DlApi {
   getGenres(): Promise<{ name: string; count: number }[]>;
   catalogStatus(): Promise<unknown>;
   catalogLoad(url: string): Promise<unknown>;
+  catalogAdd(type: string, location: string, label?: string): Promise<unknown>;
+  catalogRemove(id: string): Promise<unknown>;
+  catalogToggle(id: string, enabled: boolean): Promise<unknown>;
+  catalogRefreshSource(id: string): Promise<unknown>;
+  catalogUpload(name: string, data: string): Promise<unknown>;
+  chooseCatalogFile(): Promise<string | null>;
   backfillStart(scope: string): Promise<unknown>;
   backfillStatus(): Promise<unknown>;
   backfillCancel(): Promise<unknown>;
@@ -233,6 +251,16 @@ const httpApi = {
   catalogStatus: () => http<CatalogStatus>('/api/catalog/status'),
   catalogLoad: (url: string) =>
     http<CatalogStatus>('/api/catalog/load', { method: 'POST', body: JSON.stringify({ url }) }),
+  catalogAddSource: (type: string, location: string, label?: string) =>
+    http<CatalogStatus>('/api/catalog/sources', { method: 'POST', body: JSON.stringify({ type, location, label }) }),
+  catalogRemoveSource: (id: string) =>
+    http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  catalogToggleSource: (id: string, enabled: boolean) =>
+    http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+  catalogRefreshSource: (id: string) =>
+    http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}/refresh`, { method: 'POST' }),
+  catalogUploadFile: (name: string, data: string) =>
+    http<CatalogStatus>('/api/catalog/file', { method: 'POST', body: JSON.stringify({ name, data }) }),
   backfillStart: (scope: string) =>
     http<BackfillState>('/api/jobs/backfill', { method: 'POST', body: JSON.stringify({ scope }) }),
   backfillStatus: () => http<BackfillState>('/api/jobs/backfill'),

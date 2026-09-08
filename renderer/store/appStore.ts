@@ -42,10 +42,16 @@ interface AppState {
   availableGenres: { name: string; count: number }[];
   loadGenres: () => Promise<void>;
 
-  // Library setup (user-supplied catalog URL + backfill)
+  // Library setup (user-supplied catalog sources + backfill)
   catalogStatus: CatalogStatus | null;
   refreshCatalogStatus: () => Promise<void>;
   loadCatalog: (url: string) => Promise<boolean>;
+  refreshCatalogView: () => Promise<void>;
+  addCatalogSource: (type: 'url' | 'file', location: string, label?: string) => Promise<boolean>;
+  removeCatalogSource: (id: string) => Promise<boolean>;
+  toggleCatalogSource: (id: string, enabled: boolean) => Promise<boolean>;
+  refreshCatalogSource: (id: string) => Promise<boolean>;
+  uploadCatalogFile: (name: string, data: string) => Promise<boolean>;
   backfill: BackfillState | null;
   backfillScope: 'missing' | 'refresh';
   setBackfillScope: (scope: 'missing' | 'refresh') => void;
@@ -289,36 +295,96 @@ export const useAppStore = create<AppState>((set, get) => ({
       return true;
     } catch (err) {
       addToast('error', err instanceof Error ? err.message : 'Could not load catalog URL');
-
-  toggleSource: async (sourceId: string, enabled: boolean) => {
-    try {
-      if (backend) {
-        await tryLive((api) =>
-          (api as unknown as { toggleSource: (id: string, en: boolean) => Promise<void> }).toggleSource(sourceId, enabled)
-        );
-      } else {
-        await httpApi.patch("/api/catalog/sources/" + sourceId, { enabled });
-      }
-      void refreshCatalogStatus();
-    } catch (err) {
-      addToast("error", err instanceof Error ? err.message : "Failed to toggle source");
+      return false;
     }
   },
-  loadCatalogBySource: async (sourceId: string) => {
+  refreshCatalogView: async () => {
+    const { loadBrowse, loadGenres } = get();
+    set({ selectedGenre: null, searchQuery: '', currentPage: 1 });
+    await loadBrowse(1);
+    await loadGenres();
+  },
+  addCatalogSource: async (type: 'url' | 'file', location: string, label?: string) => {
+    const { addToast, refreshCatalogView } = get();
     try {
-      if (backend) {
-        await tryLive((api) =>
-          (api as unknown as { loadCatalogBySource: (id: string) => Promise<void> }).loadCatalogBySource(sourceId)
-        );
-      } else {
-        await httpApi.post("/api/catalog/sources/" + sourceId + "/refresh");
-      }
-      void refreshCatalogStatus();
+      const status = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { catalogAdd: (t: string, l: string, lb?: string) => Promise<CatalogStatus> }).catalogAdd(type, location, label)
+          )) as CatalogStatus | null) ?? (await httpApi.catalogAddSource(type, location, label))
+        : await httpApi.catalogAddSource(type, location, label);
+      set({ catalogStatus: status });
+      addToast('success', `Source added: ${status.count} games`);
+      await refreshCatalogView();
+      return true;
     } catch (err) {
-      addToast("error", err instanceof Error ? err.message : "Failed to load source");
+      addToast('error', err instanceof Error ? err.message : 'Could not add catalog source');
+      return false;
     }
   },
-
+  removeCatalogSource: async (id: string) => {
+    const { addToast, refreshCatalogView } = get();
+    try {
+      const status = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { catalogRemove: (x: string) => Promise<CatalogStatus> }).catalogRemove(id)
+          )) as CatalogStatus | null) ?? (await httpApi.catalogRemoveSource(id))
+        : await httpApi.catalogRemoveSource(id);
+      set({ catalogStatus: status });
+      addToast('success', 'Source removed');
+      await refreshCatalogView();
+      return true;
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : 'Could not remove source');
+      return false;
+    }
+  },
+  toggleCatalogSource: async (id: string, enabled: boolean) => {
+    const { addToast, refreshCatalogView } = get();
+    try {
+      const status = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { catalogToggle: (x: string, e: boolean) => Promise<CatalogStatus> }).catalogToggle(id, enabled)
+          )) as CatalogStatus | null) ?? (await httpApi.catalogToggleSource(id, enabled))
+        : await httpApi.catalogToggleSource(id, enabled);
+      set({ catalogStatus: status });
+      await refreshCatalogView();
+      return true;
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : 'Could not toggle source');
+      return false;
+    }
+  },
+  refreshCatalogSource: async (id: string) => {
+    const { addToast, refreshCatalogView } = get();
+    try {
+      const status = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { catalogRefreshSource: (x: string) => Promise<CatalogStatus> }).catalogRefreshSource(id)
+          )) as CatalogStatus | null) ?? (await httpApi.catalogRefreshSource(id))
+        : await httpApi.catalogRefreshSource(id);
+      set({ catalogStatus: status });
+      addToast('success', `Source refreshed: ${status.count} games`);
+      await refreshCatalogView();
+      return true;
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : 'Could not refresh source');
+      return false;
+    }
+  },
+  uploadCatalogFile: async (name: string, data: string) => {
+    const { addToast, refreshCatalogView } = get();
+    try {
+      const status = backend
+        ? ((await tryLive((api) =>
+            (api as unknown as { catalogUpload: (n: string, d: string) => Promise<CatalogStatus> }).catalogUpload(name, data)
+          )) as CatalogStatus | null) ?? (await httpApi.catalogUploadFile(name, data))
+        : await httpApi.catalogUploadFile(name, data);
+      set({ catalogStatus: status });
+      addToast('success', `File catalog added: ${status.count} games`);
+      await refreshCatalogView();
+      return true;
+    } catch (err) {
+      addToast('error', err instanceof Error ? err.message : 'Could not add file catalog');
       return false;
     }
   },
