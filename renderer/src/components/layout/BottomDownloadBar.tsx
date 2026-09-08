@@ -6,7 +6,7 @@ import type { Download as DownloadType } from '../../types';
 export default function BottomDownloadBar() {
   const {
     downloads, downloadManagerOpen, setDownloadManagerOpen, downloadFilter,
-    setDownloadFilter, pauseDl, resumeDl, cancelDl, removeDl,
+    setDownloadFilter, pauseDl, resumeDl, cancelDl, removeDl, addToast,
   } = useAppStore();
   const activeDownloads = downloads.filter((d) => d.status === 'active');
   const primaryDownload = activeDownloads[0];
@@ -168,7 +168,7 @@ export default function BottomDownloadBar() {
                     <div className="mt-1 text-xs" style={{ color: 'var(--warning)', fontSize: '12px' }}>Extracting archive...</div>
                   )}
                   {dl.status === 'completed' && (
-                    <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Extracted to folder</div>
+                    <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Saved to download folder</div>
                   )}
 
                   {/* Action Buttons */}
@@ -228,7 +228,12 @@ export default function BottomDownloadBar() {
                     )}
                     {dl.status === 'completed' && (
                       <>
-                        <button onClick={() => void tryLive((api) => api.openFolder(dl.path ?? undefined))}
+                        <button onClick={() => {
+                          void (async () => {
+                            const opened = await tryLive((api) => api.openFolder(dl.path ?? undefined));
+                            if (!opened) addToast('info', 'Open folder is available in the desktop app');
+                          })();
+                        }}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
