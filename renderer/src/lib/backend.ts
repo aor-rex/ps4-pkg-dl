@@ -51,6 +51,8 @@ export interface CatalogEntry {
   genres?: string[];
   hasMetadata?: boolean;
   date?: string;
+  source?: string | null;
+  sourceId?: string | null;
 }
 
 export interface CatalogMetadata {

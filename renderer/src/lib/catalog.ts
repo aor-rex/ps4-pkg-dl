@@ -7,6 +7,13 @@
 import type { Game } from '../types';
 import type { CatalogEntry, CatalogMetadata } from './backend';
 
+/** Local fallback artwork (no third-party dependency, works offline). */
+export const COVER_FALLBACK =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="220" height="310" viewBox="0 0 220 310"><rect width="220" height="310" fill="#1e2b3b"/><text x="110" y="155" font-family="sans-serif" font-size="16" fill="#66c0f4" text-anchor="middle">No Cover</text></svg>`
+  );
+
 function archiveDescription(e: CatalogEntry): string {
   return `${e.title} [${e.titleId}] — Region ${e.region}, version ${e.version}. Direct PKG from the Internet Archive FPKGi collection.${e.minFw ? ` Requires firmware ${e.minFw}.` : ''}`;
 }
@@ -51,7 +58,8 @@ export function applyMetadata(game: Game, meta: CatalogMetadata | null): Game {
       url: t.url,
       title: t.name || 'Trailer',
       duration: '',
-      thumbnail: t.preview || game.cover,
+      // RAWG `preview` is a video clip, not an image — use the cover art.
+      thumbnail: game.cover,
     })),
     metacritic: meta.metacritic,
     rating: meta.rating,
@@ -63,12 +71,14 @@ export function applyMetadata(game: Game, meta: CatalogMetadata | null): Game {
 export function variantsToGame(titleId: string, variants: CatalogEntry[], meta: CatalogMetadata | null = null): Game {
   const first = variants[0];
   const base = entryToGame(first);
+  const sourceNames = [...new Set(variants.map((v) => v.source).filter(Boolean))];
+  const showSource = sourceNames.length > 1;
   const game: Game = {
     ...base,
     title: first.title,
     slug: titleId,
     downloads: variants.map((v) => ({
-      type: `[${v.region}] v${v.version} — ${v.size}`,
+      type: `[${v.region}] v${v.version} — ${v.size}${showSource && v.source ? ` · ${v.source}` : ''}`,
       size: v.size,
       mirrors: [{ host: 'Internet Archive', url: v.pkgUrl, speed: 'Good' as const, reliability: 'High' as const }],
     })),

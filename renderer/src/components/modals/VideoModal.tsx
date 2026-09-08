@@ -86,13 +86,23 @@ export default function VideoModal() {
                 width: '100%',
                 height: '100%',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
+                gap: '12px',
                 color: 'var(--text-muted)',
                 fontSize: '14px',
               }}
             >
-              Video player placeholder
+              <span>No playable preview for this trailer.</span>
+              <a
+                href={selectedVideo.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: 'var(--accent)', fontSize: '13px' }}
+              >
+                Open externally
+              </a>
             </div>
           )}
         </div>

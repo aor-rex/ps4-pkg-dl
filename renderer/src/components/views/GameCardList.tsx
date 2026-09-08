@@ -1,13 +1,14 @@
 import { Download, Info } from 'lucide-react';
 import type { Game } from '../../types';
 import { useAppStore } from '../../store/appStore';
+import { COVER_FALLBACK } from '../../lib/catalog';
 
 interface GameCardListProps { game: Game; onClick: () => void; }
 
 export default function GameCardList({ game, onClick }: GameCardListProps) {
   const { settings } = useAppStore();
   const compact = settings.compactMode;
-  const fallback = 'https://placehold.co/60x80/1e2b3b/66c0f4?text=No';
+  const fallback = COVER_FALLBACK;
   return (
     <div
       onClick={onClick}

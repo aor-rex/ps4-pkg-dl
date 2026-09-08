@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react';
 import type { Game } from '../../types';
 import { useAppStore } from '../../store/appStore';
+import { COVER_FALLBACK } from '../../lib/catalog';
 
 interface GameCardProps { game: Game; onClick: () => void; compact?: boolean; }
 
@@ -16,7 +17,7 @@ export default function GameCard({ game, onClick, compact = false }: GameCardPro
   const w = compact ? SIZES.small.w : size.w;
   const h = compact ? SIZES.small.h : size.h;
   const showSize = settings.showSizeOnCards;
-  const fallback = 'https://placehold.co/220x310/1e2b3b/66c0f4?text=No+Cover';
+  const fallback = COVER_FALLBACK;
   return (
     <button
       onClick={onClick}

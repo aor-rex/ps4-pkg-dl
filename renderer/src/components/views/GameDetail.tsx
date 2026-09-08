@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, Download, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import Spinner from '../common/Spinner';
+import { COVER_FALLBACK } from '../../lib/catalog';
 
 export default function GameDetail() {
   const {
@@ -74,13 +75,13 @@ export default function GameDetail() {
             style={{ width: '300px', height: '420px', borderRadius: '6px', overflow: 'hidden', marginRight: '24px' }}
           >
             <img
-              src={selectedGame.cover || 'https://placehold.co/300x420/1e2b3b/66c0f4?text=No+Cover'}
+              src={selectedGame.cover || COVER_FALLBACK}
               alt={selectedGame.title}
               width={300}
               height={420}
               loading="eager"
               referrerPolicy="no-referrer"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/300x420/1e2b3b/66c0f4?text=No+Cover'; }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = COVER_FALLBACK; }}
               className="w-full h-full object-cover"
             />
           </div>
@@ -200,14 +201,14 @@ export default function GameDetail() {
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                   >
                     <img
-                      src={img || 'https://placehold.co/180x100/1e2b3b/66c0f4?text=No+Image'}
+                      src={img || COVER_FALLBACK}
                       alt={`Screenshot ${index + 1}`}
                       width={180}
                       height={100}
                       loading="lazy"
                       decoding="async"
                       referrerPolicy="no-referrer"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/180x100/1e2b3b/66c0f4?text=No+Image'; }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = COVER_FALLBACK; }}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -298,13 +299,13 @@ export default function GameDetail() {
                     onClick={() => openVideo(video.url, video.title)}
                   >
                     <img
-                      src={video.thumbnail || selectedGame.cover || 'https://placehold.co/640x360/1e2b3b/66c0f4?text=No+Thumb'}
+                      src={video.thumbnail || selectedGame.cover || COVER_FALLBACK}
                       alt={video.title}
                       width={640}
                       height={360}
                       loading="lazy"
                       referrerPolicy="no-referrer"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/640x360/1e2b3b/66c0f4?text=No+Thumb'; }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = COVER_FALLBACK; }}
                       className="w-full h-full object-cover"
                     />
                     {/* Play button overlay */}

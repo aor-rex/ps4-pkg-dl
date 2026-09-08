@@ -1,6 +1,7 @@
 import { Search, Settings, Download, Gamepad2, X } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { useState, useRef, useEffect } from 'react';
+import { COVER_FALLBACK } from '../../lib/catalog';
 
 export default function TopNavBar() {
   const { searchQuery, setSearchQuery, setSettingsOpen, setDownloadManagerOpen, downloads, setCurrentView, setSelectedGame, filteredGames: storeFiltered, fetchLiveSearch, openGameDetail } = useAppStore();
@@ -118,13 +119,13 @@ export default function TopNavBar() {
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     <img
-                      src={game.cover || 'https://placehold.co/32x44/1e2b3b/66c0f4?text=No'}
+                      src={game.cover || COVER_FALLBACK}
                       alt=""
                       width={32}
                       height={44}
                       loading="lazy"
                       referrerPolicy="no-referrer"
-                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = 'https://placehold.co/32x44/1e2b3b/66c0f4?text=No'; }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = COVER_FALLBACK; }}
                       className="rounded"
                       style={{ width: '32px', height: '44px', objectFit: 'cover' }}
                     />
