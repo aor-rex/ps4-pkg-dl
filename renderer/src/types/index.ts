@@ -87,4 +87,5 @@ export interface Settings {
   cardSize: 'small' | 'medium' | 'large';
   showSizeOnCards: boolean;
   compactMode: boolean;
+  updateChannel: 'prerelease' | 'stable';
 }

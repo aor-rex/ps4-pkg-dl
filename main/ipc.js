@@ -168,14 +168,24 @@ function registerIpcHandlers(ctx) {
     catalog: ctx.archive.status(),
   }));
 
+  // One-line messages only — never stacks, headers or cookies to the UI
+  const shortError = (error) => {
+    const msg = String((error && error.message) || error || 'unknown error');
+    const first = msg.split('\n')[0].trim();
+    return first.length > 220 ? `${first.slice(0, 220)}…` : first;
+  };
+
   ipcMain.handle('update:check', async () => {
     if (!ctx.appUpdater) return { status: 'unavailable' };
+    try {
+      ctx.appUpdater.allowPrerelease = ctx.settings.get('updateChannel') !== 'stable';
+    } catch (_) {}
     try {
       const res = await ctx.appUpdater.checkForUpdates();
       const info = (res && res.updateInfo) || {};
       return { status: 'checked', available: !!res, version: info.version || null };
     } catch (error) {
-      return { status: 'error', error: error.message };
+      return { status: 'error', error: shortError(error) };
     }
   });
   ipcMain.handle('update:download', async () => {
@@ -184,7 +194,7 @@ function registerIpcHandlers(ctx) {
       await ctx.appUpdater.downloadUpdate();
       return { status: 'downloading' };
     } catch (error) {
-      return { status: 'error', error: error.message };
+      return { status: 'error', error: shortError(error) };
     }
   });
   ipcMain.handle('update:quit', async () => {
@@ -199,7 +209,9 @@ module.exports = {
   bootstrap: bootstrapContext,
   registerIpcHandlers,
   setBroadcaster: (fn) => {
+    if (typeof fn !== 'function') throw new TypeError('setBroadcaster expects a function');
     broadcaster = fn;
   },
+  broadcast: (type, payload) => broadcaster(type, payload),
   listDownloads: (ctx) => ctx.listDownloads(),
 };

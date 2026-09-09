@@ -204,6 +204,7 @@ export const defaultSettings: Settings = {
   cardSize: 'medium',
   showSizeOnCards: true,
   compactMode: false,
+  updateChannel: 'prerelease',
 };
 
 export const useAppStore = create<AppState>((set, get) => ({

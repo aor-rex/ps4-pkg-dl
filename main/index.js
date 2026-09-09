@@ -1,7 +1,7 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
-const { bootstrap, registerIpcHandlers, setBroadcaster, listDownloads } = require('./ipc');
+const { bootstrap, registerIpcHandlers, setBroadcaster, broadcast, listDownloads } = require('./ipc');
 
 let mainWindow = null;
 
@@ -58,23 +58,32 @@ function wireAutoUpdater(ctx) {
     return null;
   }
   autoUpdater.autoDownload = false;
+  autoUpdater.allowDowngrade = false;
+  const applyChannel = () => {
+    try {
+      autoUpdater.allowPrerelease = ctx.settings.get('updateChannel') !== 'stable';
+    } catch (_) {
+      autoUpdater.allowPrerelease = true;
+    }
+  };
+  applyChannel();
   autoUpdater.on('checking-for-update', () => { updaterState = { status: 'checking', version: null, percent: 0, error: null }; });
   autoUpdater.on('update-available', (info) => {
     updaterState = { status: 'available', version: (info && info.version) || null, percent: 0, error: null };
-    setBroadcaster('update:available', { version: updaterState.version });
+    broadcast('update:available', { version: updaterState.version });
   });
   autoUpdater.on('update-not-available', () => { updaterState = { status: 'idle', version: null, percent: 0, error: null }; });
   autoUpdater.on('download-progress', (p) => {
     updaterState.percent = Math.round((p && p.percent) || 0);
-    if (updaterState.status === 'downloading') setBroadcaster('update:progress', { percent: updaterState.percent });
+    if (updaterState.status === 'downloading') broadcast('update:progress', { percent: updaterState.percent });
   });
   autoUpdater.on('update-downloaded', (info) => {
     updaterState = { status: 'downloaded', version: (info && info.version) || updaterState.version, percent: 100, error: null };
-    setBroadcaster('update:downloaded', { version: updaterState.version });
+    broadcast('update:downloaded', { version: updaterState.version });
   });
   autoUpdater.on('error', (error) => {
     updaterState = { status: 'error', version: null, percent: 0, error: (error && error.message) || String(error) };
-    setBroadcaster('update:error', { error: updaterState.error });
+    broadcast('update:error', { error: updaterState.error });
   });
   return autoUpdater;
 }

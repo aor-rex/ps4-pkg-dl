@@ -46,6 +46,8 @@ const DEFAULT_SETTINGS = {
   notifyOnExtractComplete: true,
   soundAlert: false,
   desktopNotification: true,
+  // Updates (release channel shown in Settings → About)
+  updateChannel: 'prerelease', // 'prerelease' | 'stable'
 };
 
 /**

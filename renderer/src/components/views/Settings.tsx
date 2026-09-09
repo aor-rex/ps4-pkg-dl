@@ -1079,6 +1079,36 @@ export default function Settings() {
         >
           What&apos;s new
         </button>
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+          Release channel
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '6px' }}>
+            {([
+              { value: 'prerelease' as const, label: 'Pre-release' },
+              { value: 'stable' as const, label: 'Stable' },
+            ]).map((option) => (
+              <label key={option.value} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                <input
+                  type="radio"
+                  name="update-channel"
+                  checked={(settings.updateChannel || 'prerelease') === option.value}
+                  onChange={() => {
+                    handleChange('updateChannel', option.value);
+                    // Persist immediately so the next check honors the new channel
+                    void tryLive((api) => api.updateSettings({ updateChannel: option.value }));
+                    void checkForUpdates(false);
+                  }}
+                  style={{ accentColor: 'var(--accent)', width: '14px', height: '14px', cursor: 'pointer' }}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </div>
+        {settings.updateChannel === 'stable' && updateStatus === 'idle' && (
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+            On a newer pre-release? Stable offers nothing newer — switch back to Pre-release to keep updating.
+          </div>
+        )}
         <button
           onClick={() => void checkForUpdates(true)}
           style={{

@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.1.5] - 2026-09-09 (beta)
+
+### Fixes
+- Fix main-process crash when downloading after checking for updates (updater events overwrote the download event sender)
+- Update check no longer demands a production release: pre-releases are discovered when the channel allows
+- Update failures now show a one-line message instead of a stack-trace and header dump
+
+### Features
+- Release channel setting (Settings → About): Pre-release or Stable, switchable anytime with an immediate re-check; downgrades stay blocked with an explanatory note instead
+
 ## [v0.1.4] - 2026-09-09 (beta)
 
 ### Features
