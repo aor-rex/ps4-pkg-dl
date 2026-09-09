@@ -35,11 +35,18 @@ jobs:
       - name: Build AppImage
         run: npm run dist
 
+      - name: Extract changelog section
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          awk -v tag="## [$TAG]" '$0==tag{flag=1;next} /^## \[/{flag=0} flag' CHANGELOG.md > release-notes.md
+          echo "" >> release-notes.md
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/commits/$TAG" >> release-notes.md
+
       - name: Publish beta release
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           prerelease: true
-          generate_release_notes: true
+          body_path: release-notes.md
           files: dist/*.AppImage

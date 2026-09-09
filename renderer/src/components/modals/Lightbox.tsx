@@ -197,6 +197,8 @@ export default function Lightbox() {
             <img
               src={img}
               alt={`Thumb ${idx + 1}`}
+              loading="lazy"
+              decoding="async"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </button>

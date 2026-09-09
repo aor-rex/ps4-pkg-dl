@@ -1,6 +1,6 @@
 {
   "name": "ps4-pkg-dl",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop app for browsing and downloading PS4 packages from the Internet Archive FPKGi catalog",
   "main": "main/index.js",
   "desktopName": "com.ps4pkgdl.app.desktop",
@@ -48,8 +48,11 @@
   "build": {
     "appId": "com.ps4pkgdl.app",
     "productName": "PS4 PKG Downloader",
+    "artifactName": "PS4-PKG-Downloader-${version}.AppImage",
     "asar": true,
-    "asarUnpack": ["**/*.node"],
+    "asarUnpack": [
+      "**/*.node"
+    ],
     "files": [
       "package.json",
       "main/**/*",
@@ -59,7 +62,9 @@
       "assets/**/*"
     ],
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Game",
       "icon": "assets/icon.png",
       "syncDesktopName": true
