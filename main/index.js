@@ -24,9 +24,15 @@ function createWindow(ctx) {
     },
   });
 
-  // Push manager events + periodic full snapshots to the renderer
+  // Push manager events + periodic full snapshots to the renderer.
+  // Updater events ride the same channel but keep their own payload shape
+  // (the download shape would mangle percent/version fields).
   setBroadcaster((type, payload) => {
     if (!mainWindow || mainWindow.isDestroyed()) return;
+    if (String(type).startsWith('update:')) {
+      mainWindow.webContents.send('download:event', { type, ...((payload && typeof payload === 'object') ? payload : {}) });
+      return;
+    }
     mainWindow.webContents.send('download:event', {
       type,
       download: payload ? { id: payload.id, url: payload.url } : null,
@@ -46,7 +52,36 @@ function createWindow(ctx) {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-let updaterState = { status: 'idle', version: null, percent: 0, error: null };
+let updaterState = { status: 'idle', version: null, percent: 0, transferred: 0, total: 0, error: null };
+
+// Stall watchdog: if a download is in flight but no progress arrives within
+// STALL_MS, tell the renderer once (re-armed by the next progress event).
+// Threshold is env-overridable for tests: PS4DL_STALL_TIMEOUT_MS.
+const UPDATE_STALL_MS = Number(process.env.PS4DL_STALL_TIMEOUT_MS) || 60000;
+let updateLastProgressAt = 0;
+let updateStallSent = false;
+let updateStallTimer = null;
+
+function armStallWatchdog() {
+  if (updateStallTimer) return;
+  try {
+    updateStallTimer = setInterval(() => {
+      try {
+        if (!ctxRef || updateStallSent) return;
+        const startedAt = Number(ctxRef.updateDownloadActive) || 0;
+        if (!startedAt) return;
+        const lastActivity = Math.max(startedAt, updateLastProgressAt);
+        if (Date.now() - lastActivity > UPDATE_STALL_MS) {
+          updateStallSent = true;
+          broadcast('update:stalled', { percent: updaterState.percent });
+        }
+      } catch (_) {}
+    }, 10000);
+    if (updateStallTimer.unref) updateStallTimer.unref();
+  } catch (_) {}
+}
+
+let ctxRef = null;
 
 function wireAutoUpdater(ctx) {
   let autoUpdater = null;
@@ -67,22 +102,35 @@ function wireAutoUpdater(ctx) {
     }
   };
   applyChannel();
-  autoUpdater.on('checking-for-update', () => { updaterState = { status: 'checking', version: null, percent: 0, error: null }; });
+  ctxRef = ctx;
+  armStallWatchdog();
+  autoUpdater.on('checking-for-update', () => { updaterState = { status: 'checking', version: null, percent: 0, transferred: 0, total: 0, error: null }; });
   autoUpdater.on('update-available', (info) => {
-    updaterState = { status: 'available', version: (info && info.version) || null, percent: 0, error: null };
+    updaterState = { status: 'available', version: (info && info.version) || null, percent: 0, transferred: 0, total: 0, error: null };
     broadcast('update:available', { version: updaterState.version });
   });
-  autoUpdater.on('update-not-available', () => { updaterState = { status: 'idle', version: null, percent: 0, error: null }; });
+  autoUpdater.on('update-not-available', () => { updaterState = { status: 'idle', version: null, percent: 0, transferred: 0, total: 0, error: null }; });
   autoUpdater.on('download-progress', (p) => {
     updaterState.percent = Math.round((p && p.percent) || 0);
-    if (updaterState.status === 'downloading') broadcast('update:progress', { percent: updaterState.percent });
+    updaterState.transferred = Number((p && p.transferred) || 0);
+    updaterState.total = Number((p && p.total) || 0);
+    updateLastProgressAt = Date.now();
+    updateStallSent = false;
+    broadcast('update:progress', { percent: updaterState.percent, transferred: updaterState.transferred, total: updaterState.total });
   });
   autoUpdater.on('update-downloaded', (info) => {
-    updaterState = { status: 'downloaded', version: (info && info.version) || updaterState.version, percent: 100, error: null };
+    updaterState = { status: 'downloaded', version: (info && info.version) || updaterState.version, percent: 100, transferred: updaterState.transferred, total: updaterState.total, error: null };
+    try {
+      ctx.updateDownloadActive = false;
+    } catch (_) {}
+    updateStallSent = false;
     broadcast('update:downloaded', { version: updaterState.version });
   });
   autoUpdater.on('error', (error) => {
-    updaterState = { status: 'error', version: null, percent: 0, error: (error && error.message) || String(error) };
+    updaterState = { status: 'error', version: null, percent: 0, transferred: 0, total: 0, error: (error && error.message) || String(error) };
+    try {
+      ctx.updateDownloadActive = false;
+    } catch (_) {}
     broadcast('update:error', { error: updaterState.error });
   });
   return autoUpdater;

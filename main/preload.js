@@ -67,13 +67,23 @@ contextBridge.exposeInMainWorld('ps4dl', {
   updateDownload: () => ipcRenderer.invoke('update:download'),
   updateQuit: () => ipcRenderer.invoke('update:quit'),
   onUpdateEvent: (cb) => {
-    const events = ['update:available', 'update:progress', 'update:downloaded', 'update:error'];
+    const events = ['update:available', 'update:progress', 'update:downloaded', 'update:error', 'update:stalled'];
     const listeners = events.map((ev) => {
       const l = (_e, payload) => cb(ev, payload);
       ipcRenderer.on(ev, l);
       return [ev, l];
     });
-    return () => listeners.forEach(([ev, l]) => ipcRenderer.removeListener(ev, l));
+    // Main multiplexes updater events over the download channel — route those too
+    const mux = (_e, payload) => {
+      if (payload && typeof payload.type === 'string' && payload.type.startsWith('update:')) {
+        cb(payload.type, payload);
+      }
+    };
+    ipcRenderer.on('download:event', mux);
+    return () => {
+      listeners.forEach(([ev, l]) => ipcRenderer.removeListener(ev, l));
+      ipcRenderer.removeListener('download:event', mux);
+    };
   },
 
   // Extraction

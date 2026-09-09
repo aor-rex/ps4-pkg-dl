@@ -226,6 +226,10 @@ function registerIpcHandlers(ctx) {
   });
   ipcMain.handle('update:download', async () => {
     if (!ctx.appUpdater) return { status: 'unavailable' };
+    // Timestamp (not boolean): doubles as the watchdog's grace-period start
+    try {
+      ctx.updateDownloadActive = Date.now();
+    } catch (_) {}
     try {
       await ctx.appUpdater.downloadUpdate();
       return { status: 'downloading' };

@@ -1,4 +1,5 @@
 import { useAppStore } from '../../store/appStore';
+import { formatTransfer } from '../../lib/format';
 
 export function changelogSection(version: string): string {
   const md: string = typeof __CHANGELOG_MD__ !== 'undefined' ? __CHANGELOG_MD__ : '';
@@ -22,11 +23,11 @@ export function appVersion(): string {
 }
 
 export default function WhatsNewModal() {
-  const { whatsNewOpen, setWhatsNewOpen, setSettingsOpen, setSettingsCategory, updateStatus, updateVersion, updateProgress, downloadUpdate, restartToUpdate } = useAppStore();
+  const { whatsNewOpen, setWhatsNewOpen, setSettingsOpen, setSettingsCategory, updateStatus, updateVersion, updateProgress, updateTransferred, updateTotal, downloadUpdate, restartToUpdate } = useAppStore();
   if (!whatsNewOpen) return null;
   const version = appVersion();
   const notes = changelogSection(version);
-  const updateReady = updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded';
+  const updateReady = updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled';
 
   return (
     <div
@@ -68,7 +69,18 @@ export default function WhatsNewModal() {
               </button>
             )}
             {updateStatus === 'downloading' && (
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>Downloading… {updateProgress}%</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}</div>
+            )}
+            {updateStatus === 'stalled' && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--warning)' }}>Stalled at {formatTransfer(updateTransferred, updateTotal, updateProgress)} — check your connection.</div>
+                <button
+                  onClick={() => void downloadUpdate()}
+                  style={{ backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '13px', fontWeight: 600, padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', marginTop: '8px' }}
+                >
+                  Retry download
+                </button>
+              </div>
             )}
             {updateStatus === 'downloaded' && (
               <button

@@ -167,9 +167,11 @@ interface AppState {
   maybeShowWhatsNew: () => void;
 
   // In-app updater (Electron only; no-ops elsewhere)
-  updateStatus: 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'error' | 'unavailable';
+  updateStatus: 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'stalled' | 'error' | 'unavailable';
   updateVersion: string | null;
   updateProgress: number;
+  updateTransferred: number;
+  updateTotal: number;
   updateError: string | null;
   checkForUpdates: (manual?: boolean) => Promise<void>;
   downloadUpdate: () => Promise<void>;
@@ -251,12 +253,22 @@ export const useAppStore = create<AppState>((set, get) => ({
           set({ downloads: list.map(uiToDownload) });
         });
         backend.onUpdateEvent((event, payload) => {
-          const p = (payload || {}) as { version?: string; percent?: number; error?: string };
+          const p = (payload || {}) as { version?: string; percent?: number; transferred?: number; total?: number; error?: string };
           if (event === 'update:available') {
             set({ updateStatus: 'available', updateVersion: p.version || null });
             get().addToast('info', `Update available${p.version ? `: v${p.version}` : ''} — see Settings → About`);
           } else if (event === 'update:progress') {
-            set({ updateStatus: 'downloading', updateProgress: p.percent ?? 0 });
+            set({
+              updateStatus: 'downloading',
+              updateProgress: p.percent ?? 0,
+              updateTransferred: Number(p.transferred) || 0,
+              updateTotal: Number(p.total) || 0,
+            });
+          } else if (event === 'update:stalled') {
+            if (get().updateStatus !== 'stalled') {
+              set({ updateStatus: 'stalled' });
+              get().addToast('info', 'Update download stalled — check your connection, retry if it persists');
+            }
           } else if (event === 'update:downloaded') {
             set({ updateStatus: 'downloaded', updateVersion: p.version || get().updateVersion, updateProgress: 100 });
             get().addToast('success', 'Update downloaded — restart to install');
@@ -993,6 +1005,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateStatus: 'idle',
   updateVersion: null,
   updateProgress: 0,
+  updateTransferred: 0,
+  updateTotal: 0,
   updateError: null,
   checkForUpdates: async (manual = false) => {
     const { addToast } = get();

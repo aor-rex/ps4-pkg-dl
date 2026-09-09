@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.1.8] - 2026-09-09 (beta)
+
+### Fixes
+- Update downloads no longer freeze at 0%: progress events now reach the UI with transferred/total figures
+- Stalled update downloads announce themselves with a retry action instead of sitting silently
+
+
 ## [v0.1.7] - 2026-09-09 (beta)
 
 ### Fixes

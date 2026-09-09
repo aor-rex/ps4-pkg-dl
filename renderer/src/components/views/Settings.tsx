@@ -4,6 +4,7 @@ import { Folder01Icon, Download02Icon, Package02Icon, GlobalIcon, Notification01
 import { useAppStore, defaultSettings } from '../../store/appStore';
 import { backend, tryLive } from '../../lib/backend';
 import { appVersion } from '../modals/WhatsNewModal';
+import { formatTransfer } from '../../lib/format';
 
 const categories = [
   { icon: Database02Icon, key: 'library', label: 'Library' },
@@ -526,7 +527,7 @@ function LibrarySettings() {
 }
 
 export default function Settings() {
-  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, updateVersion, updateProgress, updateError, checkForUpdates, downloadUpdate, restartToUpdate } = useAppStore();
+  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, updateVersion, updateProgress, updateTransferred, updateTotal, updateError, checkForUpdates, downloadUpdate, restartToUpdate } = useAppStore();
   const [dirty, setDirty] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
@@ -1126,7 +1127,7 @@ export default function Settings() {
         >
           Check for Updates
         </button>
-        {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded') && updateVersion && (
+        {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled') && updateVersion && (
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>
             Update available: v{updateVersion}
             {updateStatus === 'available' && (
@@ -1137,7 +1138,18 @@ export default function Settings() {
                 Download update
               </button>
             )}
-            {updateStatus === 'downloading' && <div style={{ marginTop: '8px' }}>Downloading… {updateProgress}%</div>}
+            {updateStatus === 'downloading' && <div style={{ marginTop: '8px' }}>Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}</div>}
+            {updateStatus === 'stalled' && (
+              <div style={{ marginTop: '8px' }}>
+                <div style={{ color: 'var(--warning)' }}>Stalled at {formatTransfer(updateTransferred, updateTotal, updateProgress)} — check your connection.</div>
+                <button
+                  onClick={() => void downloadUpdate()}
+                  style={{ display: 'block', width: '100%', marginTop: '8px', backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Retry download
+                </button>
+              </div>
+            )}
             {updateStatus === 'downloaded' && (
               <button
                 onClick={() => void restartToUpdate()}
