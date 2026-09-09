@@ -301,6 +301,41 @@ class DownloadManager extends EventEmitter {
     this.completed = [];
     return count;
   }
+
+  /**
+   * Live engine currently handling a PKG url (re-download detection)
+   */
+  findByUrl(pkgUrl) {
+    if (!pkgUrl) return null;
+    for (const engine of this.downloads.values()) {
+      if (engine && engine.url === pkgUrl) return engine;
+    }
+    return null;
+  }
+
+  /**
+   * Drop one entry from the completed list (record removal keeps the file)
+   */
+  removeCompleted(id) {
+    const before = this.completed.length;
+    this.completed = this.completed.filter((d) => d && d.id !== id);
+    return before - this.completed.length;
+  }
+
+  /**
+   * Merge persisted completed rows back after restart (idempotent)
+   */
+  restoreCompleted(items) {
+    const seen = new Set(this.completed.map((d) => d && d.id));
+    let added = 0;
+    for (const item of items || []) {
+      if (!item || !item.id || seen.has(item.id)) continue;
+      seen.add(item.id);
+      this.completed.push(item);
+      added++;
+    }
+    return added;
+  }
   
   /**
    * Clear failed downloads

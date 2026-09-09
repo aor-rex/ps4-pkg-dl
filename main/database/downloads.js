@@ -143,6 +143,24 @@ class DownloadHistory {
   }
 
   /**
+   * Newest completed record for a PKG url (re-download detection)
+   */
+  findCompletedByUrl(pkgUrl) {
+    return (
+      this.db
+        .prepare(
+          `
+      SELECT * FROM downloads
+      WHERE status = 'completed' AND (direct_url = ? OR mirror_url = ?)
+      ORDER BY completed_at DESC
+      LIMIT 1
+    `
+        )
+        .get(pkgUrl, pkgUrl) || null
+    );
+  }
+
+  /**
    * Get failed downloads
    */
   getFailed(limit = 20) {

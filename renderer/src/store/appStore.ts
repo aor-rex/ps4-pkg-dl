@@ -42,6 +42,7 @@ function uiToDownload(d: UiDownload): Download {
     eta: fmtEtaLocal(d.eta),
     status: d.status,
     path: d.path ?? undefined,
+    pkgUrl: d.pkgUrl ?? undefined,
     cover: d.cover ?? undefined,
     region: d.region ?? undefined,
     version: d.version ?? undefined,
@@ -120,7 +121,8 @@ interface AppState {
   removeDownload: (id: string) => void;
 
   // Live-backed download actions (route to Electron backend when present)
-  startDownload: (mirror: Mirror, game: Game | null, fileType?: string) => Promise<void>;
+  startDownload: (mirror: Mirror, game: Game | null, fileType?: string, force?: boolean) => Promise<void>;
+  redownload: (id: string) => Promise<void>;
   pauseDl: (id: string) => Promise<void>;
   resumeDl: (id: string) => Promise<void>;
   cancelDl: (id: string) => void;
@@ -791,14 +793,28 @@ export const useAppStore = create<AppState>((set, get) => ({
     downloads: state.downloads.filter((d) => d.id !== id),
   })),
 
-  startDownload: async (mirror, game, fileType = 'PKG') => {
+  startDownload: async (mirror, game, fileType = 'PKG', force = false) => {
     const { addToast, backendMode } = get();
+    const showCompleted = () => {
+      get().setDownloadManagerOpen(true);
+      get().setDownloadFilter('completed');
+    };
     // mirror.url IS the direct PKG url in archive mode — queue it server-side.
     if (backendMode === 'http' || (!backend && (await detectMode()) === 'http')) {
       set({ backendMode: 'http', liveMode: true });
       addToast('info', `Queueing ${game?.title || 'game'} (${mirror.host})...`);
       try {
-        const res = await httpApi.queueDownload({ pkgUrl: mirror.url });
+        const res = await httpApi.queueDownload({ pkgUrl: mirror.url, force });
+        if (res?.alreadyCompleted) {
+          addToast('success', `Already downloaded${res.title ? ` — ${res.title}` : ''}`);
+          showCompleted();
+          return;
+        }
+        if (res?.alreadyQueued) {
+          addToast('info', 'Already in your downloads — watch the bottom bar');
+          get().setDownloadManagerOpen(true);
+          return;
+        }
         addToast('success', `Download queued (${(res.id || '').slice(0, 8)}...) — watch the bottom bar`);
         const list = await httpApi.listDownloads();
         set({ downloads: list.map(uiToDownload) });
@@ -825,12 +841,38 @@ export const useAppStore = create<AppState>((set, get) => ({
       version: game?.version,
       cover: game?.cover,
       gameId: game?.id ?? null,
+      force,
     }));
+    if (res?.alreadyCompleted) {
+      addToast('success', `Already downloaded${res.title ? ` — ${res.title}` : ''}`);
+      showCompleted();
+      return;
+    }
+    if (res?.alreadyQueued) {
+      addToast('info', 'Already in your downloads — watch the bottom bar');
+      get().setDownloadManagerOpen(true);
+      return;
+    }
     if (res?.id) {
       addToast('success', `Download started from ${mirror.host}`);
     } else {
       addToast('error', `Failed to queue download from ${mirror.host}`);
     }
+  },
+
+  redownload: async (id) => {
+    const { addToast } = get();
+    const dl = get().downloads.find((d) => d.id === id);
+    if (!dl?.pkgUrl) {
+      addToast('error', 'Cannot re-download: original URL is unknown for this entry');
+      return;
+    }
+    await get().startDownload(
+      { host: dl.source || 'Internet Archive', url: dl.pkgUrl, speed: 'Good', reliability: 'High' },
+      { title: dl.gameTitle, cover: dl.cover, region: dl.region, version: dl.version, size: dl.size } as Game,
+      'PKG',
+      true
+    );
   },
 
   pauseDl: async (id) => {
@@ -876,7 +918,18 @@ export const useAppStore = create<AppState>((set, get) => ({
         } catch { /* ignore */ }
       });
     } else if (!backend) get().removeDownload(id);
-    else void tryLive((api) => api.removeDownload(id));
+    else {
+      void (async () => {
+        await tryLive((api) => api.removeDownload(id));
+        try {
+          const list = await tryLive((api) => api.listDownloads());
+          if (list) set({ downloads: (list as UiDownload[]).map(uiToDownload) });
+          else get().removeDownload(id);
+        } catch {
+          get().removeDownload(id);
+        }
+      })();
+    }
   },
   
   // Settings

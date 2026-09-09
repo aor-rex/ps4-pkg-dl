@@ -29,6 +29,7 @@ export interface UiDownload {
   eta: string | number | null;
   status: 'active' | 'queued' | 'completed' | 'failed' | 'paused' | 'extracting';
   path?: string | null;
+  pkgUrl?: string | null;
   cover?: string | null;
   region?: string | null;
   version?: string | null;
@@ -175,7 +176,8 @@ interface Ps4DlApi {
     cover?: string;
     gameId?: string | null;
     direct?: boolean;
-  }): Promise<{ id: string }>;
+    force?: boolean;
+  }): Promise<{ id: string; alreadyQueued?: boolean; alreadyCompleted?: boolean; title?: string | null }>;
   listDownloads(): Promise<UiDownload[]>;
   pauseDownload(id: string): Promise<unknown>;
   resumeDownload(id: string): Promise<unknown>;
@@ -260,6 +262,7 @@ function mapServerDownload(d: Record<string, unknown>): UiDownload {
     eta: typeof d.eta === 'number' ? fmtEta(d.eta) : String(d.eta ?? ''),
     status,
     path: (d.path as string) ?? null,
+    pkgUrl: (d.pkgUrl as string) ?? null,
     cover: (d.cover as string) ?? null,
     region: (d.region as string) ?? null,
     version: (d.version as string) ?? null,
@@ -318,8 +321,8 @@ const httpApi = {
     http('/api/metadata/ignore', { method: 'POST', body: JSON.stringify({ titleId, title: title || '' }) }),
   metadataUnignore: (titleId: string) =>
     http(`/api/metadata/ignore/${encodeURIComponent(titleId)}`, { method: 'DELETE' }),
-  queueDownload: (entry: { pkgUrl?: string; titleId?: string; id?: string }) =>
-    http<{ id: string }>('/api/downloads', { method: 'POST', body: JSON.stringify(entry) }),
+  queueDownload: (entry: { pkgUrl?: string; titleId?: string; id?: string; force?: boolean }) =>
+    http<{ id: string; alreadyQueued?: boolean; alreadyCompleted?: boolean; title?: string | null }>('/api/downloads', { method: 'POST', body: JSON.stringify(entry) }),
   listDownloads: () =>
     http<{ downloads: Record<string, unknown>[] }>('/api/downloads').then((r) =>
       r.downloads.map(mapServerDownload)

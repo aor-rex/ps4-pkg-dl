@@ -8,7 +8,7 @@ import type { Download as DownloadType } from '../../types';
 export default function BottomDownloadBar() {
   const {
     downloads, downloadManagerOpen, setDownloadManagerOpen, downloadFilter,
-    setDownloadFilter, pauseDl, resumeDl, cancelDl, removeDl, addToast,
+    setDownloadFilter, pauseDl, resumeDl, cancelDl, removeDl, redownload, addToast,
   } = useAppStore();
   const activeDownloads = downloads.filter((d) => d.status === 'active');
   const primaryDownload = activeDownloads[0];
@@ -253,12 +253,24 @@ export default function BottomDownloadBar() {
                         </button>
                         <button onClick={() => removeDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
+                          title="Remove this record (keeps the downloaded game file)"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
                           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                         >
                           <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Remove
                         </button>
+                        {dl.pkgUrl && (
+                          <button onClick={() => void redownload(dl.id)}
+                            className="flex items-center gap-1 px-3 rounded transition-colors"
+                            title="Download this game again"
+                            style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
+                            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                          >
+                            <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Download again
+                          </button>
+                        )}
                       </>
                     )}
                   </div>

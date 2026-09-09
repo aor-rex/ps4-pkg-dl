@@ -140,6 +140,7 @@ function registerIpcHandlers(ctx) {
   ipcMain.handle('downloads:resume', async (_e, id) => ctx.downloadManager.resume(id));
   ipcMain.handle('downloads:cancel', async (_e, id) => ctx.downloadManager.cancel(id));
   ipcMain.handle('downloads:retry', async (_e, id) => ctx.downloadManager.retry(id));
+  ipcMain.handle('downloads:remove', async (_e, id) => ctx.removeDownload(id));
   ipcMain.handle('downloads:openFolder', async (_e, dlPath) => {
     const fs = require('fs');
     if (dlPath && typeof dlPath === 'string' && fs.existsSync(dlPath)) shell.showItemInFolder(dlPath);

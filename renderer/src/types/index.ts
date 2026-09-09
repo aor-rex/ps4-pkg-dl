@@ -52,6 +52,7 @@ export interface Download {
   eta: string;
   status: 'active' | 'queued' | 'completed' | 'failed' | 'paused' | 'extracting';
   path?: string;
+  pkgUrl?: string | null;
   cover?: string | null;
   region?: string | null;
   version?: string | null;

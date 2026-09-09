@@ -18,7 +18,7 @@ const API_DOCS = {
   'GET /api/games/:titleId': 'all PKG variants for a CUSA id',
   'GET /api/pkg?url=': 'single catalog entry by PKG url',
   'GET /api/downloads': 'download queue',
-  'POST /api/downloads {pkgUrl|titleId|id}': 'queue a direct PKG download',
+  'POST /api/downloads {pkgUrl|titleId|id, force?}': 'queue a direct PKG download',
   'POST /api/downloads/:id/pause|resume|cancel|retry': 'control a download',
   'DELETE /api/downloads/:id': 'remove a download',
   'GET /api/history?status=&limit=': 'download history',
@@ -373,7 +373,7 @@ function createApp(ctx) {
   app.post(
     '/api/downloads',
     asyncHandler(async (req, res) => {
-      let { pkgUrl, titleId, id } = req.body || {};
+      let { pkgUrl, titleId, id, force } = req.body || {};
       let entry = null;
       if (pkgUrl) entry = await ctx.archive.getByPkgUrl(pkgUrl);
       else if (titleId) {
@@ -382,8 +382,18 @@ function createApp(ctx) {
         entry = variants[0]; // first variant; client can specify exact pkgUrl
       } else if (id) entry = await ctx.archive.getById(id);
       if (!entry) return res.status(400).json({ error: 'Provide pkgUrl, titleId, or id from the catalog' });
-      const { id: dlId } = ctx.queuePkgDownload(entry);
-      res.status(201).json({ id: dlId, entry });
+      const result = ctx.queuePkgDownload({
+        pkgUrl: entry.pkgUrl,
+        title: entry.title,
+        titleId: entry.titleId,
+        filename: entry.filename,
+        cover: entry.cover || entry.coverUrl,
+        region: entry.region,
+        version: entry.version,
+        size: entry.size,
+        force: !!force,
+      });
+      res.status(201).json({ ...result, entry });
     })
   );
 
@@ -406,14 +416,10 @@ function createApp(ctx) {
   app.post('/api/downloads/:id/retry', control('retry'));
   app.delete('/api/downloads/:id', (req, res) => {
     const { id } = req.params;
-    ctx.downloadManager
-      .cancel(id, false)
+    // Record removal keeps the game file on disk (cancel with deleteFile=false)
+    ctx.removeDownload(id)
       .catch(() => {})
       .finally(() => {
-        try {
-          ctx.downloadManager.downloads.delete(id);
-        } catch (_) {}
-        ctx.meta.delete(id);
         res.json({ id, removed: true });
       });
   });
