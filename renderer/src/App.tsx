@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from './store/appStore';
 import TopNavBar from './components/layout/TopNavBar';
 import SideNavBar from './components/layout/SideNavBar';
@@ -14,6 +14,24 @@ import ToastContainer from './components/common/Toast';
 
 export default function App() {
   const { currentView, settingsOpen, settings, initLive, loadBrowse } = useAppStore();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebar-collapsed') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleSidebar = () => {
+    setSidebarCollapsed((c) => {
+      try {
+        localStorage.setItem('sidebar-collapsed', c ? '0' : '1');
+      } catch {
+        /* ignore */
+      }
+      return !c;
+    });
+  };
+  const sidebarWidth = sidebarCollapsed ? 64 : 240;
 
   // Apply theme
   useEffect(() => {
@@ -57,16 +75,17 @@ export default function App() {
       <TopNavBar />
 
       <div className="flex flex-1 overflow-hidden" style={{ marginTop: '56px' }}>
-        {/* Sidebar - Fixed 240px */}
-        <SideNavBar />
+        {/* Sidebar - collapsible 240px / 64px icon-only */}
+        <SideNavBar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
 
         {/* Main Content Area - fills remaining space, scrollable */}
         <main
           className="flex-1 overflow-y-auto"
           style={{
-            marginLeft: '240px',
+            marginLeft: `${sidebarWidth}px`,
             height: 'calc(100vh - 56px - 48px)',
             backgroundColor: 'var(--bg-primary)',
+            transition: 'margin-left 0.2s ease',
           }}
         >
           {renderView()}
