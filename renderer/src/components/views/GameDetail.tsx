@@ -73,7 +73,7 @@ export default function GameDetail() {
           {/* Cover Image */}
           <div
             className="shrink-0"
-            style={{ width: '300px', height: '420px', borderRadius: '6px', overflow: 'hidden', marginRight: '24px' }}
+            style={{ width: '300px', height: '420px', borderRadius: '6px', overflow: 'hidden', marginRight: '24px', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,0.45)' }}
           >
             <img
               src={selectedGame.cover || COVER_FALLBACK}
@@ -196,10 +196,10 @@ export default function GameDetail() {
                   <div
                     key={index}
                     className="shrink-0 cursor-pointer transition-opacity"
-                    style={{ width: '180px', height: '100px', borderRadius: '4px', overflow: 'hidden' }}
+                    style={{ width: '180px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)' }}
                     onClick={() => openLightbox(selectedGame.gallery, index)}
-                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                    onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                   >
                     <img
                       src={img || COVER_FALLBACK}
@@ -389,6 +389,8 @@ export default function GameDetail() {
                             borderRadius: '4px',
                             border: '1px solid var(--border)',
                           }}
+                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                         >
                           <div>
                             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>

@@ -22,7 +22,7 @@ export default function ToastContainer() {
         <div
           key={toast.id}
           className="border rounded-lg px-4 py-3 flex items-center gap-3 min-w-[320px] shadow-lg"
-          style={{ backgroundColor: 'var(--surface-high)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', opacity: 1, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
         >
           {getIcon(toast.type)}
           <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>{toast.message}</span>

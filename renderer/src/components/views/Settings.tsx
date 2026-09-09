@@ -945,6 +945,25 @@ export default function Settings() {
       <SettingRow label="Desktop notification" last>
         <Toggle checked={settings.desktopNotification} onChange={() => handleToggle('desktopNotification')} />
       </SettingRow>
+      <div style={{ marginTop: '16px' }}>
+        <button
+          onClick={() => addToast('success', 'Test notification — notifications are working')}
+          style={{
+            backgroundColor: 'var(--bg-tertiary)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            fontSize: '14px',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'border-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+        >
+          Send test notification
+        </button>
+      </div>
     </div>
   );
 
@@ -1004,14 +1023,13 @@ export default function Settings() {
   const renderAbout = () => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0' }}>
       <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>PS4 PKG Downloader</h2>
-      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px' }}>v0.1.0</p>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '24px' }}>Built with React + TypeScript + Vite</p>
+      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>v0.1.0</p>
       <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '320px', textAlign: 'center' }}>
         Game metadata, artwork and trailers by <a href="https://rawg.io" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>RAWG</a> ·
         PKG catalog supplied by you
       </p>
-      <div style={{ maxWidth: '520px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px 20px', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>Disclaimer</h3>
+      <div style={{ maxWidth: '520px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px 20px', marginBottom: '24px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', textAlign: 'center' }}>Disclaimer</h3>
         <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.7' }}>
           This app <strong>hosts no files</strong>. All download links come from a catalog file you supply —
           the app only reads, matches, and downloads from URLs you provide. Game content belongs to its
@@ -1122,6 +1140,8 @@ export default function Settings() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
+                flex: '1 0 auto',
                 gap: '8px',
                 height: '48px',
                 padding: '0 14px',
@@ -1157,7 +1177,7 @@ export default function Settings() {
           overflowY: 'auto',
         }}
       >
-        <div style={{ maxWidth: '960px' }}>
+        <div style={{ maxWidth: '100%' }}>
           {renderContent()}
 
           {/* Action Buttons */}

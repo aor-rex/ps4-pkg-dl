@@ -17,7 +17,10 @@ export default function BottomDownloadBar() {
     { key: 'queued', label: 'Queued' },
     { key: 'completed', label: 'Completed' },
     { key: 'failed', label: 'Failed' },
-  ];
+  ].map((tab) => ({
+    ...tab,
+    label: `${tab.label} (${tab.key === 'all' ? downloads.length : downloads.filter((d) => d.status === tab.key).length})`,
+  }));
   const filteredDownloads = downloads.filter((dl) => {
     if (downloadFilter === 'all') return true;
     return dl.status === downloadFilter;
@@ -47,7 +50,7 @@ export default function BottomDownloadBar() {
           borderTop: '1px solid var(--border)',
           transform: downloadManagerOpen ? 'translateY(-320px)' : 'translateY(0)',
         }}
-        onClick={() => setDownloadManagerOpen(true)}
+        onClick={() => setDownloadManagerOpen(!downloadManagerOpen)}
       >
         <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '18px', height: '18px', color: 'var(--accent)', marginRight: '8px' }} />
         <span className="text-sm font-medium mr-2" style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500 }}>Downloads</span>
@@ -91,23 +94,7 @@ export default function BottomDownloadBar() {
             borderTop: '1px solid var(--border)',
           }}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4" style={{ padding: '12px 16px', borderBottom: `1px solid var(--border)` }}>
-            <span className="text-base font-semibold" style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 600 }}>
-              Downloads ({activeDownloads.length} Active)
-            </span>
-            <button
-              onClick={() => setDownloadManagerOpen(false)}
-              className="p-1 rounded transition-colors"
-              style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-            >
-              <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} style={{ width: '16px', height: '16px' }} />
-            </button>
-          </div>
-
-          {/* Tabs - UI Spec 9.2 */}
+          {/* Tabs - UI Spec 9.2 (counts live here, by the side) */}
           <div className="flex gap-0 px-4" style={{ borderBottom: `1px solid var(--border)` }}>
             {tabs.map((tab) => (
               <button
