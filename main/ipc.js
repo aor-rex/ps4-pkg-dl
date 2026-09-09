@@ -181,9 +181,16 @@ function registerIpcHandlers(ctx) {
       ctx.appUpdater.allowPrerelease = ctx.settings.get('updateChannel') !== 'stable';
     } catch (_) {}
     try {
+      // NOTE: checkForUpdates() resolves non-null even when up-to-date —
+      // the real signal is res.isUpdateAvailable, not res truthiness.
       const res = await ctx.appUpdater.checkForUpdates();
       const info = (res && res.updateInfo) || {};
-      return { status: 'checked', available: !!res, version: info.version || null };
+      return {
+        status: 'checked',
+        available: res?.isUpdateAvailable === true,
+        version: info.version || null,
+        current: app.getVersion(),
+      };
     } catch (error) {
       return { status: 'error', error: shortError(error) };
     }
@@ -194,7 +201,13 @@ function registerIpcHandlers(ctx) {
       await ctx.appUpdater.downloadUpdate();
       return { status: 'downloading' };
     } catch (error) {
-      return { status: 'error', error: shortError(error) };
+      const msg = shortError(error);
+      return {
+        status: 'error',
+        error: /check update first/i.test(msg)
+          ? 'No update staged — check for updates first'
+          : msg,
+      };
     }
   });
   ipcMain.handle('update:quit', async () => {

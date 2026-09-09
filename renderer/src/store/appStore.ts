@@ -949,7 +949,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
     set({ updateStatus: 'checking', updateError: null });
-    const res = (await tryLive((api) => api.updateCheck())) as { status?: string; available?: boolean; version?: string | null; error?: string } | null;
+    const res = (await tryLive((api) => api.updateCheck())) as { status?: string; available?: boolean; version?: string | null; current?: string | null; error?: string } | null;
     if (!res || res.status === 'unavailable') {
       set({ updateStatus: 'unavailable' });
       if (manual) addToast('info', 'Auto-update is unavailable in this build');
@@ -960,7 +960,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (manual) addToast('error', `Update check failed: ${res.error || 'unknown'}`);
       return;
     }
-    if (res.available) {
+    // Belt and braces: only a strictly-newer version counts as an offer.
+    // Never offer the running version (or an older one) for download.
+    let current = res.current || null;
+    try {
+      current = current || (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : null);
+    } catch {
+      /* ignore */
+    }
+    const newer = !!(
+      res.available &&
+      res.version &&
+      current &&
+      res.version !== current &&
+      res.version !== `v${current}`
+    );
+    if (newer) {
       set({ updateStatus: 'available', updateVersion: res.version || null });
       if (manual) set({ whatsNewOpen: false });
     } else {
@@ -969,12 +984,18 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
   downloadUpdate: async () => {
-    const { addToast } = get();
+    const { addToast, updateVersion } = get();
     if (!backend) return;
+    // Never attempt a download unless a strictly-newer version is staged
+    if (!updateVersion) {
+      set({ updateStatus: 'idle', updateError: null });
+      addToast('info', 'No update available to download — check for updates first');
+      return;
+    }
     set({ updateStatus: 'downloading', updateProgress: 0 });
     const res = (await tryLive((api) => api.updateDownload())) as { status?: string; error?: string } | null;
     if (!res || res.status === 'error') {
-      set({ updateStatus: 'error', updateError: (res && res.error) || 'download failed' });
+      set({ updateStatus: 'idle', updateVersion: null, updateProgress: 0, updateError: (res && res.error) || 'download failed' });
       addToast('error', `Update download failed: ${(res && res.error) || 'unknown'}`);
     }
   },
