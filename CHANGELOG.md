@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.1.7] - 2026-09-09 (beta)
+
+### Fixes
+- Re-downloading a finished game no longer creates `file (1).pkg` duplicates: completed downloads are detected and surfaced in the Completed tab instead
+- Completed downloads survive app restarts (rebuilt from history, missing files skipped)
+- Removing a download clears its record but keeps the game file, and the row disappears immediately
+- Update errors are channel-aware and human-readable (e.g. Stable with no stable releases says so plainly), shown persistently in Settings → About
+
+### Features
+- Completed rows have an explicit Download-again action for forced re-downloads, plus a tooltip clarifying Remove keeps the file
+- Professional README rewrite (features, config locations, updating, contributing) and MIT license
+
 ## [v0.1.6] - 2026-09-09 (beta)
 
 ### Fixes
