@@ -1,4 +1,5 @@
-import { AlertTriangle } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Alert02Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 
 export default function ConfirmDialog() {
@@ -43,7 +44,7 @@ export default function ConfirmDialog() {
             padding: '20px 24px 12px',
           }}
         >
-          <AlertTriangle size={24} style={{ color: 'var(--warning)', flexShrink: 0 }} />
+          <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} size={24} style={{ color: 'var(--warning)', flexShrink: 0 }} />
           <h2
             style={{
               fontSize: '18px',

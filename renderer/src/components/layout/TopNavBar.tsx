@@ -1,4 +1,5 @@
-import { Search, Settings, Download, Gamepad2, X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Search01Icon, Settings02Icon, Download02Icon, GameController02Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 import { useState, useRef, useEffect } from 'react';
 import { COVER_FALLBACK } from '../../lib/catalog';
@@ -58,7 +59,7 @@ export default function TopNavBar() {
             onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
           >
-            <Gamepad2 className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+            <HugeiconsIcon icon={GameController02Icon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--accent)' }} />
             <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>PS4 PKG DL</span>
           </button>
         </div>
@@ -75,7 +76,7 @@ export default function TopNavBar() {
                 boxShadow: searchFocused ? '0 0 0 2px rgba(102,192,244,0.3)' : 'none',
               }}
             >
-              <Search className="ml-2 mr-1 flex-shrink-0" style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
+              <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="ml-2 mr-1 flex-shrink-0" style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
               <input
                 type="text"
                 value={searchQuery}
@@ -94,7 +95,7 @@ export default function TopNavBar() {
                   onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  <X style={{ width: '16px', height: '16px' }} />
+                  <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} style={{ width: '16px', height: '16px' }} />
                 </button>
               )}
             </div>
@@ -157,7 +158,7 @@ export default function TopNavBar() {
             style={{ color: 'var(--text-muted)' }}
             title="Downloads"
           >
-            <Download style={{ width: '20px', height: '20px' }} />
+            <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '20px', height: '20px' }} />
             {activeDownloads.length > 0 && (
               <span
                 className="absolute flex items-center justify-center"
@@ -193,7 +194,7 @@ export default function TopNavBar() {
             style={{ color: 'var(--text-muted)' }}
             title="Settings"
           >
-            <Settings style={{ width: '20px', height: '20px' }} />
+            <HugeiconsIcon icon={Settings02Icon} strokeWidth={2} style={{ width: '20px', height: '20px' }} />
           </button>
         </div>
       </header>

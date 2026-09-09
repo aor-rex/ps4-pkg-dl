@@ -1,4 +1,5 @@
-import { Download, ChevronUp, ChevronDown, X, Pause, Play, Trash2, FolderOpen } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Download02Icon, ArrowUp01Icon, ArrowDown01Icon, Cancel01Icon, PauseIcon, PlayIcon, Delete02Icon, Folder01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 import { tryLive } from '../../lib/backend';
 import type { Download as DownloadType } from '../../types';
@@ -48,7 +49,7 @@ export default function BottomDownloadBar() {
         }}
         onClick={() => setDownloadManagerOpen(true)}
       >
-        <Download style={{ width: '18px', height: '18px', color: 'var(--accent)', marginRight: '8px' }} />
+        <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '18px', height: '18px', color: 'var(--accent)', marginRight: '8px' }} />
         <span className="text-sm font-medium mr-2" style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 500 }}>Downloads</span>
 
         {primaryDownload && (
@@ -75,8 +76,8 @@ export default function BottomDownloadBar() {
           title={downloadManagerOpen ? 'Close downloads' : 'Open downloads'}
         >
           {downloadManagerOpen
-            ? <ChevronDown style={{ width: '16px', height: '16px' }} />
-            : <ChevronUp style={{ width: '16px', height: '16px' }} />}
+            ? <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} style={{ width: '16px', height: '16px' }} />
+            : <HugeiconsIcon icon={ArrowUp01Icon} strokeWidth={2} style={{ width: '16px', height: '16px' }} />}
         </button>
       </div>
 
@@ -102,7 +103,7 @@ export default function BottomDownloadBar() {
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
               onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
             >
-              <ChevronDown style={{ width: '16px', height: '16px' }} />
+              <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} style={{ width: '16px', height: '16px' }} />
             </button>
           </div>
 
@@ -182,7 +183,7 @@ export default function BottomDownloadBar() {
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
                           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                         >
-                          <Pause style={{ width: '12px', height: '12px' }} /> Pause
+                          <HugeiconsIcon icon={PauseIcon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Pause
                         </button>
                         <button
                           onClick={() => cancelDl(dl.id)}
@@ -191,7 +192,7 @@ export default function BottomDownloadBar() {
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(244,67,54,0.1)')}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
-                          <X style={{ width: '12px', height: '12px' }} /> Cancel
+                          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Cancel
                         </button>
                       </>
                     )}
@@ -203,7 +204,7 @@ export default function BottomDownloadBar() {
                         onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
                         onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                       >
-                        <Play style={{ width: '12px', height: '12px' }} /> Resume
+                        <HugeiconsIcon icon={PlayIcon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Resume
                       </button>
                     )}
                     {dl.status === 'failed' && (
@@ -222,7 +223,7 @@ export default function BottomDownloadBar() {
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
                         >
-                          <Trash2 style={{ width: '12px', height: '12px' }} /> Remove
+                          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Remove
                         </button>
                       </>
                     )}
@@ -239,7 +240,7 @@ export default function BottomDownloadBar() {
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
                           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                         >
-                          <FolderOpen style={{ width: '12px', height: '12px' }} /> Open Folder
+                          <HugeiconsIcon icon={Folder01Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Open Folder
                         </button>
                         <button onClick={() => removeDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
@@ -247,7 +248,7 @@ export default function BottomDownloadBar() {
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
                           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
                         >
-                          <Trash2 style={{ width: '12px', height: '12px' }} /> Remove
+                          <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Remove
                         </button>
                       </>
                     )}

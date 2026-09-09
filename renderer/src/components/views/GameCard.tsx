@@ -1,4 +1,5 @@
-import { Download } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Download02Icon } from '@hugeicons/core-free-icons';
 import type { Game } from '../../types';
 import { useAppStore } from '../../store/appStore';
 import { COVER_FALLBACK } from '../../lib/catalog';
@@ -53,7 +54,7 @@ export default function GameCard({ game, onClick, compact = false }: GameCardPro
             className="flex items-center gap-2 font-bold"
             style={{ backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)', padding: '8px 20px', borderRadius: '4px', fontSize: '13px', fontWeight: 700 }}
           >
-            <Download style={{ width: '14px', height: '14px' }} /> Download
+            <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Download
           </div>
         </div>
       </div>

@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { FolderOpen, Download, Package, Globe, Bell, Palette, Info, Database } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Folder01Icon, Download02Icon, Package02Icon, GlobalIcon, Notification01Icon, PaintBoardIcon, InformationCircleIcon, Database02Icon } from '@hugeicons/core-free-icons';
 import { useAppStore, defaultSettings } from '../../store/appStore';
 import { backend, tryLive } from '../../lib/backend';
 
 const categories = [
-  { icon: Database, key: 'library', label: 'Library' },
-  { icon: FolderOpen, key: 'general', label: 'General' },
-  { icon: Download, key: 'downloads', label: 'Downloads' },
-  { icon: Package, key: 'extract', label: 'Extract' },
-  { icon: Globe, key: 'network', label: 'Network' },
-  { icon: Bell, key: 'notifications', label: 'Notifications' },
-  { icon: Palette, key: 'appearance', label: 'Appearance' },
-  { icon: Info, key: 'about', label: 'About' },
+  { icon: Database02Icon, key: 'library', label: 'Library' },
+  { icon: Folder01Icon, key: 'general', label: 'General' },
+  { icon: Download02Icon, key: 'downloads', label: 'Downloads' },
+  { icon: Package02Icon, key: 'extract', label: 'Extract' },
+  { icon: GlobalIcon, key: 'network', label: 'Network' },
+  { icon: Notification01Icon, key: 'notifications', label: 'Notifications' },
+  { icon: PaintBoardIcon, key: 'appearance', label: 'Appearance' },
+  { icon: InformationCircleIcon, key: 'about', label: 'About' },
 ];
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (val: boolean) => void }) {
@@ -1140,7 +1141,7 @@ export default function Settings() {
                 if (!isActive) e.currentTarget.style.color = 'var(--text-secondary)';
               }}
             >
-              <cat.icon style={{ width: '16px', height: '16px', flexShrink: 0 }} />
+              <HugeiconsIcon icon={cat.icon} strokeWidth={2} style={{ width: '16px', height: '16px', flexShrink: 0 }} />
               <span>{cat.label}</span>
             </button>
           );

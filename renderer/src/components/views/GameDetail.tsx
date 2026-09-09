@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, Download, Play, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowLeft01Icon, Download02Icon, PlayIcon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 import Spinner from '../common/Spinner';
 import { COVER_FALLBACK } from '../../lib/catalog';
@@ -63,7 +64,7 @@ export default function GameDetail() {
           className="flex items-center gap-2 mb-4 transition-opacity hover:opacity-80"
           style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} className="w-4 h-4" />
           <span style={{ fontSize: '14px', textDecoration: 'none' }}>Back to Browse</span>
         </button>
 
@@ -136,7 +137,7 @@ export default function GameDetail() {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
               >
-                <Download className="w-4 h-4" />
+                <HugeiconsIcon icon={Download02Icon} strokeWidth={2} className="w-4 h-4" />
                 Download
               </button>
               {hasMultipleParts && (
@@ -159,7 +160,7 @@ export default function GameDetail() {
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.1)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
-                  <Download className="w-4 h-4" />
+                  <HugeiconsIcon icon={Download02Icon} strokeWidth={2} className="w-4 h-4" />
                   Download All Parts
                 </button>
               )}
@@ -184,7 +185,7 @@ export default function GameDetail() {
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-hover)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--accent)')}
               >
-                <ChevronLeft className="w-6 h-6" style={{ color: 'var(--accent)' }} />
+                <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} className="w-6 h-6" style={{ color: 'var(--accent)' }} />
               </button>
               <div
                 id="screenshot-scroll"
@@ -224,7 +225,7 @@ export default function GameDetail() {
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-hover)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--accent)')}
               >
-                <ChevronRight className="w-6 h-6" style={{ color: 'var(--accent)' }} />
+                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} className="w-6 h-6" style={{ color: 'var(--accent)' }} />
               </button>
             </div>
           </section>
@@ -330,7 +331,7 @@ export default function GameDetail() {
                           backgroundColor: 'rgba(0,0,0,0.7)',
                         }}
                       >
-                        <Play className="w-6 h-6 fill-current" style={{ color: 'var(--accent)', marginLeft: '3px' }} />
+                        <HugeiconsIcon icon={PlayIcon} strokeWidth={2} className="w-6 h-6 fill-current" style={{ color: 'var(--accent)', marginLeft: '3px' }} />
                       </div>
                     </div>
                   </div>
@@ -413,7 +414,7 @@ export default function GameDetail() {
                             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
                           >
-                            <Download className="w-4 h-4" />
+                            <HugeiconsIcon icon={Download02Icon} strokeWidth={2} className="w-4 h-4" />
                             Download
                           </button>
                         </div>

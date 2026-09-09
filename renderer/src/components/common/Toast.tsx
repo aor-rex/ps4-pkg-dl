@@ -1,4 +1,5 @@
-import { Check, XCircle, Info, X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { CheckmarkCircle01Icon, Cancel01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 
 export default function ToastContainer() {
@@ -8,9 +9,9 @@ export default function ToastContainer() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'success': return <Check className="w-5 h-5" style={{ color: 'var(--success)' }} />;
-      case 'error': return <XCircle className="w-5 h-5" style={{ color: 'var(--error)' }} />;
-      case 'info': return <Info className="w-5 h-5" style={{ color: 'var(--primary-container)' }} />;
+      case 'success': return <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--success)' }} />;
+      case 'error': return <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--error)' }} />;
+      case 'info': return <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--primary-container)' }} />;
       default: return null;
     }
   };
@@ -31,7 +32,7 @@ export default function ToastContainer() {
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-bright)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
           >
-            <X className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+            <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
           </button>
         </div>
       ))}

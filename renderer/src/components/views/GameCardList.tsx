@@ -1,4 +1,5 @@
-import { Download, Info } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Download02Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import type { Game } from '../../types';
 import { useAppStore } from '../../store/appStore';
 import { COVER_FALLBACK } from '../../lib/catalog';
@@ -42,7 +43,7 @@ export default function GameCardList({ game, onClick }: GameCardListProps) {
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
         >
-          <Download style={{ width: '14px', height: '14px' }} /> Download
+          <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Download
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); onClick(); }}
@@ -51,7 +52,7 @@ export default function GameCardList({ game, onClick }: GameCardListProps) {
           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
         >
-          <Info style={{ width: '14px', height: '14px' }} /> Info
+          <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Info
         </button>
       </div>
     </div>

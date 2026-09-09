@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 
 export default function Lightbox() {
@@ -71,7 +72,7 @@ export default function Lightbox() {
           (e.currentTarget as HTMLButtonElement).style.opacity = '1';
         }}
       >
-        <X size={24} />
+        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={24} />
       </button>
 
       {/* Main Image Area */}
@@ -122,7 +123,7 @@ export default function Lightbox() {
             (e.currentTarget as HTMLButtonElement).style.color = '#fff';
           }}
         >
-          <ChevronLeft size={16} />
+          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} size={16} />
           Previous
         </button>
         <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
@@ -150,7 +151,7 @@ export default function Lightbox() {
           }}
         >
           Next
-          <ChevronRight size={16} />
+          <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} size={16} />
         </button>
       </div>
 

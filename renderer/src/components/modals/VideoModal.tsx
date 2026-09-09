@@ -1,4 +1,5 @@
-import { X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Cancel01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 
 export default function VideoModal() {
@@ -50,7 +51,7 @@ export default function VideoModal() {
             (e.currentTarget as HTMLButtonElement).style.opacity = '1';
           }}
         >
-          <X size={24} />
+          <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} size={24} />
         </button>
 
         {/* Video Player */}

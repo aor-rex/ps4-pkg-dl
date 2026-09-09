@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ArrowLeft01Icon, ArrowRight01Icon, Search01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 import GameCard from './GameCard';
 import GameCardList from './GameCardList';
@@ -72,7 +73,7 @@ export default function GameGrid() {
       ) : paginatedGames.length === 0 ? (
         showSetupPrompt ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Search style={{ width: '64px', height: '64px', color: 'var(--border)', marginBottom: '16px' }} />
+            <HugeiconsIcon icon={Search01Icon} strokeWidth={2} style={{ width: '64px', height: '64px', color: 'var(--border)', marginBottom: '16px' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>No library loaded</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px', textAlign: 'center', maxWidth: '420px' }}>
               Paste your games.json URL in Settings → Library to load your catalog, then backfill it with metadata.
@@ -86,7 +87,7 @@ export default function GameGrid() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-20">
-            <Search style={{ width: '64px', height: '64px', color: 'var(--border)', marginBottom: '16px' }} />
+            <HugeiconsIcon icon={Search01Icon} strokeWidth={2} style={{ width: '64px', height: '64px', color: 'var(--border)', marginBottom: '16px' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>No games found</h3>
             <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
               {liveMode ? 'Try adjusting your search or filters' : 'Start the API server to browse the live catalog'}
@@ -112,7 +113,7 @@ export default function GameGrid() {
             onMouseEnter={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.15)'; }}
             onMouseLeave={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
-            <ChevronLeft style={{ width: '14px', height: '14px' }} /> Previous
+            <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Previous
           </button>
           {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
             let page: number;
@@ -140,7 +141,7 @@ export default function GameGrid() {
             onMouseEnter={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.15)'; }}
             onMouseLeave={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
-            Next <ChevronRight style={{ width: '14px', height: '14px' }} />
+            Next <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} />
           </button>
         </div>
       )}

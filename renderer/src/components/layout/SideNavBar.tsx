@@ -1,4 +1,5 @@
-import { Home, TrendingUp, Clock, FolderOpen } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Home01Icon, AnalyticsUpIcon, Clock01Icon, Folder01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 
 export default function SideNavBar() {
@@ -6,10 +7,10 @@ export default function SideNavBar() {
   const activeDownloads = downloads.filter((d) => d.status === 'active').slice(0, 3);
 
   const navItems = [
-    { icon: Home, label: 'Home', view: 'home' },
-    { icon: TrendingUp, label: 'Library', view: 'library' },
-    { icon: Clock, label: 'New', view: 'new' },
-    { icon: FolderOpen, label: 'All Games', view: 'all' },
+    { icon: Home01Icon, label: 'Home', view: 'home' },
+    { icon: AnalyticsUpIcon, label: 'Library', view: 'library' },
+    { icon: Clock01Icon, label: 'New', view: 'new' },
+    { icon: Folder01Icon, label: 'All Games', view: 'all' },
   ];
 
   const handleNavClick = (view: string) => {
@@ -59,7 +60,7 @@ export default function SideNavBar() {
                 }
               }}
             >
-              <item.icon style={{ width: '18px', height: '18px', marginRight: '12px' }} />
+              <HugeiconsIcon icon={item.icon} strokeWidth={2} style={{ width: '18px', height: '18px', marginRight: '12px' }} />
               <span className="text-sm" style={{ fontWeight: 500 }}>{item.label}</span>
             </button>
           );
