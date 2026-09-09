@@ -64,9 +64,13 @@ export default function BottomDownloadBar() {
               <span className="text-xs mr-2" style={{ color: 'var(--text-muted)' }}>{primaryDownload.progress}%</span>
               <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{primaryDownload.gameTitle}</span>
             </div>
-            <div className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
-              {primaryDownload.speed} | ETA: {primaryDownload.eta}
-            </div>
+            {(primaryDownload.speed || primaryDownload.eta) ? (
+              <div className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>
+                {primaryDownload.speed}
+                {primaryDownload.speed && primaryDownload.eta ? ' | ' : ''}
+                {primaryDownload.eta ? `ETA: ${primaryDownload.eta}` : ''}
+              </div>
+            ) : null}
           </>
         )}
 
@@ -147,11 +151,13 @@ export default function BottomDownloadBar() {
                   </div>
 
                   {/* Speed & ETA */}
-                  {dl.status === 'active' && (
+                  {dl.status === 'active' && (dl.speed || dl.eta) ? (
                     <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
-                      {dl.speed} | ETA: {dl.eta}
+                      {dl.speed}
+                      {dl.speed && dl.eta ? ' | ' : ''}
+                      {dl.eta ? `ETA: ${dl.eta}` : ''}
                     </div>
-                  )}
+                  ) : null}
                   {dl.status === 'extracting' && (
                     <div className="mt-1 text-xs" style={{ color: 'var(--warning)', fontSize: '12px' }}>Extracting archive...</div>
                   )}
@@ -164,7 +170,7 @@ export default function BottomDownloadBar() {
                     {dl.status === 'active' && (
                       <>
                         <button
-                          onClick={() => pauseDl(dl.id)}
+                          onClick={() => void pauseDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
                           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
@@ -185,7 +191,7 @@ export default function BottomDownloadBar() {
                     )}
                     {dl.status === 'paused' && (
                       <button
-                        onClick={() => resumeDl(dl.id)}
+                        onClick={() => void resumeDl(dl.id)}
                         className="flex items-center gap-1 px-3 rounded transition-colors"
                         style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
                         onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}

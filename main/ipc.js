@@ -146,6 +146,10 @@ function registerIpcHandlers(ctx) {
     else shell.openPath(ctx.settings.getDownloadDir());
     return true;
   });
+  ipcMain.handle('settings:openConfigFolder', async () => {
+    shell.openPath(require('./settings').getConfigDir());
+    return true;
+  });
 
   ipcMain.handle('settings:get', async () => ctx.settings.getAll());
   ipcMain.handle('settings:set', async (_e, partial) => {

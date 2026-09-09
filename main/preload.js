@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('ps4dl', {
   retryDownload: (id) => ipcRenderer.invoke('downloads:retry', id),
   removeDownload: (id) => ipcRenderer.invoke('downloads:remove', id),
   openFolder: (path) => ipcRenderer.invoke('downloads:openFolder', path),
+  openConfigFolder: () => ipcRenderer.invoke('settings:openConfigFolder'),
 
   // Live download events: cb receives ({type, download})
   onDownloadEvent: (cb) => {

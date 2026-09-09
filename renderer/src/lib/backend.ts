@@ -177,6 +177,7 @@ interface Ps4DlApi {
   retryDownload(id: string): Promise<unknown>;
   removeDownload(id: string): Promise<unknown>;
   openFolder(path?: string): Promise<boolean>;
+  openConfigFolder(): Promise<unknown>;
   onDownloadEvent(cb: (e: { type: string; download: { id: string; url: string } | null }) => void): () => void;
   onDownloadsSnapshot(cb: (list: UiDownload[]) => void): () => void;
   getSettings(): Promise<Record<string, unknown>>;

@@ -12,6 +12,22 @@ function startPolling(poll: () => void) {
 
 let backfillTimer: ReturnType<typeof setInterval> | null = null;
 
+function fmtSpeedLocal(v: string | number | null | undefined): string {
+  const bps = typeof v === 'number' ? v : Number(v);
+  if (!bps || !isFinite(bps)) return '';
+  return `${(bps / 1048576).toFixed(1)} MB/s`;
+}
+
+function fmtEtaLocal(v: string | number | null | undefined): string {
+  if (v == null || v === '') return '';
+  const s = typeof v === 'number' ? v : Number(v);
+  if (!isFinite(s)) return '';
+  const n = Math.round(s);
+  if (n < 60) return `${n}s`;
+  const m = Math.floor(n / 60);
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
 function uiToDownload(d: UiDownload): Download {
   return {
     id: d.id,
@@ -22,8 +38,8 @@ function uiToDownload(d: UiDownload): Download {
     sizeBytes: d.sizeBytes,
     source: d.source,
     progress: d.progress,
-    speed: String(d.speed ?? ''),
-    eta: String(d.eta ?? ''),
+    speed: fmtSpeedLocal(d.speed),
+    eta: fmtEtaLocal(d.eta),
     status: d.status,
     path: d.path ?? undefined,
   };
@@ -102,8 +118,8 @@ interface AppState {
 
   // Live-backed download actions (route to Electron backend when present)
   startDownload: (mirror: Mirror, game: Game | null, fileType?: string) => Promise<void>;
-  pauseDl: (id: string) => void;
-  resumeDl: (id: string) => void;
+  pauseDl: (id: string) => Promise<void>;
+  resumeDl: (id: string) => Promise<void>;
   cancelDl: (id: string) => void;
   retryDl: (id: string) => void;
   removeDl: (id: string) => void;
@@ -782,15 +798,31 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  pauseDl: (id) => {
-    if (get().backendMode === 'http') void httpApi.pauseDownload(id).catch(() => {});
-    else void tryLive((api) => api.pauseDownload(id));
-    get().updateDownload(id, { status: 'paused' });
+  pauseDl: async (id) => {
+    const { addToast } = get();
+    try {
+      const ok =
+        get().backendMode === 'http'
+          ? await httpApi.pauseDownload(id).then(() => true)
+          : (await tryLive((api) => api.pauseDownload(id))) ?? false;
+      if (!ok) throw new Error('pause rejected');
+      get().updateDownload(id, { status: 'paused' });
+    } catch (err) {
+      addToast('error', err instanceof Error ? `Pause failed: ${err.message}` : 'Pause failed');
+    }
   },
-  resumeDl: (id) => {
-    if (get().backendMode === 'http') void httpApi.resumeDownload(id).catch(() => {});
-    else void tryLive((api) => api.resumeDownload(id));
-    get().updateDownload(id, { status: 'active' });
+  resumeDl: async (id) => {
+    const { addToast } = get();
+    try {
+      const ok =
+        get().backendMode === 'http'
+          ? await httpApi.resumeDownload(id).then(() => true)
+          : (await tryLive((api) => api.resumeDownload(id))) ?? false;
+      if (!ok) throw new Error('resume rejected');
+      get().updateDownload(id, { status: 'active' });
+    } catch (err) {
+      addToast('error', err instanceof Error ? `Resume failed: ${err.message}` : 'Resume failed');
+    }
   },
   cancelDl: (id) => {
     if (get().backendMode === 'http') void httpApi.cancelDownload(id).catch(() => {});

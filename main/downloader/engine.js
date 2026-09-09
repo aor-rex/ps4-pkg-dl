@@ -100,7 +100,7 @@ class DownloadEngine extends EventEmitter {
         totalBytes: stats.total || 0,
         downloadedBytes: stats.downloaded || 0,
         speed: stats.speed || 0,
-        eta: stats.eta || Infinity,
+        eta: stats.eta ?? null,
         percent: stats.progress || 0,
       };
 

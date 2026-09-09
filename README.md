@@ -10,7 +10,13 @@ Browse your own PS4 PKG catalog, enrich it with artwork and metadata, and downlo
 
 ## Download
 
-Grab the latest `.AppImage` from the [Releases page](../../releases), make it executable, and run it:
+Easiest (installs a launcher entry; re-run to update):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/aor-rex/ps4-pkg-dl/main/install.sh | bash
+```
+
+Or grab the `.AppImage` from the [Releases page](../../releases) manually, make it executable, and run it:
 
 ```sh
 chmod +x PS4-PKG-Downloader-*.AppImage

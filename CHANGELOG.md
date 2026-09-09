@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.1.3] - 2026-09-09 (beta)
+
+### Fixes
+- Download progress no longer shows raw byte counts or "ETA: Infinity" — speeds render as MB/s and unknown ETAs stay blank
+- Pause/resume actually report failures now instead of silently flipping back
+- About's folder button opened the download folder; it is now "Open Config Folder" and a separate "Open Download Folder" button sits next to Browse in General
+
+### Features
+- One-command install/update: `curl -fsSL .../install.sh | bash` installs the AppImage plus a launcher entry; re-running updates
+
 ## [v0.1.2] - 2026-09-09 (beta)
 
 ### Fixes

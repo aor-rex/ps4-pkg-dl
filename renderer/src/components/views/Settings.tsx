@@ -614,6 +614,28 @@ export default function Settings() {
           >
             Browse
           </button>
+          <button
+            onClick={() => {
+              void (async () => {
+                const opened = await tryLive((api) => api.openFolder());
+                if (!opened) addToast('info', 'Open folder is available in the desktop app');
+              })();
+            }}
+            style={{
+              backgroundColor: 'var(--bg-tertiary)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
+              fontSize: '13px',
+              padding: '8px 16px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+          >
+            Open Folder
+          </button>
         </div>
       </SettingRow>
       <SettingRow label="Create game subfolder" last>
@@ -1062,9 +1084,9 @@ export default function Settings() {
         </button>
         <button
           onClick={async () => {
-            if (!backend) { addToast('info', 'Logs only in desktop app'); return; }
-            await tryLive((api) => api.openFolder());
-            addToast('info', 'Opening downloads folder');
+            if (!backend) { addToast('info', 'Config folder is available in the desktop app'); return; }
+            await tryLive((api) => api.openConfigFolder());
+            addToast('info', 'Opening config folder');
           }}
           style={{
             backgroundColor: 'var(--bg-tertiary)',
@@ -1079,7 +1101,7 @@ export default function Settings() {
           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
         >
-          Open Logs Folder
+          Open Config Folder
         </button>
         <button
           onClick={async () => {
