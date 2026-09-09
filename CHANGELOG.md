@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.1.6] - 2026-09-09 (beta)
+
+### Fixes
+- In-app updates no longer offer the running version: availability now uses the updater's real signal plus a strict newer-version check
+- Downloading an update without a staged offer fails cleanly with guidance instead of "Please check update first"
+- install.sh rewritten: loud errors on every step, retries, visible progress with resume, dual-source version discovery
+
 ## [v0.1.5] - 2026-09-09 (beta)
 
 ### Fixes

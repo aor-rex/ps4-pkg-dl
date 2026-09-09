@@ -1,6 +1,6 @@
 {
   "name": "ps4-pkg-dl",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Desktop app for browsing and downloading PS4 packages from the Internet Archive FPKGi catalog",
   "main": "main/index.js",
   "desktopName": "com.ps4pkgdl.app.desktop",
