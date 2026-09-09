@@ -11,9 +11,10 @@ import Lightbox from './components/modals/Lightbox';
 import VideoModal from './components/modals/VideoModal';
 import ConfirmDialog from './components/modals/ConfirmDialog';
 import ToastContainer from './components/common/Toast';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 export default function App() {
-  const { currentView, settingsOpen, settings, initLive, loadBrowse } = useAppStore();
+  const { currentView, settingsOpen, settings, initLive, loadBrowse, setCurrentView, setSelectedGame } = useAppStore();
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     try {
       const saved = parseInt(localStorage.getItem('sidebar-width') || '240', 10);
@@ -87,7 +88,15 @@ export default function App() {
             backgroundColor: 'var(--bg-primary)',
           }}
         >
-          {renderView()}
+          <ErrorBoundary
+            key={currentView}
+            onReset={() => {
+              setSelectedGame(null);
+              setCurrentView('home');
+            }}
+          >
+            {renderView()}
+          </ErrorBoundary>
         </main>
       </div>
 

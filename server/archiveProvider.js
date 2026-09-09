@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const DEFAULT_CATALOG_URL = '';
 
 function catalogCachePaths() {
-  const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+  const dir = require('../main/settings').getConfigDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   return {
     dir,

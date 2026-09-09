@@ -110,7 +110,7 @@ function registerIpcHandlers(ctx) {
     const fs = require('fs');
     const path = require('path');
     const safeName = String(name).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'catalog.json';
-    const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl', 'catalog-uploads');
+    const dir = path.join(require('./settings').getConfigDir(), 'catalog-uploads');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     const filePath = path.join(dir, safeName);
     fs.writeFileSync(filePath, Buffer.from(String(data), 'base64'));
@@ -126,9 +126,10 @@ function registerIpcHandlers(ctx) {
     return res.canceled ? null : res.filePaths[0];
   });
 
-  ipcMain.handle('downloads:add', async (_e, { pkgUrl, titleId, id } = {}) => {
+  ipcMain.handle('downloads:add', async (_e, { pkgUrl, url, titleId, id } = {}) => {
+    const resolvedUrl = pkgUrl || url;
     let entry = null;
-    if (pkgUrl) entry = await ctx.archive.getByPkgUrl(pkgUrl);
+    if (resolvedUrl) entry = await ctx.archive.getByPkgUrl(resolvedUrl);
     else if (titleId) entry = (await ctx.archive.getVariants(titleId))[0] || null;
     else if (id) entry = await ctx.archive.getById(id);
     if (!entry) throw new Error('Provide pkgUrl, titleId, or id from the catalog');

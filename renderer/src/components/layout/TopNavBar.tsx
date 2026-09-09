@@ -113,7 +113,10 @@ export default function TopNavBar() {
                 {filteredGames.map((game) => (
                   <button
                     key={game.id}
-                    onClick={() => handleGameSelect(game)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleGameSelect(game);
+                    }}
                     className="w-full flex items-center gap-3 transition-colors"
                     style={{ height: '48px', padding: '0 12px' }}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}

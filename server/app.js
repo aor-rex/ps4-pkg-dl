@@ -119,7 +119,7 @@ function createApp(ctx) {
       try {
         if (!name || !data) throw new Error('Provide {name, data} with base64 file content.');
         const safeName = String(name).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'catalog.json';
-        const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl', 'catalog-uploads');
+        const dir = path.join(require('../main/settings').getConfigDir(), 'catalog-uploads');
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         const filePath = path.join(dir, safeName);
         fs.writeFileSync(filePath, Buffer.from(String(data), 'base64'));

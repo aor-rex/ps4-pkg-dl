@@ -121,6 +121,8 @@ interface AppState {
   setMirrorModalOpen: (open: boolean) => void;
   selectedMirrors: Mirror[];
   setSelectedMirrors: (mirrors: Mirror[]) => void;
+  rememberedMirrorHost: string | null;
+  setRememberedMirrorHost: (host: string | null) => void;
   lightboxOpen: boolean;
   setLightboxOpen: (open: boolean) => void;
   lightboxImages: string[];
@@ -764,7 +766,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
     addToast('info', `Queueing ${mirror.host} download...`);
     const res = await tryLive((api) => api.addDownload({
-      url: mirror.url,
+      pkgUrl: mirror.url,
+      titleId: game?.slug,
       label: `${game?.title || 'Game'} - ${fileType}`,
       source: mirror.host,
       gameTitle: game?.title,
@@ -826,6 +829,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   setMirrorModalOpen: (mirrorModalOpen) => set({ mirrorModalOpen }),
   selectedMirrors: [],
   setSelectedMirrors: (selectedMirrors) => set({ selectedMirrors }),
+  rememberedMirrorHost: null,
+  setRememberedMirrorHost: (rememberedMirrorHost) => set({ rememberedMirrorHost }),
   lightboxOpen: false,
   setLightboxOpen: (lightboxOpen) => set({ lightboxOpen }),
   lightboxImages: [],

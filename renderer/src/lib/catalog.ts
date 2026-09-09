@@ -69,6 +69,25 @@ export function applyMetadata(game: Game, meta: CatalogMetadata | null): Game {
 
 /** Merge all variants of a CUSA id into one Game with per-variant groups. */
 export function variantsToGame(titleId: string, variants: CatalogEntry[], meta: CatalogMetadata | null = null): Game {
+  if (!variants || variants.length === 0) {
+    return {
+      id: titleId,
+      title: titleId,
+      slug: titleId,
+      url: '',
+      cover: '',
+      size: '',
+      sizeBytes: 0,
+      region: '',
+      version: '',
+      date: '',
+      genres: [],
+      description: '',
+      gallery: [],
+      videos: [],
+      downloads: [],
+    };
+  }
   const first = variants[0];
   const base = entryToGame(first);
   const sourceNames = [...new Set(variants.map((v) => v.source).filter(Boolean))];

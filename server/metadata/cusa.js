@@ -6,7 +6,7 @@ const DEFAULT_SNAPSHOT_URL =
   'https://raw.githubusercontent.com/andshrew/PlayStation-Titles/master/Json/PS4_Titles.json';
 
 function dataDir() {
-  const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+  const dir = require('../../main/settings').getConfigDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   return dir;
 }

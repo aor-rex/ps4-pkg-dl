@@ -20,15 +20,19 @@ export default function MirrorModal() {
     selectedMirrors,
     selectedGame,
     startDownload,
+    setRememberedMirrorHost,
   } = useAppStore();
   const [resolving, setResolving] = useState<string | null>(null);
+  const [remember, setRemember] = useState(false);
 
   if (!mirrorModalOpen || !selectedMirrors.length) return null;
 
   const handleSelect = async (mirror: any) => {
     setResolving(mirror.host);
+    if (remember && mirror.host) setRememberedMirrorHost(mirror.host);
     await startDownload(mirror, selectedGame);
     setResolving(null);
+    setRemember(false);
     setMirrorModalOpen(false);
   };
 
@@ -170,6 +174,8 @@ export default function MirrorModal() {
           >
             <input
               type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
               style={{ accentColor: 'var(--accent)', width: '14px', height: '14px' }}
             />
             <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>

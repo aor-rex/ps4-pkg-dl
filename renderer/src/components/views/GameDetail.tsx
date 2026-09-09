@@ -18,6 +18,8 @@ export default function GameDetail() {
     setVideoModalOpen,
     setSelectedVideo,
     detailLoading,
+    rememberedMirrorHost,
+    startDownload,
   } = useAppStore();
 
   const [descExpanded, setDescExpanded] = useState(false);
@@ -32,6 +34,13 @@ export default function GameDetail() {
   };
 
   const handleDownload = (mirrors: any[]) => {
+    const remembered = rememberedMirrorHost
+      ? mirrors.find((m) => m.host === rememberedMirrorHost)
+      : null;
+    if (remembered) {
+      void startDownload(remembered, selectedGame);
+      return;
+    }
     setSelectedMirrors(mirrors);
     setMirrorModalOpen(true);
   };
@@ -47,7 +56,7 @@ export default function GameDetail() {
     setVideoModalOpen(true);
   };
 
-  const hasMultipleParts = selectedGame.downloads.length > 1;
+  const hasMultipleParts = (selectedGame.downloads || []).length > 1;
 
   return (
     <div className="h-full overflow-y-auto" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -97,10 +106,10 @@ export default function GameDetail() {
             {/* Tags row */}
             <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '4px' }}>
               PS4
-              {selectedGame.genres.length > 0 && (
+              {(selectedGame.genres || []).length > 0 && (
                 <>
                   <span style={{ margin: '0 8px' }}>|</span>
-                  {selectedGame.genres.join(', ')}
+                  {(selectedGame.genres || []).join(', ')}
                 </>
               )}
               <span style={{ margin: '0 8px' }}>|</span>

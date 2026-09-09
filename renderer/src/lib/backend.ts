@@ -159,7 +159,9 @@ interface Ps4DlApi {
   metadataIgnore(titleId: string, title?: string): Promise<unknown>;
   metadataUnignore(titleId: string): Promise<unknown>;
   addDownload(p: {
-    url: string;
+    url?: string;
+    pkgUrl?: string;
+    titleId?: string;
     label?: string;
     source?: string;
     gameTitle?: string;

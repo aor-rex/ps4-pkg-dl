@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.1.2] - 2026-09-09 (beta)
+
+### Fixes
+- Downloads queue again in the desktop app (the app sent the wrong field name, so every queue attempt failed)
+- "Remember my choice for this session" in the mirror picker is now actually wired: checking it skips the picker on later downloads while the app stays open
+- All app data now lives under `~/.config/ps4-pkg-dl/` (XDG-aware, OS conventions kept elsewhere); existing `~/.ps4-pkg-dl/` content migrates automatically on first launch
+- Search-to-detail no longer risks a blank screen: empty detail results fall back safely, detail reads are defensive, a crash shows a "Back to Browse" panel instead of black, and result clicks no longer race the search blur
+
 ## [v0.1.1] - 2026-09-09 (beta)
 
 ### Fixes

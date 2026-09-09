@@ -7,18 +7,19 @@
 const fs = require('fs');
 const path = require('path');
 const { dbManager } = require('../../main/database/db');
+const { getConfigDir } = require('../../main/settings');
 const { RawgClient } = require('./rawg');
 const { CusaTable, normalizeCusa } = require('./cusa');
 
 function overridesPath() {
-  const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+  const dir = getConfigDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, 'metadata-overrides.json');
 }
 
 /** Persisted ignore list for unresolvable titles (delisted, no RAWG entry). */
 function ignoredPath() {
-  const dir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+  const dir = getConfigDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   return path.join(dir, 'metadata-ignored.json');
 }

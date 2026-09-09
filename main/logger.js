@@ -28,7 +28,7 @@ class Logger {
    * @param {number} [options.maxFiles=5] - Max log files to keep
    */
   constructor(options = {}) {
-    this.logDir = options.logDir || path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl', 'logs');
+    this.logDir = options.logDir || path.join(require('./settings').getConfigDir(), 'logs');
     this.minLevel = options.level || 'info';
     this.console = options.console !== false;
     this.maxFileSize = options.maxFileSize || 10 * 1024 * 1024; // 10MB

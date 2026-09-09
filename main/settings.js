@@ -49,18 +49,55 @@ const DEFAULT_SETTINGS = {
 };
 
 /**
- * Settings manager - loads/saves from JSON file
+ * Config directory: XDG-style under .config (was ~/.ps4-pkg-dl).
+ * Respects $XDG_CONFIG_HOME; keeps OS conventions on macOS/Windows.
  */
+function getConfigDir() {
+  const home = process.env.HOME || process.cwd();
+  if (process.env.XDG_CONFIG_HOME) return path.join(process.env.XDG_CONFIG_HOME, 'ps4-pkg-dl');
+  if (process.platform === 'darwin') return path.join(home, 'Library', 'Application Support', 'ps4-pkg-dl');
+  if (process.platform === 'win32') return path.join(process.env.APPDATA || home, 'ps4-pkg-dl');
+  return path.join(home, '.config', 'ps4-pkg-dl');
+}
+
+function legacyConfigDir() {
+  return path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+}
+
+/**
+ * One-time move from ~/.ps4-pkg-dl to the new location. Moves only when the
+ * target is missing/empty so existing new-location data is never overwritten.
+ */
+function ensureConfigDir() {
+  const target = getConfigDir();
+  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
+  try {
+    const legacy = legacyConfigDir();
+    if (target === legacy || !fs.existsSync(legacy)) return;
+    if (fs.readdirSync(target).length > 0) return;
+    const entries = fs.readdirSync(legacy);
+    if (entries.length === 0) return;
+    for (const name of entries) {
+      fs.renameSync(path.join(legacy, name), path.join(target, name));
+    }
+    console.error(`[settings] migrated config ${legacy} -> ${target}`);
+  } catch (error) {
+    console.error(`[settings] config migration failed: ${error.message}`);
+  }
+  return target;
+}
 class SettingsManager {
   /**
    * @param {string} [options.configPath] - Custom config file path
    */
   constructor(options = {}) {
-    this.configDir = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+    this.configDir = options.configDir || getConfigDir();
     this.configPath = options.configPath || path.join(this.configDir, 'settings.json');
     this.settings = { ...DEFAULT_SETTINGS };
-    
-    // Ensure config directory exists
+
+    // Ensure config directory exists (migrates legacy ~/.ps4-pkg-dl once,
+    // unless the caller pointed at a custom location e.g. in tests)
+    if (!options.configDir && !options.configPath) ensureConfigDir();
     if (!fs.existsSync(this.configDir)) {
       fs.mkdirSync(this.configDir, { recursive: true });
     }
@@ -190,4 +227,4 @@ class SettingsManager {
   }
 }
 
-module.exports = { SettingsManager, DEFAULT_SETTINGS };
+module.exports = { SettingsManager, DEFAULT_SETTINGS, getConfigDir, ensureConfigDir, legacyConfigDir };

@@ -1,9 +1,13 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
+const { getConfigDir, ensureConfigDir } = require('../settings');
+
+// Resolve (+ one-time migrate) before anything opens files
+ensureConfigDir();
 
 // Database directory
-const DB_DIR = path.join(process.env.HOME || process.cwd(), '.ps4-pkg-dl');
+const DB_DIR = getConfigDir();
 const DB_PATH = path.join(DB_DIR, 'ps4pkg.db');
 
 class DatabaseManager {
