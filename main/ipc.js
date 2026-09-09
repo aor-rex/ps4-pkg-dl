@@ -175,10 +175,38 @@ function registerIpcHandlers(ctx) {
     return first.length > 220 ? `${first.slice(0, 220)}…` : first;
   };
 
+  // Channel-aware friendly mapping for update failures (one line, no stacks)
+  const friendlyUpdateError = (error, channel) => {
+    const raw = String((error && error.message) || error || '');
+    const code = String((error && (error.code || error.errno)) || '');
+    const hay = `${code} ${raw}`;
+    if (/production release|status code 406|\b406\b/.test(hay)) {
+      return channel === 'stable'
+        ? 'No stable releases published yet — switch to Pre-release to keep getting betas.'
+        : 'Update feed unreachable right now — try again shortly.';
+    }
+    if (/ENOTFOUND|ECONNRESET|ETIMEDOUT|fetch failed|network|ERR_INTERNET|offline/i.test(hay)) {
+      return 'Update server unreachable — check your connection and retry.';
+    }
+    if (/403|rate limit|rate-limit|rate_limit/i.test(hay)) {
+      return 'GitHub rate-limited the check — try again in a few minutes.';
+    }
+    return shortError(error);
+  };
+
+  const updateChannel = () => {
+    try {
+      return ctx.settings.get('updateChannel') === 'stable' ? 'stable' : 'prerelease';
+    } catch (_) {
+      return 'prerelease';
+    }
+  };
+
   ipcMain.handle('update:check', async () => {
     if (!ctx.appUpdater) return { status: 'unavailable' };
+    const channel = updateChannel();
     try {
-      ctx.appUpdater.allowPrerelease = ctx.settings.get('updateChannel') !== 'stable';
+      ctx.appUpdater.allowPrerelease = channel !== 'stable';
     } catch (_) {}
     try {
       // NOTE: checkForUpdates() resolves non-null even when up-to-date —
@@ -192,7 +220,7 @@ function registerIpcHandlers(ctx) {
         current: app.getVersion(),
       };
     } catch (error) {
-      return { status: 'error', error: shortError(error) };
+      return { status: 'error', error: friendlyUpdateError(error, channel) };
     }
   });
   ipcMain.handle('update:download', async () => {

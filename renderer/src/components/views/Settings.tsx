@@ -526,7 +526,7 @@ function LibrarySettings() {
 }
 
 export default function Settings() {
-  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, updateVersion, updateProgress, checkForUpdates, downloadUpdate, restartToUpdate } = useAppStore();
+  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, updateVersion, updateProgress, updateError, checkForUpdates, downloadUpdate, restartToUpdate } = useAppStore();
   const [dirty, setDirty] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
@@ -1146,6 +1146,11 @@ export default function Settings() {
                 Restart to install
               </button>
             )}
+          </div>
+        )}
+        {updateStatus === 'error' && updateError && (
+          <div style={{ fontSize: '13px', color: 'var(--warning)', textAlign: 'center', maxWidth: '220px' }}>
+            {updateError}
           </div>
         )}
         <button
