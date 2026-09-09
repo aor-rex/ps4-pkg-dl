@@ -56,7 +56,7 @@ Exec=${APP_FILE} %U
 ${ICON_LINE}
 Categories=Game;
 Terminal=false
-StartupWMClass=ps4-pkg-dl
+StartupWMClass=com.ps4pkgdl.app
 EOF
 
 if command -v update-desktop-database >/dev/null 2>&1; then
