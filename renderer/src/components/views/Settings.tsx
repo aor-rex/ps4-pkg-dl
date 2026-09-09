@@ -170,10 +170,10 @@ function LibrarySettings() {
 
       {/* 1. Catalog sources */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>1. Game catalogs</h3>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '100%' }}>
         Add one or more catalog URLs or local <code>games.json</code> files. Enabled sources merge into one library, deduplicated by PKG URL.
       </p>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', maxWidth: '520px' }}>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', maxWidth: '100%' }}>
         <input
           type="url"
           placeholder="https://…/GAMES.json"
@@ -186,7 +186,7 @@ function LibrarySettings() {
           {adding ? 'Adding…' : 'Add'}
         </button>
       </div>
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px', maxWidth: '520px' }}>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px', maxWidth: '100%' }}>
         <button onClick={() => fileRef.current?.click()} disabled={uploading} style={btnStyle(false)}>
           {uploading ? 'Reading…' : 'Add local file…'}
         </button>
@@ -194,7 +194,7 @@ function LibrarySettings() {
         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>your own games.json, FPKGi format</span>
       </div>
       {(catalogStatus?.sources?.length ?? 0) > 0 ? (
-        <div style={{ marginBottom: '8px', maxWidth: '640px' }}>
+        <div style={{ marginBottom: '8px', maxWidth: '100%' }}>
           {(catalogStatus?.sources ?? []).map((s) => (
             <div
               key={s.id}
@@ -259,11 +259,11 @@ function LibrarySettings() {
 
       {/* 2. Metadata key */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>2. Metadata key (RAWG)</h3>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '100%' }}>
         Free key from <a href="https://rawg.io/apidocs" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>rawg.io/apidocs</a> —
         needed to fetch descriptions, genres and trailers during backfill. {rawgSet ? 'Key is set.' : 'No key set.'}
       </p>
-      <div style={{ marginBottom: '24px', maxWidth: '520px' }}>
+      <div style={{ marginBottom: '24px', maxWidth: '100%' }}>
         <input
           type="password"
           placeholder={rawgSet ? '(hidden — type to replace, blank to clear)' : 'paste RAWG API key'}
@@ -278,14 +278,14 @@ function LibrarySettings() {
 
       {/* 3. archive.org login (for login-gated items) */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>3. archive.org login</h3>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '100%' }}>
         Log in at archive.org in your browser, copy the <code>logged-in-user</code> and <code>logged-in-sig</code> cookies (DevTools → Application → Cookies),
         and paste them here as <code>logged-in-user=...; logged-in-sig=...</code>. These cookies are required for login-gated items.
         {(settings as unknown as Record<string, string>).iaCookie === '***set***' || ((settings as unknown as Record<string, string>).iaCookie || '').trim()
           ? 'Cookie is set.'
           : 'Public items still download fine.'}
       </p>
-      <div style={{ marginBottom: '24px', maxWidth: '520px' }}>
+      <div style={{ marginBottom: '24px', maxWidth: '100%' }}>
         <input
           type="password"
           placeholder="logged-in-user=...; logged-in-sig=..."
@@ -300,7 +300,7 @@ function LibrarySettings() {
 
       {/* 4. Backfill */}
       <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '8px' }}>4. Enrich library</h3>
-      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '520px' }}>
+      <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px', maxWidth: '100%' }}>
         Matches every game against RAWG (CUSA-anchored) and saves descriptions, genres, screenshots and trailers locally.
       </p>
       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '12px' }}>
@@ -336,7 +336,7 @@ function LibrarySettings() {
       )}
 
       {backfill && backfill.status !== 'idle' && (
-        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', marginBottom: '16px', maxWidth: '640px' }}>
+        <div style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', marginBottom: '16px', maxWidth: '100%' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
             <span>
               {backfill.status === 'running' ? 'Enriching…' : backfill.status === 'done' ? 'Done' : backfill.status === 'cancelled' ? 'Cancelled' : 'Failed'}
