@@ -49,4 +49,6 @@ jobs:
         with:
           prerelease: true
           body_path: release-notes.md
-          files: dist/*.AppImage
+          files: |
+            dist/*.AppImage
+            dist/latest-linux.yml

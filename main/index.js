@@ -46,10 +46,50 @@ function createWindow(ctx) {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
+let updaterState = { status: 'idle', version: null, percent: 0, error: null };
+
+function wireAutoUpdater(ctx) {
+  let autoUpdater = null;
+  try {
+    // eslint-disable-next-line global-require
+    autoUpdater = require('electron-updater').autoUpdater;
+  } catch (error) {
+    console.error(`[updater] unavailable: ${error.message}`);
+    return null;
+  }
+  autoUpdater.autoDownload = false;
+  autoUpdater.on('checking-for-update', () => { updaterState = { status: 'checking', version: null, percent: 0, error: null }; });
+  autoUpdater.on('update-available', (info) => {
+    updaterState = { status: 'available', version: (info && info.version) || null, percent: 0, error: null };
+    setBroadcaster('update:available', { version: updaterState.version });
+  });
+  autoUpdater.on('update-not-available', () => { updaterState = { status: 'idle', version: null, percent: 0, error: null }; });
+  autoUpdater.on('download-progress', (p) => {
+    updaterState.percent = Math.round((p && p.percent) || 0);
+    if (updaterState.status === 'downloading') setBroadcaster('update:progress', { percent: updaterState.percent });
+  });
+  autoUpdater.on('update-downloaded', (info) => {
+    updaterState = { status: 'downloaded', version: (info && info.version) || updaterState.version, percent: 100, error: null };
+    setBroadcaster('update:downloaded', { version: updaterState.version });
+  });
+  autoUpdater.on('error', (error) => {
+    updaterState = { status: 'error', version: null, percent: 0, error: (error && error.message) || String(error) };
+    setBroadcaster('update:error', { error: updaterState.error });
+  });
+  return autoUpdater;
+}
+
 app.whenReady().then(() => {
   const ctx = bootstrap();
   registerIpcHandlers(ctx);
   createWindow(ctx);
+
+  // Silent launch check; the renderer prompts only when an update lands
+  const updater = wireAutoUpdater(ctx);
+  if (updater) {
+    ctx.appUpdater = updater;
+    updater.checkForUpdates().catch(() => {});
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow(ctx);

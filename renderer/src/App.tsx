@@ -12,9 +12,10 @@ import VideoModal from './components/modals/VideoModal';
 import ConfirmDialog from './components/modals/ConfirmDialog';
 import ToastContainer from './components/common/Toast';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import WhatsNewModal from './components/modals/WhatsNewModal';
 
 export default function App() {
-  const { currentView, settingsOpen, settings, initLive, loadBrowse, setCurrentView, setSelectedGame } = useAppStore();
+  const { currentView, settingsOpen, settings, initLive, loadBrowse, setCurrentView, setSelectedGame, maybeShowWhatsNew } = useAppStore();
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     try {
       const saved = parseInt(localStorage.getItem('sidebar-width') || '240', 10);
@@ -44,7 +45,8 @@ export default function App() {
   // so the grid never renders stale-empty on refresh.
   useEffect(() => {
     initLive();
-  }, [initLive]);
+    maybeShowWhatsNew();
+  }, [initLive, maybeShowWhatsNew]);
 
   // "New" view = recently added to your library (first-seen tracking)
   useEffect(() => {
@@ -105,6 +107,7 @@ export default function App() {
 
       {/* Modals */}
       <MirrorModal />
+      <WhatsNewModal />
       <Lightbox />
       <VideoModal />
       <ConfirmDialog />

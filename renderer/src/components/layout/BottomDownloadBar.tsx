@@ -2,6 +2,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { Download02Icon, ArrowUp01Icon, ArrowDown01Icon, Cancel01Icon, PauseIcon, PlayIcon, Delete02Icon, Folder01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
 import { tryLive } from '../../lib/backend';
+import { COVER_FALLBACK } from '../../lib/catalog';
 import type { Download as DownloadType } from '../../types';
 
 export default function BottomDownloadBar() {
@@ -129,10 +130,25 @@ export default function BottomDownloadBar() {
             ) : (
               filteredDownloads.map((dl) => (
                 <div key={dl.id} className="px-4" style={{ padding: '16px', borderBottom: `1px solid var(--border)` }}>
-                  <div className="flex justify-between items-start mb-1">
-                    <div>
-                      <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{dl.gameTitle}</div>
-                      <div className="text-xs mt-1" style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Source: {dl.source}</div>
+                  <div className="flex justify-between items-start mb-1" style={{ gap: '12px' }}>
+                    <div className="flex items-start" style={{ gap: '12px', flex: 1, minWidth: 0 }}>
+                      <img
+                        src={dl.cover || COVER_FALLBACK}
+                        alt=""
+                        width={48}
+                        height={68}
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = COVER_FALLBACK; }}
+                        style={{ width: '48px', height: '68px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>{dl.gameTitle}</div>
+                        <div className="text-xs mt-1" style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
+                          {[dl.region ? `[${dl.region}]` : '', dl.version ? `v${dl.version}` : '', dl.size].filter(Boolean).join(' · ') || `Source: ${dl.source}`}
+                        </div>
+                      </div>
                     </div>
                     <div className="text-sm font-semibold" style={{ color: getStatusColor(dl.status), fontSize: '13px', fontWeight: 600 }}>
                       {dl.status === 'completed' ? '✓ Done' : dl.status === 'extracting' ? `Extracting ${dl.extractProgress ?? dl.progress}%` : `${dl.progress}%`}

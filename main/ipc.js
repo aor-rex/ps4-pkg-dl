@@ -167,6 +167,31 @@ function registerIpcHandlers(ctx) {
     platform: process.platform,
     catalog: ctx.archive.status(),
   }));
+
+  ipcMain.handle('update:check', async () => {
+    if (!ctx.appUpdater) return { status: 'unavailable' };
+    try {
+      const res = await ctx.appUpdater.checkForUpdates();
+      const info = (res && res.updateInfo) || {};
+      return { status: 'checked', available: !!res, version: info.version || null };
+    } catch (error) {
+      return { status: 'error', error: error.message };
+    }
+  });
+  ipcMain.handle('update:download', async () => {
+    if (!ctx.appUpdater) return { status: 'unavailable' };
+    try {
+      await ctx.appUpdater.downloadUpdate();
+      return { status: 'downloading' };
+    } catch (error) {
+      return { status: 'error', error: error.message };
+    }
+  });
+  ipcMain.handle('update:quit', async () => {
+    if (!ctx.appUpdater) return { status: 'unavailable' };
+    ctx.appUpdater.quitAndInstall(false, true);
+    return { status: 'restarting' };
+  });
   ipcMain.handle('history:list', async (_e, filter = 'all') => ctx.downloadHistory.getAll(filter, 100));
 }
 

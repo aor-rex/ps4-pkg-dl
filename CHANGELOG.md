@@ -1,5 +1,16 @@
 # Changelog
 
+## [v0.1.4] - 2026-09-09 (beta)
+
+### Features
+- App icon is now the gamepad from the UI
+- Download rows show the game cover, title, region and version
+- First-run "What's new" dialog with the version changelog (also in Settings → About), shown once per version
+- In-app updates in the desktop app: automatic check on launch, prompt with notes, download with progress, restart to install
+
+### Fixes
+- Sidebar no longer carries the redundant disclaimer and Active Downloads sections (the bottom download bar owns that)
+
 ## [v0.1.3] - 2026-09-09 (beta)
 
 ### Fixes

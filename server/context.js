@@ -136,7 +136,7 @@ function bootstrapContext() {
    * @param {{pkgUrl,titleId,title,filename,sizeBytes}} input
    */
   function queuePkgDownload(input = {}) {
-    const { pkgUrl, title, titleId, filename } = input;
+    const { pkgUrl, title, titleId, filename, cover, region, version, size } = input;
     if (!pkgUrl) throw new Error('pkgUrl is required');
     let destination = settings.getDownloadDir();
     if (settings.get('createSubfolder') && title) {
@@ -165,7 +165,7 @@ function bootstrapContext() {
         status: 'queued',
       });
     } catch (_) {}
-    meta.set(id, { historyId, titleId: titleId || null, title: title || null, pkgUrl });
+    meta.set(id, { historyId, titleId: titleId || null, title: title || null, pkgUrl, cover: cover || null, region: region || null, version: version || null, size: size || null });
     return { id, historyId };
   }
 
@@ -189,6 +189,10 @@ function bootstrapContext() {
       label: s.label || s.filename || 'Download',
       title: m.title || s.gameTitle || s.label || 'Download',
       titleId: m.titleId || null,
+      cover: m.cover || null,
+      region: m.region || null,
+      version: m.version || null,
+      size: m.size || null,
       pkgUrl: url,
       path: s.filePath || s.path || s.filename || null,
       progress: Math.min(100, Math.round(stats.percent ?? (s.state === 'completed' ? 100 : 0))),

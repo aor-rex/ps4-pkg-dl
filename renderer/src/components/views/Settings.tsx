@@ -3,6 +3,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { Folder01Icon, Download02Icon, Package02Icon, GlobalIcon, Notification01Icon, PaintBoardIcon, InformationCircleIcon, Database02Icon } from '@hugeicons/core-free-icons';
 import { useAppStore, defaultSettings } from '../../store/appStore';
 import { backend, tryLive } from '../../lib/backend';
+import { appVersion } from '../modals/WhatsNewModal';
 
 const categories = [
   { icon: Database02Icon, key: 'library', label: 'Library' },
@@ -525,7 +526,7 @@ function LibrarySettings() {
 }
 
 export default function Settings() {
-  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast } = useAppStore();
+  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, updateVersion, updateProgress, checkForUpdates, downloadUpdate, restartToUpdate } = useAppStore();
   const [dirty, setDirty] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
@@ -1045,7 +1046,7 @@ export default function Settings() {
   const renderAbout = () => (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 0' }}>
       <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>PS4 PKG Downloader</h2>
-      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>v0.1.0</p>
+      <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>v{appVersion()}</p>
       <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '24px', maxWidth: '320px', textAlign: 'center' }}>
         Game metadata, artwork and trailers by <a href="https://rawg.io" target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>RAWG</a> ·
         PKG catalog supplied by you
@@ -1062,11 +1063,24 @@ export default function Settings() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '220px' }}>
         <button
-          onClick={async () => {
-            if (!backend) { addToast('info', 'Update check only in desktop app'); return; }
-            const info = await tryLive((api) => api.systemCheck());
-            addToast(info ? 'success' : 'error', info ? `System OK: yt-dlp ${info.ytdlp?.available ? 'found' : 'missing'}` : 'System check failed');
+          onClick={() => setWhatsNewOpen(true)}
+          style={{
+            backgroundColor: 'var(--bg-tertiary)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            fontSize: '14px',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s ease',
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+        >
+          What&apos;s new
+        </button>
+        <button
+          onClick={() => void checkForUpdates(true)}
           style={{
             backgroundColor: 'var(--bg-tertiary)',
             border: '1px solid var(--border)',
@@ -1082,6 +1096,28 @@ export default function Settings() {
         >
           Check for Updates
         </button>
+        {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded') && updateVersion && (
+          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>
+            Update available: v{updateVersion}
+            {updateStatus === 'available' && (
+              <button
+                onClick={() => void downloadUpdate()}
+                style={{ display: 'block', width: '100%', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Download update
+              </button>
+            )}
+            {updateStatus === 'downloading' && <div style={{ marginTop: '8px' }}>Downloading… {updateProgress}%</div>}
+            {updateStatus === 'downloaded' && (
+              <button
+                onClick={() => void restartToUpdate()}
+                style={{ display: 'block', width: '100%', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Restart to install
+              </button>
+            )}
+          </div>
+        )}
         <button
           onClick={async () => {
             if (!backend) { addToast('info', 'Config folder is available in the desktop app'); return; }

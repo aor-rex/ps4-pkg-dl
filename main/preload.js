@@ -63,6 +63,18 @@ contextBridge.exposeInMainWorld('ps4dl', {
   // System / history
   systemCheck: () => ipcRenderer.invoke('system:check'),
   listHistory: (filter) => ipcRenderer.invoke('history:list', filter),
+  updateCheck: () => ipcRenderer.invoke('update:check'),
+  updateDownload: () => ipcRenderer.invoke('update:download'),
+  updateQuit: () => ipcRenderer.invoke('update:quit'),
+  onUpdateEvent: (cb) => {
+    const events = ['update:available', 'update:progress', 'update:downloaded', 'update:error'];
+    const listeners = events.map((ev) => {
+      const l = (_e, payload) => cb(ev, payload);
+      ipcRenderer.on(ev, l);
+      return [ev, l];
+    });
+    return () => listeners.forEach(([ev, l]) => ipcRenderer.removeListener(ev, l));
+  },
 
   // Extraction
   extractArchive: (archivePath) => ipcRenderer.invoke('extract:run', archivePath),

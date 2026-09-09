@@ -35,8 +35,7 @@ function genreIcon(name: string) {
 }
 
 export default function SideNavBar({ width, collapsed, onWidthChange }: { width: number; collapsed: boolean; onWidthChange: (w: number) => void }) {
-  const { currentView, setCurrentView, selectedGenre, setSelectedGenre, downloads, setSettingsOpen, availableGenres, liveMode } = useAppStore();
-  const activeDownloads = downloads.filter((d) => d.status === 'active').slice(0, 3);
+  const { currentView, setCurrentView, selectedGenre, setSelectedGenre, setSettingsOpen, availableGenres, liveMode } = useAppStore();
 
   const navItems = [
     { icon: Home01Icon, label: 'Home', view: 'home' },
@@ -201,47 +200,6 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
         )}
       </div>
 
-      {/* Divider */}
-      <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '12px 16px' }} />
-
-      {/* Disclaimer footer */}
-      {!collapsed && (
-        <div style={{ padding: '8px 16px', borderTop: '1px solid var(--border)', marginTop: '8px' }}>
-          <p style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
-            No files hosted — links you provide only.
-          </p>
-        </div>
-      )}
-
-      {/* Active Downloads Quick View - UI Spec 4.1.4 (hidden when collapsed; counter lives in top bar) */}
-      {!collapsed && (
-      <div className="px-0 mt-auto">
-        <div className="text-xs uppercase px-4 pb-2" style={{ color: 'var(--text-muted)', letterSpacing: '1px', fontSize: '11px' }}>Active Downloads</div>
-        {activeDownloads.length === 0 ? (
-          <div className="text-center py-4" style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No active downloads</div>
-        ) : (
-          <div>
-            {activeDownloads.map((dl) => (
-              <button
-                key={dl.id}
-                className="w-full text-left transition-colors"
-                style={{ height: '48px', padding: '0 16px' }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.08)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="truncate block text-sm" style={{ color: 'var(--text-primary)' }}>{dl.gameTitle}</span>
-                  <span className="text-xs ml-2 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{dl.progress}%</span>
-                </div>
-                <div className="mt-1 h-1 rounded overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
-                  <div className="h-full progress-fill" style={{ width: `${dl.progress}%`, backgroundColor: 'var(--accent)' }} />
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      )}
     </aside>
   );
 }

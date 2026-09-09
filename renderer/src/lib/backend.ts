@@ -29,6 +29,9 @@ export interface UiDownload {
   eta: string | number | null;
   status: 'active' | 'queued' | 'completed' | 'failed' | 'paused' | 'extracting';
   path?: string | null;
+  cover?: string | null;
+  region?: string | null;
+  version?: string | null;
   error?: string | null;
   extractProgress?: number;
 }
@@ -167,6 +170,9 @@ interface Ps4DlApi {
     gameTitle?: string;
     fileType?: string;
     size?: string;
+    region?: string;
+    version?: string;
+    cover?: string;
     gameId?: string | null;
     direct?: boolean;
   }): Promise<{ id: string }>;
@@ -178,6 +184,10 @@ interface Ps4DlApi {
   removeDownload(id: string): Promise<unknown>;
   openFolder(path?: string): Promise<boolean>;
   openConfigFolder(): Promise<unknown>;
+  updateCheck(): Promise<unknown>;
+  updateDownload(): Promise<unknown>;
+  updateQuit(): Promise<unknown>;
+  onUpdateEvent(cb: (event: string, payload: unknown) => void): () => void;
   onDownloadEvent(cb: (e: { type: string; download: { id: string; url: string } | null }) => void): () => void;
   onDownloadsSnapshot(cb: (list: UiDownload[]) => void): () => void;
   getSettings(): Promise<Record<string, unknown>>;
@@ -250,6 +260,9 @@ function mapServerDownload(d: Record<string, unknown>): UiDownload {
     eta: typeof d.eta === 'number' ? fmtEta(d.eta) : String(d.eta ?? ''),
     status,
     path: (d.path as string) ?? null,
+    cover: (d.cover as string) ?? null,
+    region: (d.region as string) ?? null,
+    version: (d.version as string) ?? null,
     error: (d.error as string) ?? null,
   };
 }

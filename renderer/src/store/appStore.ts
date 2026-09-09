@@ -42,6 +42,9 @@ function uiToDownload(d: UiDownload): Download {
     eta: fmtEtaLocal(d.eta),
     status: d.status,
     path: d.path ?? undefined,
+    cover: d.cover ?? undefined,
+    region: d.region ?? undefined,
+    version: d.version ?? undefined,
   };
 }
 
@@ -155,6 +158,20 @@ interface AppState {
   setConfirmDialogMessage: (message: string) => void;
   confirmDialogOnConfirm: (() => void) | null;
   setConfirmDialogOnConfirm: (fn: (() => void) | null) => void;
+
+  // What's-new modal (first-run changelog, per version)
+  whatsNewOpen: boolean;
+  setWhatsNewOpen: (open: boolean) => void;
+  maybeShowWhatsNew: () => void;
+
+  // In-app updater (Electron only; no-ops elsewhere)
+  updateStatus: 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'error' | 'unavailable';
+  updateVersion: string | null;
+  updateProgress: number;
+  updateError: string | null;
+  checkForUpdates: (manual?: boolean) => Promise<void>;
+  downloadUpdate: () => Promise<void>;
+  restartToUpdate: () => Promise<void>;
   
   // Toasts
   toasts: Array<{ id: string; type: 'success' | 'error' | 'info'; message: string }>;
@@ -229,6 +246,20 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ liveMode: true });
         backend.onDownloadsSnapshot((list) => {
           set({ downloads: list.map(uiToDownload) });
+        });
+        backend.onUpdateEvent((event, payload) => {
+          const p = (payload || {}) as { version?: string; percent?: number; error?: string };
+          if (event === 'update:available') {
+            set({ updateStatus: 'available', updateVersion: p.version || null });
+            get().addToast('info', `Update available${p.version ? `: v${p.version}` : ''} — see Settings → About`);
+          } else if (event === 'update:progress') {
+            set({ updateStatus: 'downloading', updateProgress: p.percent ?? 0 });
+          } else if (event === 'update:downloaded') {
+            set({ updateStatus: 'downloaded', updateVersion: p.version || get().updateVersion, updateProgress: 100 });
+            get().addToast('success', 'Update downloaded — restart to install');
+          } else if (event === 'update:error') {
+            set({ updateStatus: 'error', updateError: p.error || 'update failed' });
+          }
         });
         // hydrate settings
         void tryLive(async (api) => {
@@ -789,6 +820,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       gameTitle: game?.title,
       fileType,
       size: game?.size,
+      region: game?.region,
+      version: game?.version,
+      cover: game?.cover,
       gameId: game?.id ?? null,
     }));
     if (res?.id) {
@@ -879,6 +913,74 @@ export const useAppStore = create<AppState>((set, get) => ({
   setConfirmDialogMessage: (confirmDialogMessage) => set({ confirmDialogMessage }),
   confirmDialogOnConfirm: null,
   setConfirmDialogOnConfirm: (confirmDialogOnConfirm) => set({ confirmDialogOnConfirm }),
+
+  // What's-new modal (first-run changelog, per version)
+  whatsNewOpen: false,
+  setWhatsNewOpen: (whatsNewOpen) => set({ whatsNewOpen }),
+  maybeShowWhatsNew: () => {
+    let version = '';
+    try {
+      version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '';
+    } catch {
+      return;
+    }
+    if (!version) return;
+    const key = `seen-changelog-${version}`;
+    try {
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, '1');
+    } catch {
+      return;
+    }
+    set({ whatsNewOpen: true });
+  },
+
+  // In-app updater (Electron only; no-ops elsewhere)
+  updateStatus: 'idle',
+  updateVersion: null,
+  updateProgress: 0,
+  updateError: null,
+  checkForUpdates: async (manual = false) => {
+    const { addToast } = get();
+    if (!backend) {
+      if (manual) addToast('info', 'Auto-update is available in the desktop app (or re-run install.sh)');
+      set({ updateStatus: 'unavailable' });
+      return;
+    }
+    set({ updateStatus: 'checking', updateError: null });
+    const res = (await tryLive((api) => api.updateCheck())) as { status?: string; available?: boolean; version?: string | null; error?: string } | null;
+    if (!res || res.status === 'unavailable') {
+      set({ updateStatus: 'unavailable' });
+      if (manual) addToast('info', 'Auto-update is unavailable in this build');
+      return;
+    }
+    if (res.status === 'error') {
+      set({ updateStatus: 'error', updateError: res.error || 'check failed' });
+      if (manual) addToast('error', `Update check failed: ${res.error || 'unknown'}`);
+      return;
+    }
+    if (res.available) {
+      set({ updateStatus: 'available', updateVersion: res.version || null });
+      if (manual) set({ whatsNewOpen: false });
+    } else {
+      set({ updateStatus: 'idle', updateVersion: null });
+      if (manual) addToast('success', 'Already on the latest version');
+    }
+  },
+  downloadUpdate: async () => {
+    const { addToast } = get();
+    if (!backend) return;
+    set({ updateStatus: 'downloading', updateProgress: 0 });
+    const res = (await tryLive((api) => api.updateDownload())) as { status?: string; error?: string } | null;
+    if (!res || res.status === 'error') {
+      set({ updateStatus: 'error', updateError: (res && res.error) || 'download failed' });
+      addToast('error', `Update download failed: ${(res && res.error) || 'unknown'}`);
+    }
+  },
+  restartToUpdate: async () => {
+    if (!backend) return;
+    await tryLive((api) => api.updateQuit());
+  },
   
   // Toasts
   toasts: [],
