@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Desktop app for browsing and downloading PS4 packages from the Internet Archive FPKGi catalog",
   "main": "main/index.js",
+  "desktopName": "com.ps4pkgdl.app.desktop",
   "bin": {
     "ps4dl": "cli/index.js"
   },
@@ -14,7 +15,7 @@
     "app": "electron .",
     "app:dev": "electron . --dev",
     "rebuild": "electron-builder install-app-deps",
-    "dist": "electron-builder --linux AppImage"
+    "dist": "electron-builder --linux AppImage --publish never"
   },
   "keywords": [
     "ps4",
@@ -41,7 +42,6 @@
     "electron@41.10.7": true
   },
   "devDependencies": {
-    "@electron/rebuild": "^4.2.0",
     "electron": "^41.10.7",
     "electron-builder": "^26.0.12"
   },
