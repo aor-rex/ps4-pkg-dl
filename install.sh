@@ -36,13 +36,13 @@ curl -fsSL -o "${APP_FILE}.new" "${ASSET_URL}"
 chmod +x "${APP_FILE}.new"
 mv "${APP_FILE}.new" "${APP_FILE}"
 
-# Extract icon from the AppImage for the launcher entry
-if command -v python3 >/dev/null 2>&1; then
-  "${APP_FILE}" --appimage-extract "ps4-pkg-dl.png" >/dev/null 2>&1 || true
-  if [ -f "squashfs-root/ps4-pkg-dl.png" ]; then
-    mv "squashfs-root/ps4-pkg-dl.png" "${ICON_DIR}/ps4-pkg-downloader.png"
-    rm -rf squashfs-root
-  fi
+# Fetch the app icon straight from the repo (the in-AppImage png is a
+# dangling symlink, so extracting it yields nothing usable).
+if curl -fsSL -o "${ICON_DIR}/ps4-pkg-downloader.png" \
+  "https://raw.githubusercontent.com/${REPO}/main/assets/icon.png"; then
+  :
+else
+  echo "Warning: could not download icon; launcher will use a generic one." >&2
 fi
 ICON_LINE="Icon=ps4-pkg-downloader"
 [ -f "${ICON_DIR}/ps4-pkg-downloader.png" ] || ICON_LINE="Icon=applications-games"
