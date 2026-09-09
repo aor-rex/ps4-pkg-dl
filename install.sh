@@ -75,9 +75,11 @@ ${CURL} -fSL -# -C - -o "${APP_FILE}.new" "${ASSET_URL}" \
 chmod +x "${APP_FILE}.new" || fatal "cannot chmod ${APP_FILE}.new"
 mv "${APP_FILE}.new" "${APP_FILE}" || fatal "cannot move new AppImage into place"
 
-# ── 3. Launcher icon (non-fatal) ──
+# ── 3. Launcher icon (non-fatal, tries both CDNs) ──
 if ${CURL} -fsSL -o "${ICON_DIR}/ps4-pkg-downloader.png" \
-  "https://cdn.jsdelivr.net/gh/${REPO}@main/assets/icon.png" 2>/dev/null; then
+  "https://cdn.jsdelivr.net/gh/${REPO}@main/assets/icon.png" 2>/dev/null \
+  || ${CURL} -fsSL -o "${ICON_DIR}/ps4-pkg-downloader.png" \
+  "https://raw.githubusercontent.com/${REPO}/main/assets/icon.png" 2>/dev/null; then
   :
 else
   echo "WARNING: could not download icon; launcher will use a generic one." >&2
