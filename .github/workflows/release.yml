@@ -1,0 +1,43 @@
+name: Release (Linux AppImage beta)
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            renderer/package-lock.json
+
+      - name: Build renderer UI
+        run: |
+          npm ci --prefix renderer
+          npm run build --prefix renderer
+
+      - name: Install + rebuild natives for Electron
+        run: |
+          npm ci
+          npm run rebuild
+
+      - name: Build AppImage
+        run: npm run dist
+
+      - name: Publish beta release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          generate_release_notes: true
+          files: dist/*.AppImage

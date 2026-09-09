@@ -39,8 +39,8 @@ function createWindow(ctx) {
     mainWindow.loadURL(VITE_URL);
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
-    // dist lives in the sibling ps4-pkg-ui project
-    mainWindow.loadFile(path.resolve(__dirname, '../../../ps4-pkg-ui/dist/index.html'));
+    // Built UI lives at renderer/dist (repo-relative, works packaged too)
+    mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'dist', 'index.html'));
   }
 
   mainWindow.on('closed', () => { mainWindow = null; });

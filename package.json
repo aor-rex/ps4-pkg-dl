@@ -12,7 +12,9 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "app": "electron .",
-    "app:dev": "electron . --dev"
+    "app:dev": "electron . --dev",
+    "rebuild": "electron-builder install-app-deps",
+    "dist": "electron-builder --linux AppImage"
   },
   "keywords": [
     "ps4",
@@ -40,9 +42,27 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
-    "electron": "^41.10.7"
+    "electron": "^41.10.7",
+    "electron-builder": "^26.0.12"
   },
-  "overrides": {
-    "yargs": "^18.1.0"
+  "build": {
+    "appId": "com.ps4pkgdl.app",
+    "productName": "PS4 PKG Downloader",
+    "asar": true,
+    "asarUnpack": ["**/*.node"],
+    "files": [
+      "package.json",
+      "main/**/*",
+      "server/**/*",
+      "cli/**/*",
+      "renderer/dist/**/*",
+      "assets/**/*"
+    ],
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Game",
+      "icon": "assets/icon.png",
+      "syncDesktopName": true
+    }
   }
 }

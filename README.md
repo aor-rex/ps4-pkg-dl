@@ -1,35 +1,30 @@
-# PS4 PKG Downloader (`ps4-pkg-dl`)
+# PS4 PKG Downloader
 
-Desktop app (Electron + React) for browsing a user-supplied PS4 PKG catalog
-and downloading packages with queue management, pause/resume, and history.
+Browse your own PS4 PKG catalog, enrich it with artwork and metadata, and download packages with pause/resume and history — as a desktop app for Linux.
 
-## How it works
-
-1. **You supply a catalog.** Settings → Library → paste a `games.json` URL
-   (FPKGi format: `{DATA: {pkgUrl: {title_id, name, version, size, cover_url}}}`).
-   The app never ships with a catalog and hosts no files.
-2. **Enrich (optional).** Paste a free RAWG key (`rawg.io/apidocs`) and press
-   **Start backfill** — descriptions, genres, screenshots and trailers are
-   matched per CUSA id and cached locally in SQLite.
-3. **Download.** Pick a region/version → direct download with progress,
-   pause/resume/cancel/retry, history in SQLite.
-
-Some hosts (e.g. login-gated archive.org items) need your own login cookie:
-Settings → Library → archive.org login.
-
-## Run
-
-- API + web UI: `npm run server` → http://localhost:3100
-- CLI: `node src/cli/index.js --help` (`search`, `info`, `download`, `backfill`, …)
-- Desktop: `npm run app` (Electron; UI in `../ps4-pkg-ui`)
-- Operator notes: `docs/OPERATOR.md`
+> **Beta (v0.1.0).** Linux AppImage first. Expect rough edges; please report them on the Issues page.
 
 ## Disclaimer — please read
 
-**This software hosts no files.** All download links come from a catalog file
-*you* provide; the app only reads, matches, and downloads from URLs you
-supply. Game content belongs to its respective publishers — use this tool
-for personal, educational, and preservation purposes in accordance with the
-laws of your country. Not affiliated with Sony/PlayStation, the Internet
-Archive, or RAWG. Game metadata, artwork and trailers are provided by
-[RAWG](https://rawg.io) under their API terms.
+**This software hosts no files.** All download links come from a catalog file *you* provide; the app only reads, matches, and downloads from URLs you supply. Game content belongs to its respective publishers — use this tool for personal, educational, and preservation purposes in accordance with the laws of your country. Not affiliated with Sony/PlayStation, the Internet Archive, or RAWG. Game metadata, artwork and trailers are provided by [RAWG](https://rawg.io) under their API terms.
+
+## Download
+
+Grab the latest `.AppImage` from the [Releases page](../../releases), make it executable, and run it:
+
+```sh
+chmod +x PS4-PKG-Downloader-*.AppImage
+./PS4-PKG-Downloader-*.AppImage
+```
+
+## How to use
+
+1. **Add your catalog.** Settings → Library → paste a `games.json` URL (FPKGi format) or add a local file. The app ships with no catalog.
+2. **Enrich (optional).** Paste a free RAWG key from [rawg.io/apidocs](https://rawg.io/apidocs) and press **Start backfill** — descriptions, genres, screenshots and trailers are matched per game and saved locally. Games it can't match show up under “Needs attention”, where you can pin the right match or ignore them.
+3. **Download.** Open a game, pick a region/version, and download with progress, pause/resume, cancel and retry. Finished files land in your download folder.
+
+Some hosts (e.g. login-gated archive.org items) need your own login cookie: Settings → Library → archive.org login.
+
+## Advanced use
+
+- Running the API + web UI separately, the CLI, and operator notes: see [docs/OPERATOR.md](docs/OPERATOR.md).
