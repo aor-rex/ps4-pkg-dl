@@ -65,7 +65,7 @@ export default function GameGrid() {
 
       {/* Loading Skeletons */}
       {browseLoading ? (
-        <div className="flex flex-wrap gap-4 justify-center">
+        <div className="flex flex-wrap gap-4 justify-start">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="w-[220px] h-[380px] rounded-lg overflow-hidden skeleton" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
           ))}
@@ -95,7 +95,7 @@ export default function GameGrid() {
           </div>
         )
       ) : viewMode === 'grid' ? (
-        <div className={`flex flex-wrap justify-center ${compact ? 'gap-2' : 'gap-4'}`}>
+        <div className={`flex flex-wrap justify-start ${compact ? 'gap-2' : 'gap-4'}`}>
           {paginatedGames.map((game) => <GameCard key={game.id} game={game} compact={compact} onClick={() => handleGameClick(game)} />)}
         </div>
       ) : (

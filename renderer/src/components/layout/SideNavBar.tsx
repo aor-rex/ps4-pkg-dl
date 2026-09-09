@@ -4,8 +4,9 @@ import {
   Sword01Icon, Sword02Icon, AdventureIcon, Shield01Icon, Target01Icon, ZapIcon,
   PuzzleIcon, Car01Icon, TrophyIcon, GhostIcon, StrategyIcon, Rocket01Icon,
   Rocket02Icon, DiceFaces01Icon, DiceFaces02Icon, Cards01Icon, GameboyIcon,
-  BalloonIcon, Music01Icon, InformationCircleIcon, ArrowLeft01Icon, ArrowRight01Icon,
+  BalloonIcon, Music01Icon, InformationCircleIcon,
 } from '@hugeicons/core-free-icons';
+import { useRef } from 'react';
 import { useAppStore } from '../../store/appStore';
 
 function genreIcon(name: string) {
@@ -33,7 +34,7 @@ function genreIcon(name: string) {
   return Folder01Icon;
 }
 
-export default function SideNavBar({ collapsed, onToggleCollapse }: { collapsed: boolean; onToggleCollapse: () => void }) {
+export default function SideNavBar({ width, collapsed, onWidthChange }: { width: number; collapsed: boolean; onWidthChange: (w: number) => void }) {
   const { currentView, setCurrentView, selectedGenre, setSelectedGenre, downloads, setSettingsOpen, availableGenres, liveMode } = useAppStore();
   const activeDownloads = downloads.filter((d) => d.status === 'active').slice(0, 3);
 
@@ -43,6 +44,29 @@ export default function SideNavBar({ collapsed, onToggleCollapse }: { collapsed:
     { icon: Clock01Icon, label: 'New', view: 'new' },
     { icon: Folder01Icon, label: 'All Games', view: 'all' },
   ];
+
+  const dragRef = useRef<{ startX: number; startW: number } | null>(null);
+
+  const handleDragStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    dragRef.current = { startX: e.clientX, startW: width };
+    const onMove = (ev: MouseEvent) => {
+      if (!dragRef.current) return;
+      onWidthChange(dragRef.current.startW + (ev.clientX - dragRef.current.startX));
+    };
+    const onUp = (ev: MouseEvent) => {
+      if (dragRef.current) {
+        const w = dragRef.current.startW + (ev.clientX - dragRef.current.startX);
+        // Snap to the 64px icon rail below the threshold
+        onWidthChange(w < 120 ? 64 : w);
+      }
+      dragRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
 
   const handleNavClick = (view: string) => {
     setSettingsOpen(false);
@@ -54,15 +78,29 @@ export default function SideNavBar({ collapsed, onToggleCollapse }: { collapsed:
       className="fixed left-0 flex flex-col overflow-y-auto overflow-x-hidden z-40"
       style={{
         top: '56px',
-        width: collapsed ? '64px' : '240px',
+        width: `${width}px`,
         height: 'calc(100vh - 56px - 48px)',
         backgroundColor: 'var(--bg-sidebar)',
         borderRight: '1px solid var(--border)',
         paddingTop: '16px',
         paddingBottom: '16px',
-        transition: 'width 0.2s ease',
       }}
     >
+      {/* Drag-to-resize handle (double-click toggles rail) */}
+      <div
+        onMouseDown={handleDragStart}
+        onDoubleClick={() => onWidthChange(collapsed ? 240 : 64)}
+        title="Drag to resize — double-click to collapse / expand"
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: '-4px',
+          width: '9px',
+          height: '100%',
+          cursor: 'ew-resize',
+          zIndex: 50,
+        }}
+      />
       {/* Navigation Items - UI Spec 4.1.1 */}
       <nav className="px-0 mb-3">
         {navItems.map((item) => {
@@ -146,6 +184,7 @@ export default function SideNavBar({ collapsed, onToggleCollapse }: { collapsed:
                 <HugeiconsIcon icon={genreIcon(genre.name)} strokeWidth={2} style={{ width: '18px', height: '18px' }} />
               ) : (
                 <>
+                  <HugeiconsIcon icon={genreIcon(genre.name)} strokeWidth={2} style={{ width: '16px', height: '16px', marginRight: '10px', flexShrink: 0 }} />
                   {genre.name}
                   {genre.count != null && (
                     <span style={{ marginLeft: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>{genre.count}</span>
@@ -203,32 +242,6 @@ export default function SideNavBar({ collapsed, onToggleCollapse }: { collapsed:
         )}
       </div>
       )}
-
-      {/* Collapse toggle */}
-      <div className={collapsed ? '' : 'px-0 mt-auto'} style={collapsed ? { marginTop: 'auto', display: 'flex', justifyContent: 'center', padding: '8px 0' } : undefined}>
-        <button
-          onClick={onToggleCollapse}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className="flex items-center justify-center transition-colors"
-          style={{
-            height: '36px',
-            width: collapsed ? '36px' : '100%',
-            color: 'var(--text-muted)',
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
-        >
-          <HugeiconsIcon
-            icon={collapsed ? ArrowRight01Icon : ArrowLeft01Icon}
-            strokeWidth={2}
-            style={{ width: '18px', height: '18px' }}
-          />
-          {!collapsed && <span style={{ fontSize: '12px', marginLeft: '8px' }}>Collapse</span>}
-        </button>
-      </div>
     </aside>
   );
 }

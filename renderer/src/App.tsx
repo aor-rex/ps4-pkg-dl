@@ -14,24 +14,24 @@ import ToastContainer from './components/common/Toast';
 
 export default function App() {
   const { currentView, settingsOpen, settings, initLive, loadBrowse } = useAppStore();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
     try {
-      return localStorage.getItem('sidebar-collapsed') === '1';
+      const saved = parseInt(localStorage.getItem('sidebar-width') || '240', 10);
+      return Number.isFinite(saved) ? Math.min(400, Math.max(64, saved)) : 240;
     } catch {
-      return false;
+      return 240;
     }
   });
-  const toggleSidebar = () => {
-    setSidebarCollapsed((c) => {
-      try {
-        localStorage.setItem('sidebar-collapsed', c ? '0' : '1');
-      } catch {
-        /* ignore */
-      }
-      return !c;
-    });
+  const sidebarCollapsed = sidebarWidth < 120;
+  const handleSidebarWidth = (w: number) => {
+    const clamped = Math.min(400, Math.max(64, w));
+    setSidebarWidth(clamped);
+    try {
+      localStorage.setItem('sidebar-width', String(clamped));
+    } catch {
+      /* ignore */
+    }
   };
-  const sidebarWidth = sidebarCollapsed ? 64 : 240;
 
   // Apply theme
   useEffect(() => {
@@ -75,8 +75,8 @@ export default function App() {
       <TopNavBar />
 
       <div className="flex flex-1 overflow-hidden" style={{ marginTop: '56px' }}>
-        {/* Sidebar - collapsible 240px / 64px icon-only */}
-        <SideNavBar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
+        {/* Sidebar - drag-resizable, snaps to 64px icon rail */}
+        <SideNavBar width={sidebarWidth} collapsed={sidebarCollapsed} onWidthChange={handleSidebarWidth} />
 
         {/* Main Content Area - fills remaining space, scrollable */}
         <main
@@ -85,7 +85,6 @@ export default function App() {
             marginLeft: `${sidebarWidth}px`,
             height: 'calc(100vh - 56px - 48px)',
             backgroundColor: 'var(--bg-primary)',
-            transition: 'margin-left 0.2s ease',
           }}
         >
           {renderView()}
