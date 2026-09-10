@@ -18,8 +18,11 @@ release-appimage:
     paths:
       - .npm/
   before_script:
-    - apt-get update -qq && apt-get install -y -qq python3 make g++ git > /dev/null
+    - apt-get update -qq && apt-get install -y -qq python3 make g++ git curl > /dev/null
     - npm config set cache .npm --global
+    # step_release shells out to `glab` (>= 1.58); the node image has neither it nor release-cli
+    - curl -fsSL -o /tmp/glab.tgz "https://gitlab.com/gitlab-org/cli/-/releases/v1.67.0/downloads/glab_1.67.0_linux_amd64.tar.gz"
+    - tar -xzf /tmp/glab.tgz -C /tmp && mv /tmp/bin/glab /usr/local/bin/glab && glab --version
   script:
     - npm ci --prefix renderer --cache .npm --prefer-offline
     - npm run build --prefix renderer
