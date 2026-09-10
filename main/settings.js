@@ -48,6 +48,7 @@ const DEFAULT_SETTINGS = {
   desktopNotification: true,
   // Updates (release channel shown in Settings → About)
   updateChannel: 'prerelease', // 'prerelease' | 'stable'
+  autoCheckUpdates: true,
 };
 
 /**

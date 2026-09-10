@@ -640,9 +640,100 @@ export default function Settings() {
           </button>
         </div>
       </SettingRow>
-      <SettingRow label="Create game subfolder" last>
+      <SettingRow label="Create game subfolder">
         <Toggle checked={settings.createSubfolder} onChange={() => handleToggle('createSubfolder')} />
       </SettingRow>
+      <SettingRow label="Check for updates on launch">
+        <Toggle checked={settings.autoCheckUpdates !== false} onChange={() => handleToggle('autoCheckUpdates')} />
+      </SettingRow>
+      <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '20px', marginTop: '28px' }}>Updates</h2>
+      <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '12px' }}>
+        Release channel
+        <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+          {([
+            { value: 'prerelease' as const, label: 'Pre-release' },
+            { value: 'stable' as const, label: 'Stable' },
+          ]).map((option) => (
+            <label key={option.value} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <input
+                type="radio"
+                name="update-channel"
+                checked={(settings.updateChannel || 'prerelease') === option.value}
+                onChange={() => {
+                  handleChange('updateChannel', option.value);
+                  // Persist immediately so the next check honors the new channel
+                  void tryLive((api) => api.updateSettings({ updateChannel: option.value }));
+                  void checkForUpdates(false);
+                }}
+                style={{ accentColor: 'var(--accent)', width: '14px', height: '14px', cursor: 'pointer' }}
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      </div>
+      {settings.updateChannel === 'stable' && updateStatus === 'idle' && (
+        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'left', marginBottom: '12px' }}>
+          On a newer pre-release? Stable offers nothing newer — switch back to Pre-release to keep updating.
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '220px', marginBottom: '12px' }}>
+        <button
+          onClick={() => void checkForUpdates(true)}
+          style={{
+            backgroundColor: 'var(--bg-tertiary)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            fontSize: '14px',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+        >
+          Check for Updates
+        </button>
+      </div>
+      {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled') && updateVersion && (
+        <div style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'left', marginBottom: '12px' }}>
+          Update available: v{updateVersion}
+          {updateStatus === 'available' && (
+            <button
+              onClick={() => void downloadUpdate()}
+              style={{ display: 'block', width: '220px', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              Download update
+            </button>
+          )}
+          {updateStatus === 'downloading' && <div style={{ marginTop: '8px' }}>Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}</div>}
+          {updateStatus === 'stalled' && (
+            <div style={{ marginTop: '8px' }}>
+              <div style={{ color: 'var(--warning)' }}>Stalled at {formatTransfer(updateTransferred, updateTotal, updateProgress)} — check your connection.</div>
+              <button
+                onClick={() => void downloadUpdate()}
+                style={{ display: 'block', width: '220px', marginTop: '8px', backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Retry download
+              </button>
+            </div>
+          )}
+          {updateStatus === 'downloaded' && (
+            <button
+              onClick={() => void restartToUpdate()}
+              style={{ display: 'block', width: '220px', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
+            >
+              Restart to install
+            </button>
+          )}
+        </div>
+      )}
+      {updateStatus === 'error' && updateError && (
+        <div style={{ fontSize: '13px', color: 'var(--warning)', textAlign: 'left', marginBottom: '12px', maxWidth: '420px' }}>
+          {updateError}
+        </div>
+      )}
     </div>
   );
 
@@ -1080,91 +1171,6 @@ export default function Settings() {
         >
           What&apos;s new
         </button>
-        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
-          Release channel
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '6px' }}>
-            {([
-              { value: 'prerelease' as const, label: 'Pre-release' },
-              { value: 'stable' as const, label: 'Stable' },
-            ]).map((option) => (
-              <label key={option.value} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                <input
-                  type="radio"
-                  name="update-channel"
-                  checked={(settings.updateChannel || 'prerelease') === option.value}
-                  onChange={() => {
-                    handleChange('updateChannel', option.value);
-                    // Persist immediately so the next check honors the new channel
-                    void tryLive((api) => api.updateSettings({ updateChannel: option.value }));
-                    void checkForUpdates(false);
-                  }}
-                  style={{ accentColor: 'var(--accent)', width: '14px', height: '14px', cursor: 'pointer' }}
-                />
-                {option.label}
-              </label>
-            ))}
-          </div>
-        </div>
-        {settings.updateChannel === 'stable' && updateStatus === 'idle' && (
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
-            On a newer pre-release? Stable offers nothing newer — switch back to Pre-release to keep updating.
-          </div>
-        )}
-        <button
-          onClick={() => void checkForUpdates(true)}
-          style={{
-            backgroundColor: 'var(--bg-tertiary)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-secondary)',
-            fontSize: '14px',
-            padding: '10px 20px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            transition: 'background-color 0.2s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
-        >
-          Check for Updates
-        </button>
-        {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled') && updateVersion && (
-          <div style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            Update available: v{updateVersion}
-            {updateStatus === 'available' && (
-              <button
-                onClick={() => void downloadUpdate()}
-                style={{ display: 'block', width: '100%', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Download update
-              </button>
-            )}
-            {updateStatus === 'downloading' && <div style={{ marginTop: '8px' }}>Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}</div>}
-            {updateStatus === 'stalled' && (
-              <div style={{ marginTop: '8px' }}>
-                <div style={{ color: 'var(--warning)' }}>Stalled at {formatTransfer(updateTransferred, updateTotal, updateProgress)} — check your connection.</div>
-                <button
-                  onClick={() => void downloadUpdate()}
-                  style={{ display: 'block', width: '100%', marginTop: '8px', backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                  Retry download
-                </button>
-              </div>
-            )}
-            {updateStatus === 'downloaded' && (
-              <button
-                onClick={() => void restartToUpdate()}
-                style={{ display: 'block', width: '100%', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Restart to install
-              </button>
-            )}
-          </div>
-        )}
-        {updateStatus === 'error' && updateError && (
-          <div style={{ fontSize: '13px', color: 'var(--warning)', textAlign: 'center', maxWidth: '220px' }}>
-            {updateError}
-          </div>
-        )}
         <button
           onClick={async () => {
             if (!backend) { addToast('info', 'Config folder is available in the desktop app'); return; }

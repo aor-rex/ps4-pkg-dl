@@ -89,4 +89,5 @@ export interface Settings {
   showSizeOnCards: boolean;
   compactMode: boolean;
   updateChannel: 'prerelease' | 'stable';
+  autoCheckUpdates: boolean;
 }

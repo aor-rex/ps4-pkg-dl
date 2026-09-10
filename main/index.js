@@ -144,11 +144,15 @@ app.whenReady().then(() => {
   registerIpcHandlers(ctx);
   createWindow(ctx);
 
-  // Silent launch check; the renderer prompts only when an update lands
+  // Silent launch check (unless disabled); the renderer prompts only when an update lands
   const updater = wireAutoUpdater(ctx);
   if (updater) {
     ctx.appUpdater = updater;
-    updater.checkForUpdates().catch(() => {});
+    let autoCheck = true;
+    try {
+      autoCheck = ctx.settings.get('autoCheckUpdates') !== false;
+    } catch (_) {}
+    if (autoCheck) updater.checkForUpdates().catch(() => {});
   }
 
   app.on('activate', () => {

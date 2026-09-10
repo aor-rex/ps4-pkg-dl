@@ -86,6 +86,43 @@ class DownloadManager extends EventEmitter {
   }
   
   /**
+   * Restore an interrupted download as paused (survives restarts).
+   * Unlike add(), never starts the engine and never touches the queue —
+   * the user resumes explicitly. Engine resumes from partial files on disk.
+   */
+  restorePaused(config) {
+    const destination = config.destination || this.downloadDir;
+
+    const engine = new DownloadEngine({
+      url: config.url,
+      destination,
+      filename: config.filename || null,
+      retryCount: this.retryCount,
+      retryDelay: this.retryDelay,
+      headers: config.headers || this.defaultHeaders || null,
+    });
+
+    const downloadInfo = {
+      id: engine.id,
+      label: config.label || engine.filename || 'Unknown',
+      source: config.source || 'Unknown',
+      gameTitle: config.gameTitle || null,
+      url: config.url,
+      destination,
+      addedAt: Date.now(),
+      restored: true,
+    };
+
+    // Paused with unknown progress until the user resumes (live ticks correct it)
+    engine.state = 'paused';
+    engine.stats = { totalBytes: 0, downloadedBytes: 0, speed: 0, eta: null, percent: 0 };
+
+    this.downloads.set(engine.id, engine);
+    this.bindEngineEvents(engine, downloadInfo);
+    return engine.id;
+  }
+
+  /**
    * Bind events from a download engine
    */
   bindEngineEvents(engine, info) {

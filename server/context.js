@@ -107,6 +107,61 @@ function bootstrapContext() {
   // gameId/title metadata per download id (for history + UI)
   const meta = new Map();
 
+  // Rebuild paused/interrupted downloads after restart. Rows stuck in
+  // queued/downloading/paused come back as paused engines (never auto-start);
+  // cancelled/failed/completed are left alone (completed has its own path).
+  async function hydrateInterrupted() {
+    let rows = [];
+    try {
+      rows = downloadHistory.getActive() || [];
+    } catch (_) {
+      return 0;
+    }
+    let restored = 0;
+    for (const row of rows) {
+      try {
+        const url = row.direct_url || row.mirror_url || null;
+        if (!url) continue;
+        const title = row.game_title || 'Download';
+        let destination = settings.getDownloadDir();
+        if (settings.get('createSubfolder') && title && title !== 'Download') {
+          const safe = String(title).replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || 'Game';
+          destination = path.join(destination, safe);
+          if (!fs.existsSync(destination)) fs.mkdirSync(destination, { recursive: true });
+        }
+        let cover = null;
+        let titleId = null;
+        let region = null;
+        let version = null;
+        let size = null;
+        try {
+          const entry = await archive.getByPkgUrl(url);
+          if (entry) {
+            cover = entry.cover || entry.coverUrl || null;
+            titleId = entry.titleId || null;
+            region = entry.region || null;
+            version = entry.version || null;
+            size = entry.size || null;
+            if (title === 'Download' && entry.title) {
+              // keep row title below in sync via meta below
+            }
+          }
+        } catch (_) {}
+        const id = downloadManager.restorePaused({
+          url,
+          destination,
+          filename: null,
+          label: title,
+          source: 'archive-fpkgi',
+          gameTitle: title,
+        });
+        meta.set(id, { historyId: row.id, titleId, title, pkgUrl: url, cover, region, version, size });
+        restored++;
+      } catch (_) {}
+    }
+    return restored;
+  }
+
   // Rebuild the Completed tab from history after restart (files verified,
   // covers re-resolved from the catalog; never throws, never duplicates).
   async function hydrateCompleted() {
@@ -188,6 +243,25 @@ function bootstrapContext() {
     } catch (_) {}
     try {
       notifications.sendDownloadFailed(d.label || d.gameTitle || 'Download', err);
+    } catch (_) {}
+  });
+  // Persist pause/cancel/resume so interrupted downloads restore after restart
+  downloadManager.on('download:paused', (d) => {
+    const m = meta.get(d.id) || {};
+    try {
+      if (m.historyId) downloadHistory.markPaused(m.historyId);
+    } catch (_) {}
+  });
+  downloadManager.on('download:cancelled', (d) => {
+    const m = meta.get(d.id) || {};
+    try {
+      if (m.historyId) downloadHistory.markCancelled(m.historyId);
+    } catch (_) {}
+  });
+  downloadManager.on('download:resumed', (d) => {
+    const m = meta.get(d.id) || {};
+    try {
+      if (m.historyId) downloadHistory.markStarted(m.historyId);
     } catch (_) {}
   });
   downloadManager.on('download:error', (d) => {
@@ -336,9 +410,10 @@ function bootstrapContext() {
     return { id, removed: true };
   }
 
-  // Rebuild the Completed tab from history (fire-and-forget: sync boot stays fast)
+  // Rebuild tabs from history (fire-and-forget: sync boot stays fast)
   try {
     void hydrateCompleted();
+    void hydrateInterrupted();
   } catch (_) {}
 
   return {
@@ -359,6 +434,7 @@ function bootstrapContext() {
     listDownloads,
     removeDownload,
     hydrateCompleted,
+    hydrateInterrupted,
   };
 }
 
