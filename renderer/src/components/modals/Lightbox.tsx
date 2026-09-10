@@ -103,7 +103,7 @@ export default function Lightbox() {
         }}
       >
         <button
-          onClick={prevImage}
+          onClick={(e) => { e.stopPropagation(); prevImage(); }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -130,7 +130,7 @@ export default function Lightbox() {
           {lightboxIndex + 1} / {lightboxImages.length}
         </span>
         <button
-          onClick={nextImage}
+          onClick={(e) => { e.stopPropagation(); nextImage(); }}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -170,7 +170,7 @@ export default function Lightbox() {
         {lightboxImages.map((img, idx) => (
           <button
             key={idx}
-            onClick={() => setLightboxIndex(idx)}
+            onClick={(e) => { e.stopPropagation(); setLightboxIndex(idx); }}
             style={{
               flexShrink: 0,
               width: '60px',

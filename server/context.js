@@ -300,10 +300,23 @@ function bootstrapContext() {
       if (!fs.existsSync(destination)) fs.mkdirSync(destination, { recursive: true });
     }
     const label = title ? `${title}${titleId ? ` [${titleId}]` : ''}` : filename || 'Download';
+    // Metadata-based filename for new queues: "{Title} [{CUSA}] [{Region}] [v{Version}].pkg".
+    // Only when we have a real title and the caller didn't pin an explicit name;
+    // existing files and in-flight resume mapping are untouched (URL+path based).
+    let resolvedFilename = filename || null;
+    if (title && String(title).trim() && !input.explicitFilename) {
+      const clean = (s) => String(s || '').replace(/[\\/:*?"<>|]/g, '').trim();
+      const parts = [clean(title)];
+      if (String(titleId || '').trim()) parts.push(`[${clean(titleId)}]`);
+      if (String(region || '').trim()) parts.push(`[${clean(region)}]`);
+      if (String(version || '').trim()) parts.push(`[v${clean(version)}]`);
+      const stem = parts.join(' ').slice(0, 120).trim();
+      if (stem) resolvedFilename = `${stem}.pkg`;
+    }
     const id = downloadManager.add({
       url: pkgUrl,
       destination,
-      filename: filename || null,
+      filename: resolvedFilename,
       label,
       source: 'archive-fpkgi',
       gameTitle: title || null,

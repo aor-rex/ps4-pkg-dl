@@ -1,5 +1,21 @@
 # Changelog
 
+## [v0.1.10] - 2026-09-10 (beta)
+
+### Features
+- Interrupted downloads survive restarts: paused, cancelled and in-progress queues are restored as paused, resumable in one click
+- Auto-check toggle: silent launch update checks can now be switched off in General (manual Check for Updates always works)
+- New downloads save as `{Title} [{CUSA}] [{Region}] [v{Version}].pkg` instead of URL-derived filenames (new queues only, existing files untouched)
+
+### Fixes
+- Lightbox Previous/Next/thumbnail clicks no longer close the viewer (events bubbled to the overlay closer)
+- Settings → About no longer hosts updater controls; update channel, check, and progress live in a dedicated General section
+- Raw catalog URLs removed from the app README (canonical links live in the catalog repo)
+
+### Chore
+- GitLab history reconciled (ancient pre-rewrite commits merged, tree unchanged) and tag-release CI mirrored there
+- Catalog setup docs point at the `ps4-pkg-catalog` mirror + extras sources
+
 ## [v0.1.9] - 2026-09-10 (beta)
 
 ### Fixes
