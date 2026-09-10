@@ -511,7 +511,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         clearInterval(backfillTimer);
         backfillTimer = null;
         if (state.status === 'done') {
-          get().addToast('success', `Backfill done: ${state.exact + state.high} enriched, ${state.missed.length} missed`);
+          get().addToast('success', `Backfill done: ${state.exact + state.high} enriched, ${state.missedTotal ?? state.missed.length} missed`);
           void get().loadGenres();
         }
       }

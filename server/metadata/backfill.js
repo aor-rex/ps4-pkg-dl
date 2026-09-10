@@ -33,12 +33,20 @@ class BackfillJob {
       exact: 0,
       high: 0,
       manual: 0,
+      review: 0,
       missed: [],
+      missedTotal: 0,
       current: null,
       startedAt: null,
       finishedAt: null,
       error: null,
     };
+  }
+
+  /** Bounded miss recording — the list caps, the counter doesn't. */
+  _recordMiss(miss) {
+    this.state.missedTotal = (this.state.missedTotal || 0) + 1;
+    if (this.state.missed.length < 500) this.state.missed.push(miss);
   }
 
   _loadState() {
@@ -85,7 +93,7 @@ class BackfillJob {
       this._persist();
       return this.snapshot();
     }
-    if (scope === 'missing' && !this.metadata.rawg.configured) {
+    if (!this.metadata.rawg.configured) {
       this.state = { ...this._freshState(), status: 'error', error: 'No RAWG API key — paste one in Settings → Library first.' };
       this._persist();
       return this.snapshot();
@@ -129,20 +137,22 @@ class BackfillJob {
         try {
           meta = await this.metadata.get(id, title);
         } catch (e) {
-          this.state.missed.push({ titleId: id, title, reason: e.message || 'error' });
+          this._recordMiss({ titleId: id, title, reason: e.message || 'error' });
         }
-        if (meta && meta.confidence === 'low') {
-          // bulk runs don't keep shaky matches — retry manually later.
+        if (meta && (meta.confidence === 'low' || meta.confidence === 'high')) {
+          // Bulk runs never keep shaky matches — quarantine for manual review.
+          // (Single-game flows still persist; the bulk run must not cement guesses.)
           // keep the rejected pick so the UI can show the incumbent.
           const rejected = { rawgId: meta.rawgId ?? null, slug: meta.rawgSlug ?? null, name: meta.name || '' };
           this.metadata.remove(id);
-          this.state.missed.push({ titleId: id, title, reason: 'low confidence — verify manually', rejected });
+          this.state.review = (this.state.review || 0) + 1;
+          this._recordMiss({ titleId: id, title, reason: 'needs review — verify manually', rejected });
         } else if (meta) {
           if (meta.confidence === 'exact') this.state.exact++;
           else if (meta.confidence === 'manual') this.state.manual++;
           else this.state.high++;
         } else {
-          this.state.missed.push({ titleId: id, title, reason: 'no RAWG match' });
+          this._recordMiss({ titleId: id, title, reason: 'no RAWG match' });
         }
         this.state.done++;
         if (this.state.done % 5 === 0) this._persist();
@@ -155,7 +165,7 @@ class BackfillJob {
       this.running = false;
       this._persist();
       console.error(
-        `[backfill] ${this.state.status}: ${this.state.done}/${this.state.total} (exact ${this.state.exact}, high ${this.state.high}, missed ${this.state.missed.length})`
+        `[backfill] ${this.state.status}: ${this.state.done}/${this.state.total} (exact ${this.state.exact}, high ${this.state.high}, review ${this.state.review || 0}, missed ${this.state.missedTotal || this.state.missed.length})`
       );
     }
   }

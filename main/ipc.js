@@ -193,7 +193,9 @@ function registerIpcHandlers(ctx) {
       if (SECRET_KEYS.includes(k) && (v === undefined || v === '***set***')) continue;
       ctx.settings.set(k, v);
     }
-    if (partial?.catalogUrl) ctx.archive.setCatalogUrl(partial.catalogUrl);
+    // NOTE: legacy single-source `catalogUrl` is intentionally NOT honored
+    // here — writing it would replace the whole multi-source list. The
+    // one-way migration in server/context.js remains the only path.
     try {
       if (ctx.syncNotificationPrefs) ctx.syncNotificationPrefs();
     } catch (_) {}

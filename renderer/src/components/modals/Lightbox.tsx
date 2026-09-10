@@ -13,10 +13,12 @@ export default function Lightbox() {
   } = useAppStore();
 
   const nextImage = useCallback(() => {
+    if (!lightboxImages.length) return;
     setLightboxIndex((lightboxIndex + 1) % lightboxImages.length);
   }, [lightboxIndex, lightboxImages.length, setLightboxIndex]);
 
   const prevImage = useCallback(() => {
+    if (!lightboxImages.length) return;
     setLightboxIndex((lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length);
   }, [lightboxIndex, lightboxImages.length, setLightboxIndex]);
 

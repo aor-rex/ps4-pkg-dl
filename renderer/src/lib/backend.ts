@@ -110,7 +110,9 @@ export interface BackfillState {
   exact: number;
   high: number;
   manual: number;
+  review?: number;
   missed: BackfillMiss[];
+  missedTotal?: number;
   current: { titleId: string; title: string } | null;
   startedAt: string | null;
   finishedAt: string | null;

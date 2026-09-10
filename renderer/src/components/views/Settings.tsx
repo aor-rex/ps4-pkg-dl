@@ -350,7 +350,7 @@ function LibrarySettings() {
             <div style={{ height: '100%', width: `${pct}%`, backgroundColor: 'var(--accent)', transition: 'width 0.5s ease' }} />
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            exact {backfill.exact} · high {backfill.high} · missed {backfill.missed.length}
+            exact {backfill.exact} · high {backfill.high}{backfill.review ? ` · review ${backfill.review}` : ''} · missed {backfill.missedTotal ?? backfill.missed.length}
             {backfill.error && <span style={{ color: 'var(--error)' }}> · {backfill.error}</span>}
           </div>
           {backfill.missed.length > 0 && (

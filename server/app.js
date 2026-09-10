@@ -194,6 +194,12 @@ function createApp(ctx) {
   // ── Games ────────────────────────────────────────────────────────
   const { attachMeta, titleIdsForGenre, genreCounts, sightingsMap, attachAdded } = require('./metaView');
 
+  // Integer query params with finite fallback (page=abc must not poison math).
+  const numQuery = (v, fallback) => {
+    const n = typeof v === 'string' || typeof v === 'number' ? parseInt(String(v), 10) : NaN;
+    return Number.isFinite(n) ? n : fallback;
+  };
+
   // GET /api/games?q=&region=&genre=&page=&limit=&sort=title|size|version|region|added&order=asc|desc
   app.get(
     '/api/games',
@@ -203,8 +209,8 @@ function createApp(ctx) {
       const result = await ctx.archive.list({
         q: req.query.q || '',
         region: req.query.region || '',
-        page: parseInt(req.query.page || '1', 10),
-        limit: Math.min(200, Math.max(1, parseInt(req.query.limit || '50', 10))),
+        page: numQuery(req.query.page, 1),
+        limit: Math.min(200, Math.max(1, numQuery(req.query.limit, 50))),
         sort,
         order: req.query.order || 'asc',
         onlyIds,
@@ -427,7 +433,7 @@ function createApp(ctx) {
   // ── History / settings ───────────────────────────────────────────
   app.get('/api/history', (req, res) => {
     const filter = req.query.status || 'all';
-    const limit = Math.min(200, parseInt(req.query.limit || '100', 10));
+    const limit = Math.min(200, numQuery(req.query.limit, 100));
     res.json({ history: ctx.downloadHistory.getAll(filter, limit) });
   });
 

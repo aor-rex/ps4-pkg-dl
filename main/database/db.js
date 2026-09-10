@@ -239,19 +239,20 @@ class DatabaseManager {
    * Vacuum the database (reclaim space)
    */
   vacuum() {
-    this.db.exec('VACUUM');
+    this.getDb().exec('VACUUM');
   }
 
   /**
    * Get database statistics
    */
   getStats() {
-    const games = this.db.prepare('SELECT COUNT(*) as count FROM games').get();
-    const mirrors = this.db.prepare('SELECT COUNT(*) as count FROM game_mirrors').get();
-    const downloads = this.db.prepare('SELECT COUNT(*) as count FROM downloads').get();
-    const images = this.db.prepare('SELECT COUNT(*) as count FROM game_images').get();
-    const videos = this.db.prepare('SELECT COUNT(*) as count FROM game_videos').get();
-    const cacheEntries = this.db.prepare('SELECT COUNT(*) as count FROM cache_meta').get();
+    const db = this.getDb();
+    const games = db.prepare('SELECT COUNT(*) as count FROM games').get();
+    const mirrors = db.prepare('SELECT COUNT(*) as count FROM game_mirrors').get();
+    const downloads = db.prepare('SELECT COUNT(*) as count FROM downloads').get();
+    const images = db.prepare('SELECT COUNT(*) as count FROM game_images').get();
+    const videos = db.prepare('SELECT COUNT(*) as count FROM game_videos').get();
+    const cacheEntries = db.prepare('SELECT COUNT(*) as count FROM cache_meta').get();
 
     return {
       games: games.count,
