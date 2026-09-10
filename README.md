@@ -44,7 +44,9 @@ chmod +x PS4-PKG-Downloader-*.AppImage
 
 ## How to use
 
-1. **Add your catalog.** Settings → Library → paste a `games.json` URL (FPKGi format) or add a local file. The app ships with no catalog.
+1. **Add your catalog.** Settings → Library → paste a `games.json` URL (FPKGi format) or add a local file. The app ships with no catalog. Maintained sources live in the companion [ps4-pkg-catalog](https://gitlab.com/aor-rex/ps4-pkg-catalog) repo:
+   - Mirror (866 games): `https://gitlab.com/aor-rex/ps4-pkg-catalog/-/raw/main/games.json`
+   - Curated extras (~60 more games): `https://gitlab.com/aor-rex/ps4-pkg-catalog/-/raw/main/extras.json`
 2. **Enrich (optional).** Paste a free RAWG key from [rawg.io/apidocs](https://rawg.io/apidocs) and press **Start backfill**.
 3. **Download.** Open a game, pick a region/version, and download with progress, pause/resume, cancel and retry. Finished files land in your download folder.
 
