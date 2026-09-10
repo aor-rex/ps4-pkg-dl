@@ -1,5 +1,17 @@
 # Changelog
 
+## [v0.1.9] - 2026-09-10 (beta)
+
+### Fixes
+- Download rows can no longer show a blank game name: titles are trimmed with filename-derived fallback
+- OS notifications actually work now: fixed icon path, Settings toggles honored live, missing events wired
+- Changelog dialog renders markdown instead of raw text
+
+### Features
+- Animated toast notifications with per-type accents and dismiss transitions
+- In-app notification center: bell with unread badge, history, clear and mark-read
+
+
 ## [v0.1.8] - 2026-09-09 (beta)
 
 ### Fixes
