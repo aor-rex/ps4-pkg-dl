@@ -226,6 +226,34 @@
     animation: modalFadeIn 0.2s ease forwards;
   }
 
+  /* Toast notifications - slide in from the right, fade out on dismiss */
+  @keyframes toastSlideIn {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes toastFadeOut {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+  }
+  .toast-enter {
+    animation: toastSlideIn 0.25s ease forwards;
+  }
+  .toast-exit {
+    animation: toastFadeOut 0.2s ease forwards;
+  }
+
   /* Download Panel Slide - UI Spec 9.2: 0.3s ease from bottom */
   @keyframes slideUp {
     from {

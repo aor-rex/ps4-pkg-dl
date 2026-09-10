@@ -125,6 +125,9 @@ function wireAutoUpdater(ctx) {
     } catch (_) {}
     updateStallSent = false;
     broadcast('update:downloaded', { version: updaterState.version });
+    try {
+      if (ctx.notifications) ctx.notifications.send(`Update ${updaterState.version || ''} downloaded`.trim(), 'Restart the app to install it');
+    } catch (_) {}
   });
   autoUpdater.on('error', (error) => {
     updaterState = { status: 'error', version: null, percent: 0, transferred: 0, total: 0, error: (error && error.message) || String(error) };

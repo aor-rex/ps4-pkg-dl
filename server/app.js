@@ -444,7 +444,7 @@ function createApp(ctx) {
   app.get('/api/settings', (_req, res) => res.json(publicSettings()));
   app.put('/api/settings', (req, res) => {
     const patch = req.body || {};
-    const allowed = ['downloadDir', 'createSubfolder', 'maxConcurrentDownloads', 'catalogTtlHours', 'apiPort', 'autoExtract', 'iaCookie', 'rawgApiKey', 'metadataTtlDays'];
+    const allowed = ['downloadDir', 'createSubfolder', 'maxConcurrentDownloads', 'catalogTtlHours', 'apiPort', 'autoExtract', 'iaCookie', 'rawgApiKey', 'metadataTtlDays', 'notifyOnComplete', 'notifyOnFailed', 'notifyOnExtractComplete', 'soundAlert', 'desktopNotification'];
     for (const [k, v] of Object.entries(patch)) {
       if (!allowed.includes(k)) continue;
       if (SECRET_KEYS.includes(k) && (v === '***set***' || v === undefined)) continue;
@@ -468,6 +468,9 @@ function createApp(ctx) {
         ctx.downloadManager.setMaxConcurrent(patch.maxConcurrentDownloads);
       } catch (_) {}
     }
+    try {
+      if (ctx.syncNotificationPrefs) ctx.syncNotificationPrefs();
+    } catch (_) {}
     res.json(publicSettings());
   });
 

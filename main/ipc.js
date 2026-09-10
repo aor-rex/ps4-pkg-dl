@@ -156,6 +156,9 @@ function registerIpcHandlers(ctx) {
   ipcMain.handle('settings:set', async (_e, partial) => {
     for (const [k, v] of Object.entries(partial || {})) ctx.settings.set(k, v);
     if (partial?.catalogUrl) ctx.archive.setCatalogUrl(partial.catalogUrl);
+    try {
+      if (ctx.syncNotificationPrefs) ctx.syncNotificationPrefs();
+    } catch (_) {}
     return ctx.settings.getAll();
   });
   ipcMain.handle('settings:chooseDirectory', async () => {

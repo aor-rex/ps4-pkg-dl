@@ -35,12 +35,18 @@ function bootstrapContext() {
   const logger = new Logger({ level: 'info' });
   const downloadHistory = new DownloadHistory();
   const notifications = new NotificationManager();
-  try {
-    notifications.setPreferences({
-      soundAlert: settings.get('soundAlert'),
-      desktopNotification: settings.get('desktopNotification'),
-    });
-  } catch (_) {}
+  const syncNotificationPrefs = () => {
+    try {
+      notifications.setPreferences({
+        desktopNotification: settings.get('desktopNotification'),
+        downloadComplete: settings.get('notifyOnComplete'),
+        downloadFailed: settings.get('notifyOnFailed'),
+        extractComplete: settings.get('notifyOnExtractComplete'),
+        soundAlert: settings.get('soundAlert'),
+      });
+    } catch (_) {}
+  };
+  syncNotificationPrefs();
 
   const downloadDir = settings.getDownloadDir();
   if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir, { recursive: true });
@@ -159,7 +165,18 @@ function bootstrapContext() {
     const archivePath = d.filePath || d.path;
     // PKGs from archive.org are not archives for 7z — skip auto-extract for .pkg
     if (settings.get('autoExtract') && archivePath && extractor.isArchive(archivePath)) {
-      extractor.extract(archivePath).catch(() => {});
+      extractor
+        .extract(archivePath)
+        .then(() => {
+          try {
+            notifications.sendExtractComplete(path.basename(archivePath), path.dirname(archivePath));
+          } catch (_) {}
+        })
+        .catch((err) => {
+          try {
+            notifications.sendExtractFailed(path.basename(archivePath), err && err.message);
+          } catch (_) {}
+        });
     }
   });
 
@@ -251,7 +268,7 @@ function bootstrapContext() {
     return {
       id: s.id,
       label: s.label || s.filename || 'Download',
-      title: m.title || s.gameTitle || s.label || 'Download',
+      title: displayTitle(m, s),
       titleId: m.titleId || null,
       cover: m.cover || null,
       region: m.region || null,
@@ -268,6 +285,22 @@ function bootstrapContext() {
       state: s.state,
       error: rawError ? friendlyError(url, rawError) : null,
     };
+  }
+
+  // Titles must never render blank: trim, then fall back through label,
+  // then a readable stem derived from the PKG filename/URL, then 'Download'.
+  function displayTitle(m, s) {
+    const candidates = [m.title, s.gameTitle, s.label];
+    for (const c of candidates) {
+      if (typeof c === 'string' && c.trim()) return c.trim();
+    }
+    const src = s.filename || m.pkgUrl || s.url || '';
+    try {
+      const base = String(src).split('?')[0].split('/').pop() || '';
+      const stem = base.replace(/\.(pkg|zip|rar|7z)$/i, '').replace(/[._-]+/g, ' ').trim();
+      if (stem) return stem;
+    } catch (_) {}
+    return 'Download';
   }
 
   function listDownloads() {
@@ -313,6 +346,7 @@ function bootstrapContext() {
     logger,
     downloadHistory,
     notifications,
+    syncNotificationPrefs,
     downloadManager,
     extractor,
     archive,

@@ -3,6 +3,7 @@ import { Search01Icon, Settings02Icon, Download02Icon, GameController02Icon, Can
 import { useAppStore } from '../../store/appStore';
 import { useState, useRef, useEffect } from 'react';
 import { COVER_FALLBACK } from '../../lib/catalog';
+import NotificationCenter from '../common/NotificationCenter';
 
 export default function TopNavBar() {
   const { searchQuery, setSearchQuery, setSettingsOpen, setDownloadManagerOpen, downloads, setCurrentView, setSelectedGame, filteredGames: storeFiltered, fetchLiveSearch, openGameDetail } = useAppStore();
@@ -181,6 +182,9 @@ export default function TopNavBar() {
               </span>
             )}
           </button>
+
+          {/* Notifications */}
+          <NotificationCenter />
 
           {/* Settings Button - UI Spec 3.4 */}
           <button

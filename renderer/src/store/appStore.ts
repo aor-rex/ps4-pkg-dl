@@ -178,9 +178,14 @@ interface AppState {
   restartToUpdate: () => Promise<void>;
   
   // Toasts
-  toasts: Array<{ id: string; type: 'success' | 'error' | 'info'; message: string }>;
+  toasts: Array<{ id: string; type: 'success' | 'error' | 'info'; message: string; at: number }>;
   addToast: (type: 'success' | 'error' | 'info', message: string) => void;
   removeToast: (id: string) => void;
+  // Notification history (every toast is recorded; session-only, last 50)
+  notificationHistory: Array<{ id: string; type: 'success' | 'error' | 'info'; message: string; at: number }>;
+  unreadNotifications: number;
+  markNotificationsRead: () => void;
+  clearNotificationHistory: () => void;
 }
 
 export const defaultSettings: Settings = {
@@ -1073,13 +1078,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   // Toasts
   toasts: [],
+  notificationHistory: [],
+  unreadNotifications: 0,
+  markNotificationsRead: () => set({ unreadNotifications: 0 }),
+  clearNotificationHistory: () => set({ notificationHistory: [], unreadNotifications: 0 }),
   addToast: (type, message) => set((state) => {
-    const id = Date.now().toString();
-    const newToasts = [...state.toasts, { id, type, message }];
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const entry = { id, type, message, at: Date.now() };
+    const newToasts = [...state.toasts, entry];
+    const history = [...state.notificationHistory, entry].slice(-50);
     setTimeout(() => {
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
     }, 5000);
-    return { toasts: newToasts };
+    return {
+      toasts: newToasts,
+      notificationHistory: history,
+      unreadNotifications: state.unreadNotifications + 1,
+    };
   }),
   removeToast: (id) => set((state) => ({
     toasts: state.toasts.filter((t) => t.id !== id),

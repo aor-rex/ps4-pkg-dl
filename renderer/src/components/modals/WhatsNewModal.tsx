@@ -22,6 +22,70 @@ export function appVersion(): string {
   }
 }
 
+/** Minimal markdown renderer for changelog sections (no new deps). */
+export function renderMarkdown(md: string, keyPrefix: string): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  const inline = (text: string, key: string): React.ReactNode[] => {
+    const parts: React.ReactNode[] = [];
+    // [text](url), **bold**, `code`
+    const re = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*|`([^`]+)`/g;
+    let last = 0;
+    let m: RegExpExecArray | null;
+    let i = 0;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) parts.push(text.slice(last, m.index));
+      if (m[1] !== undefined) {
+        parts.push(
+          <a key={`${key}-l${i}`} href={m[2]} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>
+            {m[1]}
+          </a>
+        );
+      } else if (m[3] !== undefined) {
+        parts.push(<strong key={`${key}-b${i}`}>{m[3]}</strong>);
+      } else if (m[4] !== undefined) {
+        parts.push(
+          <code key={`${key}-c${i}`} style={{ backgroundColor: 'var(--bg-tertiary)', padding: '1px 5px', borderRadius: '3px', fontSize: '12px' }}>
+            {m[4]}
+          </code>
+        );
+      }
+      i++;
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) parts.push(text.slice(last));
+    return parts;
+  };
+  md.split('\n').forEach((line, idx) => {
+    const key = `${keyPrefix}-${idx}`;
+    const h3 = line.match(/^###\s+(.*)/);
+    if (h3) {
+      out.push(
+        <div key={key} style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginTop: idx === 0 ? 0 : '12px', marginBottom: '6px' }}>
+          {inline(h3[1], key)}
+        </div>
+      );
+      return;
+    }
+    const li = line.match(/^[-*]\s+(.*)/);
+    if (li) {
+      out.push(
+        <div key={key} style={{ display: 'flex', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '4px' }}>
+          <span style={{ color: 'var(--accent)', flexShrink: 0 }}>•</span>
+          <span>{inline(li[1], key)}</span>
+        </div>
+      );
+      return;
+    }
+    if (!line.trim()) return;
+    out.push(
+      <div key={key} style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '6px' }}>
+        {inline(line, key)}
+      </div>
+    );
+  });
+  return out;
+}
+
 export default function WhatsNewModal() {
   const { whatsNewOpen, setWhatsNewOpen, setSettingsOpen, setSettingsCategory, updateStatus, updateVersion, updateProgress, updateTransferred, updateTotal, downloadUpdate, restartToUpdate } = useAppStore();
   if (!whatsNewOpen) return null;
@@ -52,8 +116,8 @@ export default function WhatsNewModal() {
         <h2 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
           What&apos;s new in v{version || 'this version'}
         </h2>
-        <div style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, whiteSpace: 'pre-wrap', marginTop: '12px' }}>
-          {notes || 'No changelog notes for this version yet.'}
+        <div style={{ marginTop: '12px' }}>
+          {notes ? renderMarkdown(notes, 'wn') : 'No changelog notes for this version yet.'}
         </div>
         {updateReady && updateVersion && (
           <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '6px', border: '1px solid var(--border)' }}>

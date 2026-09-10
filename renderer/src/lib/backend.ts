@@ -241,6 +241,16 @@ function fmtEta(s: number | null): string {
   return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
 }
 
+function displayTitleHttp(d: Record<string, unknown>): string {
+  for (const c of [d.title, d.label]) {
+    if (typeof c === 'string' && c.trim()) return c.trim();
+  }
+  const src = String((d.filename as string) || (d.pkgUrl as string) || '');
+  const base = src.split('?')[0].split('/').pop() || '';
+  const stem = base.replace(/\.(pkg|zip|rar|7z)$/i, '').replace(/[._-]+/g, ' ').trim();
+  return stem || 'Download';
+}
+
 function mapServerDownload(d: Record<string, unknown>): UiDownload {
   const state = String(d.status ?? 'queued');
   const status =
@@ -252,7 +262,7 @@ function mapServerDownload(d: Record<string, unknown>): UiDownload {
   return {
     id: String(d.id),
     gameId: (d.titleId as string) ?? null,
-    gameTitle: String(d.title ?? d.label ?? 'Download'),
+    gameTitle: displayTitleHttp(d),
     fileType: 'PKG',
     size: String((d as { size?: unknown }).size ?? ''),
     sizeBytes: Number(d.totalBytes ?? 0),
