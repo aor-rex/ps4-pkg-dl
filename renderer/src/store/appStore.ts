@@ -289,18 +289,24 @@ export const useAppStore = create<AppState>((set, get) => ({
         });
         // extraction progress -> map to download
         if (backend.onExtractEvent) {
-          backend.onExtractEvent((event, payload: any) => {
-            if (event === 'extract:started' && payload?.id) {
-              get().updateDownload(payload.id, { status: 'extracting', extractProgress: 0 } as Partial<Download>);
-            } else if (event === 'extract:progress' && payload?.id) {
-              get().updateDownload(payload.id, { status: 'extracting', extractProgress: payload.percent ?? payload.progress } as Partial<Download>);
-            } else if (event === 'extract:complete' && payload?.id) {
-              get().updateDownload(payload.id, { status: 'completed', extractProgress: 100 } as Partial<Download>);
-            } else if (event === 'extract:failed' && payload?.id) {
-              get().updateDownload(payload.id, { status: 'failed' } as Partial<Download>);
-              get().addToast('error', `Extraction failed: ${payload.error || 'unknown'}`);
-            }
-          });
+        backend.onExtractEvent((event, payload: any) => {
+          // Manual runs carry the archive path as id; auto runs carry the download id.
+          // Match either so both flows update the right row.
+          const matchId = payload?.id;
+          const matchPath = payload?.archive;
+          const target = get().downloads.find((d) => d.id === matchId || (matchPath && d.path === matchPath));
+          const tid = target ? target.id : matchId;
+          if (event === 'extract:started' && tid) {
+            get().updateDownload(tid, { status: 'extracting', extractProgress: 0 } as Partial<Download>);
+          } else if (event === 'extract:progress' && tid) {
+            get().updateDownload(tid, { status: 'extracting', extractProgress: payload.percent ?? payload.progress } as Partial<Download>);
+          } else if (event === 'extract:complete' && tid) {
+            get().updateDownload(tid, { status: 'completed', extractProgress: 100 } as Partial<Download>);
+          } else if (event === 'extract:failed' && tid) {
+            get().updateDownload(tid, { status: 'failed' } as Partial<Download>);
+            get().addToast('error', `Extraction failed: ${payload.error || 'unknown'}`);
+          }
+        });
         }
         tryLive((api) => api.listDownloads()).then((list) => {
           if (list) set({ downloads: list.map(uiToDownload) });

@@ -262,6 +262,15 @@ class MetadataService {
     }
   }
 
+  /** Clear the entire enrichment cache (keeps overrides + ignore list). */
+  clearCache() {
+    try {
+      return this.db.prepare('DELETE FROM metadata').run().changes ?? 0;
+    } catch {
+      return 0;
+    }
+  }
+
   save(titleId, m) {
     const id = normalizeCusa(titleId);
     if (!id) return;

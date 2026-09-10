@@ -1,7 +1,7 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
-const { bootstrap, registerIpcHandlers, setBroadcaster, broadcast, listDownloads } = require('./ipc');
+const { bootstrap, registerIpcHandlers, setBroadcaster, setMainWindow, broadcast, listDownloads } = require('./ipc');
 
 let mainWindow = null;
 
@@ -50,6 +50,7 @@ function createWindow(ctx) {
   }
 
   mainWindow.on('closed', () => { mainWindow = null; });
+  setMainWindow(mainWindow);
 }
 
 let updaterState = { status: 'idle', version: null, percent: 0, transferred: 0, total: 0, error: null };

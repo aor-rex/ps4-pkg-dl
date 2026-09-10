@@ -7,6 +7,15 @@ const { bootstrapContext } = require('../server/context');
 const { attachMeta, titleIdsForGenre, genreCounts, attachAdded } = require('../server/metaView');
 
 let broadcaster = () => {};
+let mainWindowRef = null;
+
+function sendToWindow(channel, payload) {
+  try {
+    const win = mainWindowRef;
+    if (!win || win.isDestroyed()) return;
+    win.webContents.send(channel, payload);
+  } catch (_) {}
+}
 
 function registerIpcHandlers(ctx) {
   ctx.downloadManager.on('download:progress', (d) => broadcaster('progress', d));
@@ -126,14 +135,29 @@ function registerIpcHandlers(ctx) {
     return res.canceled ? null : res.filePaths[0];
   });
 
-  ipcMain.handle('downloads:add', async (_e, { pkgUrl, url, titleId, id } = {}) => {
+  ipcMain.handle('downloads:add', async (_e, { pkgUrl, url, titleId, id, force, label, source, gameTitle, fileType, size, region, version, cover, gameId } = {}) => {
     const resolvedUrl = pkgUrl || url;
     let entry = null;
     if (resolvedUrl) entry = await ctx.archive.getByPkgUrl(resolvedUrl);
     else if (titleId) entry = (await ctx.archive.getVariants(titleId))[0] || null;
     else if (id) entry = await ctx.archive.getById(id);
     if (!entry) throw new Error('Provide pkgUrl, titleId, or id from the catalog');
-    return ctx.queuePkgDownload(entry);
+    // Catalog entry wins where present; renderer-supplied metadata fills gaps.
+    // `force` bypasses already-downloaded detection (explicit re-download).
+    return ctx.queuePkgDownload({
+      ...entry,
+      title: entry.title || gameTitle || label || null,
+      label: label || entry.label || null,
+      source: source || entry.source || null,
+      gameTitle: gameTitle || entry.title || null,
+      fileType: fileType || entry.fileType || null,
+      size: size || entry.size || null,
+      region: region ?? entry.region ?? null,
+      version: version ?? entry.version ?? null,
+      cover: cover ?? entry.cover ?? null,
+      gameId: gameId ?? entry.gameId ?? null,
+      force: !!force,
+    });
   });
   ipcMain.handle('downloads:list', async () => ctx.listDownloads());
   ipcMain.handle('downloads:pause', async (_e, id) => ctx.downloadManager.pause(id));
@@ -152,14 +176,28 @@ function registerIpcHandlers(ctx) {
     return true;
   });
 
-  ipcMain.handle('settings:get', async () => ctx.settings.getAll());
+  // Secrets never leave the main process in readable form: mask on read,
+  // skip masked/undefined values on write (empty string still clears).
+  const SECRET_KEYS = ['iaCookie', 'rawgApiKey'];
+  const maskSecrets = (all) => {
+    const out = { ...(all || {}) };
+    for (const k of SECRET_KEYS) {
+      if (out[k]) out[k] = '***set***';
+    }
+    return out;
+  };
+
+  ipcMain.handle('settings:get', async () => maskSecrets(ctx.settings.getAll()));
   ipcMain.handle('settings:set', async (_e, partial) => {
-    for (const [k, v] of Object.entries(partial || {})) ctx.settings.set(k, v);
+    for (const [k, v] of Object.entries(partial || {})) {
+      if (SECRET_KEYS.includes(k) && (v === undefined || v === '***set***')) continue;
+      ctx.settings.set(k, v);
+    }
     if (partial?.catalogUrl) ctx.archive.setCatalogUrl(partial.catalogUrl);
     try {
       if (ctx.syncNotificationPrefs) ctx.syncNotificationPrefs();
     } catch (_) {}
-    return ctx.settings.getAll();
+    return maskSecrets(ctx.settings.getAll());
   });
   ipcMain.handle('settings:chooseDirectory', async () => {
     const res = await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'] });
@@ -251,6 +289,32 @@ function registerIpcHandlers(ctx) {
     ctx.appUpdater.quitAndInstall(false, true);
     return { status: 'restarting' };
   });
+  ipcMain.handle('extract:run', async (_e, archivePath) => {
+    if (!archivePath || typeof archivePath !== 'string') throw new Error('Provide an archive path');
+    // Forward extractor lifecycle to the renderer's extract:* channels.
+    // Payloads carry the archive path as id (manual runs have no download id).
+    const fwd = (channel) => (payload) => {
+      const p = { id: archivePath, archive: archivePath, ...(payload || {}) };
+      sendToWindow(channel, p);
+    };
+    ctx.extractor.once('extracting', fwd('extract:started'));
+    ctx.extractor.once('complete', fwd('extract:complete'));
+    ctx.extractor.once('error', fwd('extract:failed'));
+    const onProgress = fwd('extract:progress');
+    ctx.extractor.on('progress', onProgress);
+    try {
+      return await ctx.extractor.extract(archivePath);
+    } finally {
+      try {
+        ctx.extractor.removeListener('progress', onProgress);
+      } catch (_) {}
+    }
+  });
+  ipcMain.handle('cache:stats', async () => ctx.cacheStats());
+  ipcMain.handle('cache:clear', async () => {
+    const cleared = ctx.clearCache();
+    return !!cleared;
+  });
   ipcMain.handle('history:list', async (_e, filter = 'all') => ctx.downloadHistory.getAll(filter, 100));
 }
 
@@ -260,6 +324,9 @@ module.exports = {
   setBroadcaster: (fn) => {
     if (typeof fn !== 'function') throw new TypeError('setBroadcaster expects a function');
     broadcaster = fn;
+  },
+  setMainWindow: (win) => {
+    mainWindowRef = win;
   },
   broadcast: (type, payload) => broadcaster(type, payload),
   listDownloads: (ctx) => ctx.listDownloads(),

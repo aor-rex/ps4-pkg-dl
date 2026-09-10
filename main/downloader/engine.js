@@ -195,13 +195,18 @@ class DownloadEngine extends EventEmitter {
   }
   
   /**
-   * Resume the download
+   * Resume the download. Restored-after-restart engines have no downloader
+   * yet — start fresh with resume:true so partial files are picked up.
    */
   async resume() {
-    if (!this.downloader || this.state !== 'paused') {
+    if (this.state !== 'paused') {
       return false;
     }
-    
+    if (!this.downloader) {
+      this.start();
+      return true;
+    }
+
     try {
       await this.downloader.resume();
       return true;

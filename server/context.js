@@ -104,6 +104,18 @@ function bootstrapContext() {
   const { BackfillJob } = require('./metadata/backfill');
   const backfill = new BackfillJob({ archive, metadata });
 
+  // Joins a download subfolder without ever escaping the base dir:
+  // strips separators, rejects dot-only names (".." traversal), and
+  // asserts containment as a final guard.
+  function safeSubdir(base, title) {
+    const safe = String(title || '').replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || 'Game';
+    if (/^\.+$/.test(safe)) return base;
+    const dest = path.join(base, safe);
+    const rel = path.relative(base, dest);
+    if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return base;
+    return dest;
+  }
+
   // gameId/title metadata per download id (for history + UI)
   const meta = new Map();
 
@@ -125,8 +137,7 @@ function bootstrapContext() {
         const title = row.game_title || 'Download';
         let destination = settings.getDownloadDir();
         if (settings.get('createSubfolder') && title && title !== 'Download') {
-          const safe = String(title).replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || 'Game';
-          destination = path.join(destination, safe);
+          destination = safeSubdir(destination, title);
           if (!fs.existsSync(destination)) fs.mkdirSync(destination, { recursive: true });
         }
         let cover = null;
@@ -295,8 +306,7 @@ function bootstrapContext() {
     }
     let destination = settings.getDownloadDir();
     if (settings.get('createSubfolder') && title) {
-      const safe = String(title).replace(/[\\/:*?"<>|]/g, '').slice(0, 80).trim() || 'Game';
-      destination = path.join(destination, safe);
+      destination = safeSubdir(destination, title);
       if (!fs.existsSync(destination)) fs.mkdirSync(destination, { recursive: true });
     }
     const label = title ? `${title}${titleId ? ` [${titleId}]` : ''}` : filename || 'Download';
@@ -401,6 +411,35 @@ function bootstrapContext() {
     return out;
   }
 
+  // Clear enrichment cache (metadata rows + backfill state). Catalog sources,
+  // downloads, settings, overrides and ignore list are untouched.
+  function clearCache() {
+    let metadataRows = 0;
+    try {
+      metadataRows = ctx.metadata.clearCache();
+    } catch (_) {}
+    try {
+      ctx.backfill.state = ctx.backfill._freshState();
+    } catch (_) {}
+    try {
+      const p = ctx.backfill.statePath;
+      if (p && fs.existsSync(p)) fs.unlinkSync(p);
+    } catch (_) {}
+    return { metadataRows, backfillReset: true };
+  }
+
+  function cacheStats() {
+    let metadata = { enriched: 0, lowConfidence: 0, catalogTotal: 0 };
+    try {
+      metadata = ctx.metadata.stats(ctx.archive.games.length);
+    } catch (_) {}
+    let backfill = null;
+    try {
+      backfill = ctx.backfill.snapshot();
+    } catch (_) {}
+    return { metadata, backfill };
+  }
+
   // Remove a download record but keep the game file on disk.
   async function removeDownload(id) {
     try {
@@ -448,6 +487,8 @@ function bootstrapContext() {
     removeDownload,
     hydrateCompleted,
     hydrateInterrupted,
+    clearCache,
+    cacheStats,
   };
 }
 

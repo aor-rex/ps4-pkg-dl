@@ -88,6 +88,8 @@ contextBridge.exposeInMainWorld('ps4dl', {
 
   // Extraction
   extractArchive: (archivePath) => ipcRenderer.invoke('extract:run', archivePath),
+  cacheStats: () => ipcRenderer.invoke('cache:stats'),
+  clearCache: () => ipcRenderer.invoke('cache:clear'),
   onExtractEvent: (cb) => {
     const events = ['extract:started','extract:progress','extract:complete','extract:failed'];
     const listeners = events.map(ev => {
