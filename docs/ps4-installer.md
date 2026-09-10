@@ -1,11 +1,5 @@
 # PS4 Remote Installer - Project Conversation
 
-## Project Context
-- User: Computer Engineering student
-- Goal: Build a web app for jailbroken PS4 to install fake fpkg games remotely
-- Budget: Broke, no PS4 yet (learning project)
-- Timeline: Uncertain when they'll get a PS4
-
 ## Original Request
 User wanted to build a web application that:
 1. Scrapes superpsx.com (PS4 section) and dlpsgame.com (PS4 section)
