@@ -6,7 +6,15 @@ workflow:
     - if: $CI_COMMIT_TAG =~ /^v/
     - when: never
 
-release-appimage:
+stages:
+  - build
+  - publish
+
+variables:
+  PKG_NAME: ps4-pkg-dl
+
+build-appimage:
+  stage: build
   image: node:20
   rules:
     - if: $CI_COMMIT_TAG =~ /^v/
@@ -20,35 +28,64 @@ release-appimage:
   before_script:
     - apt-get update -qq && apt-get install -y -qq python3 make g++ git curl > /dev/null
     - npm config set cache .npm --global
-    # step_release shells out to `glab` (>= 1.58); the node image has neither it nor release-cli
-    - curl -fsSL -o /tmp/glab.tgz "https://gitlab.com/gitlab-org/cli/-/releases/v1.67.0/downloads/glab_1.67.0_linux_amd64.tar.gz"
-    - tar -xzf /tmp/glab.tgz -C /tmp && mv /tmp/bin/glab /usr/local/bin/glab && glab --version
   script:
     - npm ci --prefix renderer --cache .npm --prefer-offline
     - npm run build --prefix renderer
     - npm ci --cache .npm --prefer-offline
     - npm run rebuild
     - npm run dist
+    - ls dist/*.AppImage dist/latest-linux.yml
+  artifacts:
+    paths:
+      - dist/PS4-PKG-Downloader-*.AppImage
+      - dist/latest-linux.yml
+    expire_in: 1 day
+
+publish-release:
+  stage: publish
+  needs:
+    - job: build-appimage
+      artifacts: true
+
+publish-release:
+  stage: publish
+  image: alpine:3.20
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v/
+  before_script:
+    - apk add --no-cache curl jq
+  script:
     - |
+      set -uo pipefail
+      API="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}"
+      AUTH="JOB-TOKEN: ${CI_JOB_TOKEN}"
+      fail() { echo "RELEASE-STEP FAILED: $*" >&2; exit 1; }
+      # 1. Upload artifacts as generic packages (permanent, versioned storage)
+      for f in dist/PS4-PKG-Downloader-*.AppImage dist/latest-linux.yml; do
+        name="$(basename "$f")"
+        echo "Uploading package file: $name"
+        curl --fail --retry 3 -H "$AUTH" --upload-file "$f" \
+          "${API}/packages/generic/${PKG_NAME}/${CI_COMMIT_TAG}/${name}" \
+          || fail "package upload failed for $name"
+      done
+      # 2. Create (or reuse) the release with changelog notes
       TAG="$CI_COMMIT_TAG"
       awk -v tag="## [$TAG]" 'index($0,tag)==1{flag=1;next} /^## \[/{flag=0} flag' CHANGELOG.md > release-notes.md
       echo "" >> release-notes.md
-      echo "**Full Changelog**: https://gitlab.com/${CI_PROJECT_PATH}/-/compare/${TAG}" >> release-notes.md
-      echo "notes lines: $(wc -l < release-notes.md)"
-    - ls dist/*.AppImage dist/latest-linux.yml
-    - cp dist/PS4-PKG-Downloader-*.AppImage dist/PS4-PKG-Downloader.AppImage
-  artifacts:
-    paths:
-      - dist/PS4-PKG-Downloader.AppImage
-      - dist/latest-linux.yml
-    expire_in: 1 week
-  release:
-    tag_name: $CI_COMMIT_TAG
-    name: $CI_COMMIT_TAG
-    description: release-notes.md
-    assets:
-      links:
-        - name: PS4-PKG-Downloader AppImage
-          filepath: /dist/PS4-PKG-Downloader.AppImage
-        - name: latest-linux.yml
-          filepath: /dist/latest-linux.yml
+      echo "**Full Changelog**: ${CI_PROJECT_URL}/-/compare/${TAG}" >> release-notes.md
+      NOTES="$(cat release-notes.md)"
+      echo "Creating release $TAG..."
+      curl --fail -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
+        --data "$(jq -n --arg tag "$TAG" --arg notes "$NOTES" \
+          '{tag_name: $tag, name: $tag, description: $notes}')" \
+        "${API}/releases" || echo "(release may already exist — continuing)"
+      # 3. Attach asset links pointing at the package files
+      for f in dist/PS4-PKG-Downloader-*.AppImage dist/latest-linux.yml; do
+        name="$(basename "$f")"
+        url="https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/packages/generic/${PKG_NAME}/${TAG}/${name}"
+        echo "Linking asset: $name"
+        curl --fail -s -X POST -H "$AUTH" -H "Content-Type: application/json" \
+          --data "$(jq -n --arg name "$name" --arg url "$url" '{name: $name, url: $url}')" \
+          "${API}/releases/${TAG}/assets/links" || fail "asset link failed for $name"
+      done
+      echo "Release published with assets."
