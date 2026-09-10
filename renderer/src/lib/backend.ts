@@ -142,7 +142,7 @@ export interface CatalogStatus {
 
 interface Ps4DlApi {
   browseGames(page?: number, limit?: number, genre?: string): Promise<unknown[]>;
-  searchGames(query: string, pages?: number): Promise<unknown[]>;
+  searchGames(query: string, opts?: { page?: number; limit?: number; genre?: string; region?: string }): Promise<unknown[]>;
   getGameDetail(slug: string): Promise<unknown>;
   getGenres(): Promise<{ name: string; count: number }[]>;
   catalogStatus(): Promise<unknown>;

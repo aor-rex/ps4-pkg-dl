@@ -10,9 +10,13 @@ export default function GameGrid() {
   const compact = settings.compactMode;
   const showSetupPrompt = liveMode && !searchQuery.trim() && !selectedGenre;
 
+  const timeOf = (d: unknown) => {
+    const t = new Date(String(d || '')).getTime();
+    return Number.isFinite(t) ? t : 0;
+  };
   const sortedGames = useMemo(() => [...filteredGames].sort((a, b) => {
-    if (sortBy === 'newest') return new Date(b.date).getTime() - new Date(a.date).getTime();
-    if (sortBy === 'oldest') return new Date(a.date).getTime() - new Date(b.date).getTime();
+    if (sortBy === 'newest') return timeOf(b.date) - timeOf(a.date);
+    if (sortBy === 'oldest') return timeOf(a.date) - timeOf(b.date);
     if (sortBy === 'name-az') return a.title.localeCompare(b.title);
     if (sortBy === 'name-za') return b.title.localeCompare(a.title);
     if (sortBy === 'largest') return b.sizeBytes - a.sizeBytes;

@@ -7,12 +7,28 @@ export default function VideoModal() {
 
   if (!videoModalOpen || !selectedVideo) return null;
 
-  // YouTube embed vs direct video file (RAWG trailers are mp4)
-  const isDirectVideo = /\.(mp4|webm|ogv)(\?|#|$)/i.test(selectedVideo.url);
-  const videoId =
-    !isDirectVideo && selectedVideo.url.includes('v=')
-      ? selectedVideo.url.split('v=')[1]?.split('&')[0]
-      : '';
+  // YouTube embed vs direct video file (RAWG trailers are mp4).
+  // Only http(s) URLs are ever rendered — anything else is rejected outright.
+  const rawUrl = String(selectedVideo.url || '');
+  const safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+  const isDirectVideo = /\.(mp4|webm|ogv)(\?|#|$)/i.test(safeUrl);
+  const videoId = (() => {
+    if (!safeUrl || isDirectVideo) return '';
+    try {
+      const u = new URL(safeUrl);
+      const host = u.hostname.replace(/^www\./, '');
+      if (host === 'youtu.be') {
+        const id = u.pathname.split('/').filter(Boolean)[0] || '';
+        return /^[\w-]{6,}$/.test(id) ? id : '';
+      }
+      if (host === 'youtube.com' || host === 'm.youtube.com') {
+        if (u.pathname === '/watch') return u.searchParams.get('v') || '';
+        const m = u.pathname.match(/^\/(embed|shorts|v)\/([\w-]{6,})/);
+        if (m) return m[2];
+      }
+    } catch (_) {}
+    return '';
+  })();
 
   return (
     <div
@@ -68,7 +84,7 @@ export default function VideoModal() {
         >
           {isDirectVideo ? (
             <video
-              src={selectedVideo.url}
+              src={safeUrl}
               controls
               autoPlay
               style={{ width: '100%', height: '100%', backgroundColor: '#000' }}
@@ -96,14 +112,16 @@ export default function VideoModal() {
               }}
             >
               <span>No playable preview for this trailer.</span>
-              <a
-                href={selectedVideo.url}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: 'var(--accent)', fontSize: '13px' }}
-              >
-                Open externally
-              </a>
+              {safeUrl ? (
+                <a
+                  href={safeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: 'var(--accent)', fontSize: '13px' }}
+                >
+                  Open externally
+                </a>
+              ) : null}
             </div>
           )}
         </div>

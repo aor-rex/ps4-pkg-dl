@@ -29,8 +29,25 @@ class DownloadManager extends EventEmitter {
     this.completed = []; // Array of completed download info
     this.failed = []; // Array of failed download info
     
-    // Track active count
+    // Track active count (kept in sync with activeIds — the single source of truth)
     this.activeCount = 0;
+    this.activeIds = new Set();
+  }
+
+  /** Take a concurrency slot for id. Idempotent-safe: false when full or held. */
+  _acquire(id) {
+    if (!id || this.activeIds.has(id)) return this.activeIds.has(id);
+    if (this.activeCount >= this.maxConcurrent) return false;
+    this.activeIds.add(id);
+    this.activeCount++;
+    return true;
+  }
+
+  /** Release id's slot. No-op when it holds none (e.g. idle cancel). */
+  _release(id) {
+    if (!id || !this.activeIds.delete(id)) return false;
+    this.activeCount = Math.max(0, this.activeCount - 1);
+    return true;
   }
   
   /**
@@ -67,21 +84,25 @@ class DownloadManager extends EventEmitter {
     };
     
     this.downloads.set(engine.id, engine);
-    
+    engine.info = downloadInfo;
+
     // Bind engine events
     this.bindEngineEvents(engine, downloadInfo);
-    
+
     // If we're under the concurrent limit, start immediately
-    if (this.activeCount < this.maxConcurrent) {
-      engine.start();
-      this.activeCount++;
+    if (this._acquire(engine.id)) {
+      try {
+        engine.start();
+      } catch (_) {
+        this._release(engine.id);
+      }
     } else {
       // Add to queue
       this.queue.push({ engine, info: downloadInfo });
     }
-    
+
     this.emit('added', downloadInfo);
-    
+
     return engine.id;
   }
   
@@ -118,6 +139,7 @@ class DownloadManager extends EventEmitter {
     engine.stats = { totalBytes: 0, downloadedBytes: 0, speed: 0, eta: null, percent: 0 };
 
     this.downloads.set(engine.id, engine);
+    engine.info = downloadInfo;
     this.bindEngineEvents(engine, downloadInfo);
     return engine.id;
   }
@@ -135,22 +157,24 @@ class DownloadManager extends EventEmitter {
     });
     
     engine.on('complete', (data) => {
-      this.activeCount--;
-      
+      this._release(engine.id);
+
       // Move to completed list
       this.completed.push({
         ...info,
         ...data,
         completedAt: Date.now(),
       });
-      
+
       this.emit('download:complete', { ...info, ...data });
-      
+
       // Start next in queue
       this.processQueue();
     });
-    
+
     engine.on('paused', () => {
+      // Free the slot so queued items can start; resume re-acquires it.
+      this._release(engine.id);
       this.emit('download:paused', info);
     });
     
@@ -160,26 +184,29 @@ class DownloadManager extends EventEmitter {
     
     engine.on('error', (data) => {
       this.emit('download:error', { ...info, ...data });
-      
-      if (!data.retryable) {
-        this.activeCount--;
-        
-        // Move to failed list
-        this.failed.push({
-          ...info,
-          ...data,
-          failedAt: Date.now(),
-        });
-        
-        this.emit('download:failed', { ...info, ...data });
-        
-        // Start next in queue
-        this.processQueue();
+      // Retryable errors self-heal (bounded by engine.retryCount); the slot
+      // is reused, so no accounting change. Terminal errors fall through.
+      if (data.retryable) {
+        Promise.resolve(engine.retry()).catch(() => {});
+        return;
       }
+      this._release(engine.id);
+
+      // Move to failed list
+      this.failed.push({
+        ...info,
+        ...data,
+        failedAt: Date.now(),
+      });
+
+      this.emit('download:failed', { ...info, ...data });
+
+      // Start next in queue
+      this.processQueue();
     });
-    
+
     engine.on('cancelled', () => {
-      this.activeCount--;
+      this._release(engine.id);
       this.emit('download:cancelled', info);
       this.processQueue();
     });
@@ -193,66 +220,100 @@ class DownloadManager extends EventEmitter {
    * Process the next download in queue
    */
   processQueue() {
-    if (this.queue.length === 0) {
-      return;
+    while (this.queue.length > 0) {
+      const next = this.queue[0];
+      if (!this._acquire(next.engine.id)) return;
+      this.queue.shift();
+      try {
+        next.engine.start();
+      } catch (_) {
+        this._release(next.engine.id);
+      }
     }
-    
-    if (this.activeCount >= this.maxConcurrent) {
-      return;
-    }
-    
-    const next = this.queue.shift();
-    next.engine.start();
-    this.activeCount++;
   }
-  
+
   /**
-   * Pause a download
+   * Pause a download. Frees its concurrency slot so queued items can start.
+   * Idle (never-started) engines are marked paused + dequeued; already-paused
+   * is a no-op success.
    */
   async pause(id) {
     const engine = this.downloads.get(id);
     if (!engine) return false;
-    
+    if (engine.state === 'paused') return true;
+    if (engine.state === 'idle' || !engine.downloader) {
+      const qi = this.queue.findIndex((item) => item.engine.id === id);
+      if (qi !== -1) this.queue.splice(qi, 1);
+      engine.state = 'paused';
+      this.emit('download:paused', { id });
+      return true;
+    }
+
     return await engine.pause();
   }
-  
+
   /**
-   * Resume a download
+   * Resume a download. Takes a slot when free; otherwise the engine waits in
+   * the queue and starts automatically (never runs over the limit).
    */
   async resume(id) {
     const engine = this.downloads.get(id);
-    if (!engine) return false;
-    
-    return await engine.resume();
+    if (!engine || engine.state !== 'paused') return false;
+    if (!this._acquire(id)) {
+      if (!this.queue.some((item) => item.engine.id === id)) {
+        this.queue.push({ engine, info: engine.info || { id } });
+      }
+      return true;
+    }
+    const ok = await engine.resume();
+    if (!ok) this._release(id);
+    return ok;
   }
-  
+
   /**
-   * Cancel a download
+   * Cancel a download. Idle engines never held a slot; the explicit emit
+   * keeps persistence/UI in sync where the engine itself stays silent.
    */
   async cancel(id, deleteFile = true) {
     const engine = this.downloads.get(id);
     if (!engine) return false;
-    
+
     // Remove from queue if it's queued
-    const queueIndex = this.queue.findIndex(item => item.engine.id === id);
+    const queueIndex = this.queue.findIndex((item) => item.engine.id === id);
     if (queueIndex !== -1) {
       this.queue.splice(queueIndex, 1);
     }
-    
-    return await engine.cancel(deleteFile);
+
+    const hadDownloader = !!engine.downloader;
+    const ok = await engine.cancel(deleteFile);
+    if (!hadDownloader || engine.state === 'paused') {
+      // Engine stayed silent (never started, or stopped-while-paused):
+      // force the terminal state + event so persistence and UI agree.
+      engine.state = 'cancelled';
+      this.emit('download:cancelled', engine.info || { id });
+    }
+    return ok;
   }
-  
+
   /**
-   * Retry a failed download
+   * Retry a failed download (slot-gated like resume).
    */
   async retry(id) {
     const engine = this.downloads.get(id);
     if (!engine) return false;
-    
+
     // Remove from failed list
-    this.failed = this.failed.filter(d => d.id !== id);
-    
-    return await engine.retry();
+    this.failed = this.failed.filter((d) => d.id !== id);
+
+    if (!this._acquire(id)) {
+      if (!this.queue.some((item) => item.engine.id === id)) {
+        this.queue.push({ engine, info: engine.info || { id } });
+      }
+      return true;
+    }
+    const ok = await engine.retry();
+    if (!ok) this._release(id);
+    return ok;
   }
   
   /**

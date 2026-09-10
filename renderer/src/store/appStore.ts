@@ -125,8 +125,8 @@ interface AppState {
   redownload: (id: string) => Promise<void>;
   pauseDl: (id: string) => Promise<void>;
   resumeDl: (id: string) => Promise<void>;
-  cancelDl: (id: string) => void;
-  retryDl: (id: string) => void;
+  cancelDl: (id: string) => Promise<void>;
+  retryDl: (id: string) => Promise<void>;
   removeDl: (id: string) => void;
   
   // Settings
@@ -672,7 +672,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (backendMode === 'offline' && !backend) return;
     try {
       if (backend) {
-        const results = await tryLive((api) => api.searchGames(query, 1));
+        const results = await tryLive((api) => api.searchGames(query, { page: 1 }));
         if (results && results.length) {
           set({ filteredGames: results as Game[] });
           return;
@@ -925,13 +925,23 @@ export const useAppStore = create<AppState>((set, get) => ({
       addToast('error', err instanceof Error ? `Resume failed: ${err.message}` : 'Resume failed');
     }
   },
-  cancelDl: (id) => {
-    if (get().backendMode === 'http') void httpApi.cancelDownload(id).catch(() => {});
-    else void tryLive((api) => api.cancelDownload(id));
+  cancelDl: async (id) => {
+    const { addToast } = get();
+    try {
+      if (get().backendMode === 'http') await httpApi.cancelDownload(id);
+      else await tryLive((api) => api.cancelDownload(id));
+    } catch (err) {
+      addToast('error', err instanceof Error ? `Cancel failed: ${err.message}` : 'Cancel failed');
+    }
   },
-  retryDl: (id) => {
-    if (get().backendMode === 'http') void httpApi.retryDownload(id).catch(() => {});
-    else void tryLive((api) => api.retryDownload(id));
+  retryDl: async (id) => {
+    const { addToast } = get();
+    try {
+      if (get().backendMode === 'http') await httpApi.retryDownload(id);
+      else await tryLive((api) => api.retryDownload(id));
+    } catch (err) {
+      addToast('error', err instanceof Error ? `Retry failed: ${err.message}` : 'Retry failed');
+    }
   },
   removeDl: (id) => {
     if (get().backendMode === 'http') {

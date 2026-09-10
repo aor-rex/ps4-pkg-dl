@@ -195,7 +195,7 @@ export default function BottomDownloadBar() {
                           <HugeiconsIcon icon={PauseIcon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Pause
                         </button>
                         <button
-                          onClick={() => cancelDl(dl.id)}
+                          onClick={() => void cancelDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--error)', color: 'var(--error)', borderRadius: '4px' }}
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(244,67,54,0.1)')}
@@ -219,7 +219,7 @@ export default function BottomDownloadBar() {
                     {dl.status === 'failed' && (
                       <>
                         <button
-                          onClick={() => { const { retryDl } = useAppStore.getState(); retryDl(dl.id); }}
+                          onClick={() => { const { retryDl } = useAppStore.getState(); void retryDl(dl.id); }}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--warning)', color: 'var(--warning)', borderRadius: '4px' }}
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(234,179,8,0.1)')}
