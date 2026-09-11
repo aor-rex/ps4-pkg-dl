@@ -1,5 +1,28 @@
 # Changelog
 
+## [v0.2.0] - 2026-09-11 (beta)
+
+### Security
+- Settings API no longer exposes the archive.org cookie or RAWG key to the renderer (masked on read, overwrite-only on write)
+- Catalog-title directory traversal closed: download folders can never escape the download directory
+
+### Features
+- Manual Extract and Clear Cache buttons work now (previously dead — no backend behind them), with live extract progress events
+- Re-download actually forces: payload (force + cover/region/version) reaches the queue instead of being dropped
+- Interrupted downloads resume correctly after restart (restored engines start fresh and pick up partials)
+
+### Fixes
+- Download slots accounted honestly: pause frees, resume/retry respect the concurrency limit (re-queued when full) instead of wedging or over-filling
+- Flaky-network errors auto-retry boundedly instead of stranding jobs in limbo; cancelling a queued item persists properly
+- Cancel/Retry report failures instead of silently doing nothing; search pagination works in the desktop app
+- "Newest/Oldest" sorting no longer scrambles unenriched catalogs; trailers support all YouTube link shapes and non-http(s) URLs are rejected
+- Backfill hardened: miss list capped at 500 with totals, below-exact matches quarantined for manual review, key required for both scopes
+- Invalid page/limit query params fall back to defaults instead of returning null-paged empties
+- GitLab releases publish correctly (glab install + explicit package/API flow)
+
+### Chore
+- Legacy single-source `catalogUrl` removed from the settings-write path; lazy DB guards; Lightbox empty-gallery guard
+
 ## [v0.1.10] - 2026-09-10 (beta)
 
 ### Features
