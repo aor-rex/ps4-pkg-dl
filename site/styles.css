@@ -116,7 +116,37 @@ a:hover { color: var(--accent-hover); }
   color: var(--text);
   border: 1px solid var(--border-soft);
 }
-.copy-btn { margin-top: 0.25rem; cursor: pointer; border: none; font-family: inherit; }
+.cmd-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #070707;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.6rem 0.6rem 1rem;
+}
+.cmd-bar pre {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+.copy-btn {
+  flex-shrink: 0;
+  background: var(--text);
+  color: #18181b;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+.copy-btn:hover { background: var(--accent); color: #09090b; }
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
 
 /* Layout */
