@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PS4 PKG Downloader — Browse, enrich &amp; download your PS4 PKG catalog (Linux)</title>
+  <meta name="description" content="PS4 PKG Downloader is a free desktop app for Linux. Browse your own PS4 PKG catalog, enrich it with artwork and metadata, and download packages with pause/resume and history.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top" aria-label="PS4 PKG Downloader home">
+        <img src="assets/icon.svg" alt="" width="28" height="28">
+        <span>PS4 PKG DL</span>
+      </a>
+      <nav class="site-nav" aria-label="Site sections">
+        <a href="#features">Features</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#install">Install</a>
+        <a href="#changelog">Changelog</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-small" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="hero wrap" id="top">
+      <h1>PS4 PKG Downloader</h1>
+      <p class="lede">Browse your own PS4 PKG catalog, enrich it with artwork and metadata, download packages with pause/resume and history — free desktop app for Linux.</p>
+      <div class="hero-cta">
+        <a class="btn" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
+        <span class="version-badge">v1.0.0</span>
+      </div>
+    </div>
+
+    <section id="features" aria-labelledby="features-heading">
+      <div class="wrap">
+        <h2 id="features-heading">Features</h2>
+        <p class="section-sub">Everything you need to manage a personal PS4 package library on the Linux desktop.</p>
+        <ul class="card-grid">
+          <li class="card">
+            <h3>Multi-catalog library</h3>
+            <p>Add several <code>games.json</code> URLs or local files, enable/disable per source, refresh individually.</p>
+          </li>
+          <li class="card">
+            <h3>RAWG enrichment</h3>
+            <p>Descriptions, genres, screenshots and trailers cached locally, with Fill-missing / Refresh-all scopes.</p>
+          </li>
+          <li class="card">
+            <h3>Manual match resolution</h3>
+            <p>Games the matcher can&rsquo;t place land in a &ldquo;Needs attention&rdquo; list with RAWG candidates; pin the right match or ignore them persistently.</p>
+          </li>
+          <li class="card">
+            <h3>Download manager</h3>
+            <p>Queue, pause/resume, cancel/retry, progress and ETA, plus login-gated archive.org items via your own cookie.</p>
+          </li>
+          <li class="card">
+            <h3>In-app updates</h3>
+            <p>Automatic check on launch with prompt, download progress and restart-to-install; Pre-release/Stable channel choice in Settings &rarr; About.</p>
+          </li>
+          <li class="card">
+            <h3>First-run changelog</h3>
+            <p>A &ldquo;What&rsquo;s new&rdquo; dialog on every update, re-openable from Settings &rarr; About.</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="screenshots" aria-labelledby="screenshots-heading">
+      <div class="wrap">
+        <h2 id="screenshots-heading">Screenshots</h2>
+        <p class="section-sub">The app in action: browse, inspect, and download.</p>
+        <div class="shots">
+          <figure>
+            <img src="assets/screenshot-browse.png" alt="Browse view: grid of game covers with search and genre sidebar" width="1280" height="670" loading="lazy">
+            <figcaption>Browse your catalog with search, genres, and cover art.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/screenshot-detail.png" alt="Game detail view: cover art, description, gallery screenshots and version picker" width="1280" height="670" loading="lazy">
+            <figcaption>Game detail with enriched metadata, gallery, and version picker.</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/screenshot-downloads.png" alt="Download manager: queued and completed downloads with progress bars" width="1280" height="670" loading="lazy">
+            <figcaption>Download manager with progress, pause/resume, and history.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" aria-labelledby="install-heading">
+      <div class="wrap">
+        <h2 id="install-heading">Install</h2>
+        <p class="section-sub">One command installs a launcher entry. Re-run it any time to update.</p>
+        <div class="install-block">
+          <h3>Easiest: one-line installer</h3>
+          <pre><code>curl -fsSL https://cdn.jsdelivr.net/gh/aor-rex/ps4-pkg-dl@main/install.sh | bash</code></pre>
+        </div>
+        <div class="install-block">
+          <h3>Fallback: same script, alternate host</h3>
+          <pre><code>curl -fsSL https://raw.githubusercontent.com/aor-rex/ps4-pkg-dl/main/install.sh | bash</code></pre>
+        </div>
+        <div class="install-block">
+          <h3>Manual: AppImage from Releases</h3>
+          <p>Grab the <code>.AppImage</code> from the <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases page</a>, make it executable, and run it:</p>
+          <pre><code>chmod +x PS4-PKG-Downloader-*.AppImage
+./PS4-PKG-Downloader-*.AppImage</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="changelog" aria-labelledby="changelog-heading">
+      <div class="wrap">
+        <h2 id="changelog-heading">Changelog</h2>
+        <p class="section-sub">Recent releases. <a href="https://github.com/aor-rex/ps4-pkg-dl/blob/main/CHANGELOG.md">Full changelog on GitHub</a>.</p>
+        <div class="changelog-list">
+          <article class="changelog-entry">
+            <h3>v1.0.0 — First stable release (Linux AppImage)</h3>
+            <ul>
+              <li>Update channel defaults to Stable; pre-releases one click away.</li>
+              <li>Automated backend + renderer test suites and app-wide safety nets.</li>
+            </ul>
+          </article>
+          <article class="changelog-entry">
+            <h3>v0.2.0 (beta) — Security and download reliability</h3>
+            <ul>
+              <li>Secrets masked from the renderer; catalog-title traversal guard closed.</li>
+              <li>Interrupted downloads resume after restart; honest download-slot accounting.</li>
+            </ul>
+          </article>
+          <article class="changelog-entry">
+            <h3>v0.1.10 (beta) — Restart-proof queue</h3>
+            <ul>
+              <li>Interrupted downloads survive restarts as resumable paused items.</li>
+              <li>Launch update checks can be switched off; cleaner filenames for new downloads.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" aria-labelledby="faq-heading">
+      <div class="wrap">
+        <h2 id="faq-heading">FAQ</h2>
+        <p class="section-sub">Short answers to the questions every new user asks.</p>
+        <div class="faq-list">
+          <details>
+            <summary>Where does the game catalog come from?</summary>
+            <p>The app ships with no catalog. You add your own <code>games.json</code> URL (FPKGi format) or local file under Settings &rarr; Library. Maintained sources (mirror + curated extras) live in the companion <a href="https://gitlab.com/aor-rex/ps4-pkg-catalog">ps4-pkg-catalog</a> repo.</p>
+          </details>
+          <details>
+            <summary>Do I need a RAWG key?</summary>
+            <p>Only for artwork and metadata enrichment, and it&rsquo;s optional. Paste a free key from <a href="https://rawg.io/apidocs">rawg.io/apidocs</a> and press Start backfill; browsing and downloading work without it.</p>
+          </details>
+          <details>
+            <summary>Why does archive.org ask for a cookie?</summary>
+            <p>Some archive.org items are login-gated. The app can&rsquo;t log in for you, so you supply your own login cookie under Settings &rarr; Library &rarr; archive.org login and the app reuses it for those downloads.</p>
+          </details>
+          <details>
+            <summary>Where does the app store its data?</summary>
+            <p>Everything lives under <code>~/.config/ps4-pkg-dl/</code> (XDG-aware): settings, the metadata cache database, your pinned/ignored matches, uploaded catalogs, and logs. Note the RAWG key and archive.org cookie are stored in plaintext — don&rsquo;t share the folder.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>This software hosts no files. All download links come from a catalog file you provide. Game content belongs to its respective publishers — use for personal, educational, and preservation purposes in accordance with the laws of your country. Not affiliated with Sony/PlayStation, the Internet Archive, or RAWG.</p>
+      <nav aria-label="Footer">
+        <a href="https://github.com/aor-rex/ps4-pkg-dl">GitHub</a>
+        <a href="https://github.com/aor-rex/ps4-pkg-dl/blob/main/LICENSE">MIT license</a>
+        <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>

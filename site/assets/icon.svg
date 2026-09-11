@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="ps4pkg-title">
+  <title id="ps4pkg-title">PS4 PKG Downloader logo</title>
+  <circle cx="32" cy="32" r="29" fill="none" stroke="#66c0f4" stroke-width="3"/>
+  <path d="M14 26 h36 v10 c0 8 -5 12 -9 12 c-3 0 -4 -2 -5 -5 l-2 -6 h-4 l-2 6 c-1 3 -2 5 -5 5 c-4 0 -9 -4 -9 -12 z" fill="none" stroke="#66c0f4" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="32" cy="18" r="3" fill="#66c0f4"/>
+</svg>
