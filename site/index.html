@@ -123,13 +123,8 @@
         <p class="section-sub">One line installs a launcher entry. Re-run it any time to update.</p>
         <div class="install-block">
           <h3>One-line installer</h3>
-          <pre><code>curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
-        </div>
-        <div class="install-block">
-          <h3>Prefer it manual? Grab the AppImage</h3>
-          <p>Take the <code>.AppImage</code> from the <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases page</a>, make it executable, and run it:</p>
-          <pre><code>chmod +x PS4-PKG-Downloader-*.AppImage
-./PS4-PKG-Downloader-*.AppImage</code></pre>
+          <pre><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
+          <button class="btn btn-small copy-btn" type="button" data-copy-target="install-cmd">Copy</button>
         </div>
       </div>
     </section>
@@ -202,5 +197,30 @@
       </nav>
     </div>
   </footer>
+  <script>
+    document.querySelectorAll('[data-copy-target]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var el = document.getElementById(btn.getAttribute('data-copy-target'));
+        if (!el) return;
+        var text = el.textContent;
+        function done() {
+          var label = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function () { btn.textContent = label; }, 1500);
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(function () { fallback(); });
+        } else { fallback(); }
+        function fallback() {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); done(); } catch (e) { /* no-op */ }
+          document.body.removeChild(ta);
+        }
+      });
+    });
+  </script>
 </body>
 </html>

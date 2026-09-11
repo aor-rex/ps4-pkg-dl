@@ -116,6 +116,7 @@ a:hover { color: var(--accent-hover); }
   color: var(--text);
   border: 1px solid var(--border-soft);
 }
+.copy-btn { margin-top: 0.25rem; cursor: pointer; border: none; font-family: inherit; }
 .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--bg); }
 
 /* Layout */
