@@ -307,7 +307,7 @@ pre code { color: var(--text); }
 
 /* Responsive: single breakpoint, stacked nav */
 @media (max-width: 768px) {
-  .header-inner { flex-wrap: nowrap; gap: 0.75rem; }
+  .header-inner { flex-wrap: wrap; gap: 0.75rem; }
   .brand { font-size: 0.9rem; }
   .brand img { width: 24px; height: 24px; }
   .header-inner .btn-small {
