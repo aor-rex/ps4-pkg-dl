@@ -30,41 +30,49 @@
 
   <main id="main">
     <div class="hero wrap" id="top">
+      <a class="release-pill" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest"><strong>v1.0.0</strong> just released!</a>
       <h1>PS4 PKG Downloader</h1>
-      <p class="lede">Browse your own PS4 PKG catalog, enrich it with artwork and metadata, download packages with pause/resume and history — free desktop app for Linux.</p>
+      <p class="lede">The definitive way to run your personal PS4 PKG library on Linux. Browse your own catalog, enrich it with artwork and metadata, download packages with pause/resume and history — free, open-source desktop app.</p>
       <div class="hero-cta">
         <a class="btn" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
-        <span class="version-badge">v1.0.0</span>
+        <a class="btn btn-ghost" href="https://github.com/aor-rex/ps4-pkg-dl">View on GitHub</a>
       </div>
+      <figure class="hero-shot">
+        <img src="assets/screenshot-browse.png" alt="PS4 PKG Downloader browse view: grid of game covers with search and genre sidebar" width="1280" height="670">
+      </figure>
+    </div>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">browse <span>*</span> enrich <span>*</span> backfill <span>*</span> queue <span>*</span> pause <span>*</span> resume <span>*</span> retry <span>*</span> track <span>*</span> update <span>*</span> browse <span>*</span> enrich <span>*</span> backfill <span>*</span> queue <span>*</span> pause <span>*</span> resume <span>*</span> retry <span>*</span> track <span>*</span> update <span>*</span>&nbsp;</div>
     </div>
 
     <section id="features" aria-labelledby="features-heading">
       <div class="wrap">
-        <h2 id="features-heading">Features</h2>
-        <p class="section-sub">Everything you need to manage a personal PS4 package library on the Linux desktop.</p>
-        <ul class="card-grid">
-          <li class="card">
-            <h3>Multi-catalog library</h3>
-            <p>Add several <code>games.json</code> URLs or local files, enable/disable per source, refresh individually.</p>
-          </li>
-          <li class="card">
-            <h3>RAWG enrichment</h3>
-            <p>Descriptions, genres, screenshots and trailers cached locally, with Fill-missing / Refresh-all scopes.</p>
-          </li>
-          <li class="card">
-            <h3>Manual match resolution</h3>
-            <p>Games the matcher can&rsquo;t place land in a &ldquo;Needs attention&rdquo; list with RAWG candidates; pin the right match or ignore them persistently.</p>
-          </li>
-          <li class="card">
-            <h3>Download manager</h3>
+        <h2 id="features-heading">Packed with everything you need</h2>
+        <p class="section-sub">The convenience of a modern launcher, built for your own collection.</p>
+        <ul class="bento-grid">
+          <li class="bento-card featured accent-sky">
+            <h3><span class="bento-dot" aria-hidden="true"></span>Download manager</h3>
             <p>Queue, pause/resume, cancel/retry, progress and ETA, plus login-gated archive.org items via your own cookie.</p>
           </li>
-          <li class="card">
-            <h3>In-app updates</h3>
+          <li class="bento-card featured accent-lavender">
+            <h3><span class="bento-dot" aria-hidden="true"></span>Multi-catalog library</h3>
+            <p>Add several <code>games.json</code> URLs or local files, enable/disable per source, refresh individually.</p>
+          </li>
+          <li class="bento-card accent-butter">
+            <h3><span class="bento-dot" aria-hidden="true"></span>RAWG enrichment</h3>
+            <p>Descriptions, genres, screenshots and trailers cached locally, with Fill-missing / Refresh-all scopes.</p>
+          </li>
+          <li class="bento-card accent-peach">
+            <h3><span class="bento-dot" aria-hidden="true"></span>Manual match resolution</h3>
+            <p>Games the matcher can&rsquo;t place land in a &ldquo;Needs attention&rdquo; list with RAWG candidates; pin the right match or ignore them persistently.</p>
+          </li>
+          <li class="bento-card accent-mint">
+            <h3><span class="bento-dot" aria-hidden="true"></span>In-app updates</h3>
             <p>Automatic check on launch with prompt, download progress and restart-to-install; Pre-release/Stable channel choice in Settings &rarr; About.</p>
           </li>
-          <li class="card">
-            <h3>First-run changelog</h3>
+          <li class="bento-card accent-lilac">
+            <h3><span class="bento-dot" aria-hidden="true"></span>First-run changelog</h3>
             <p>A &ldquo;What&rsquo;s new&rdquo; dialog on every update, re-openable from Settings &rarr; About.</p>
           </li>
         </ul>
@@ -73,13 +81,9 @@
 
     <section id="screenshots" aria-labelledby="screenshots-heading">
       <div class="wrap">
-        <h2 id="screenshots-heading">Screenshots</h2>
-        <p class="section-sub">The app in action: browse, inspect, and download.</p>
+        <h2 id="screenshots-heading">Have a look around</h2>
+        <p class="section-sub">Inspect a game, then watch the queue do its thing.</p>
         <div class="shots">
-          <figure>
-            <img src="assets/screenshot-browse.png" alt="Browse view: grid of game covers with search and genre sidebar" width="1280" height="670" loading="lazy">
-            <figcaption>Browse your catalog with search, genres, and cover art.</figcaption>
-          </figure>
           <figure>
             <img src="assets/screenshot-detail.png" alt="Game detail view: cover art, description, gallery screenshots and version picker" width="1280" height="670" loading="lazy">
             <figcaption>Game detail with enriched metadata, gallery, and version picker.</figcaption>
@@ -92,21 +96,26 @@
       </div>
     </section>
 
+    <div class="stats-band">
+      <div class="wrap stats-grid">
+        <div class="stat"><strong>v1.0.0</strong><span>stable release</span></div>
+        <div class="stat"><strong>MIT</strong><span>open-source license</span></div>
+        <div class="stat"><strong>16</strong><span>automated tests</span></div>
+        <div class="stat"><strong>Linux</strong><span>AppImage build</span></div>
+      </div>
+    </div>
+
     <section id="install" aria-labelledby="install-heading">
-      <div class="wrap">
-        <h2 id="install-heading">Install</h2>
-        <p class="section-sub">One command installs a launcher entry. Re-run it any time to update.</p>
+      <div class="wrap download-band">
+        <h2 id="install-heading">Get up and running in one command</h2>
+        <p class="section-sub">One line installs a launcher entry. Re-run it any time to update.</p>
         <div class="install-block">
-          <h3>Easiest: one-line installer</h3>
-          <pre><code>curl -fsSL https://cdn.jsdelivr.net/gh/aor-rex/ps4-pkg-dl@main/install.sh | bash</code></pre>
+          <h3>One-line installer</h3>
+          <pre><code>curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
         </div>
         <div class="install-block">
-          <h3>Fallback: same script, alternate host</h3>
-          <pre><code>curl -fsSL https://raw.githubusercontent.com/aor-rex/ps4-pkg-dl/main/install.sh | bash</code></pre>
-        </div>
-        <div class="install-block">
-          <h3>Manual: AppImage from Releases</h3>
-          <p>Grab the <code>.AppImage</code> from the <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases page</a>, make it executable, and run it:</p>
+          <h3>Prefer it manual? Grab the AppImage</h3>
+          <p>Take the <code>.AppImage</code> from the <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases page</a>, make it executable, and run it:</p>
           <pre><code>chmod +x PS4-PKG-Downloader-*.AppImage
 ./PS4-PKG-Downloader-*.AppImage</code></pre>
         </div>
@@ -115,7 +124,7 @@
 
     <section id="changelog" aria-labelledby="changelog-heading">
       <div class="wrap">
-        <h2 id="changelog-heading">Changelog</h2>
+        <h2 id="changelog-heading">It keeps getting better</h2>
         <p class="section-sub">Recent releases. <a href="https://github.com/aor-rex/ps4-pkg-dl/blob/main/CHANGELOG.md">Full changelog on GitHub</a>.</p>
         <div class="changelog-list">
           <article class="changelog-entry">
@@ -145,8 +154,8 @@
 
     <section id="faq" aria-labelledby="faq-heading">
       <div class="wrap">
-        <h2 id="faq-heading">FAQ</h2>
-        <p class="section-sub">Short answers to the questions every new user asks.</p>
+        <h2 id="faq-heading">Good questions, short answers</h2>
+        <p class="section-sub">Everything new users ask before installing.</p>
         <div class="faq-list">
           <details>
             <summary>Where does the game catalog come from?</summary>

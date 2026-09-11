@@ -17,13 +17,7 @@ Browse your own PS4 PKG catalog, enrich it with artwork and metadata, and downlo
 Easiest (installs a launcher entry; re-run to update):
 
 ```sh
-curl -fsSL https://cdn.jsdelivr.net/gh/aor-rex/ps4-pkg-dl@main/install.sh | bash
-```
-
-If that fails (CDN hiccup), the same script from the alternate host:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/aor-rex/ps4-pkg-dl/main/install.sh | bash
+curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash
 ```
 
 Or grab the `.AppImage` from the [Releases page](../../releases) manually, make it executable, and run it:

@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'site/**'
+      - 'install.sh'
+      - 'assets/icon.png'
 
 permissions:
   contents: read
@@ -24,6 +26,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Sync install script and icon into site
+        run: |
+          cp install.sh site/install.sh
+          cp assets/icon.png site/assets/icon.png
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
