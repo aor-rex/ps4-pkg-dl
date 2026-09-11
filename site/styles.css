@@ -4,9 +4,9 @@
   --surface-solid: #101013;
   --text: #fafafa;
   --text-muted: #cccccc;
-  --accent: #0cf1ca;
-  --accent-hover: #0ad3b1;
-  --accent-dim: rgba(12, 241, 202, 0.12);
+  --accent: #66c0f4;
+  --accent-hover: #4ba3d4;
+  --accent-dim: rgba(102, 192, 244, 0.12);
   --border: #1a1a1a;
   --border-soft: rgba(255, 255, 255, 0.1);
   --radius: 12px;
@@ -27,10 +27,10 @@ body {
   line-height: 1.6;
 }
 
-::selection { background: rgba(12, 241, 202, 0.3); }
+::selection { background: rgba(102, 192, 244, 0.3); }
 
 h1 {
-  font-size: clamp(2.2rem, 5vw, 2.5rem);
+  font-size: clamp(2rem, 8vw, 2.5rem);
   line-height: 1.15;
   margin: 0 0 1rem;
   font-weight: 700;
@@ -308,6 +308,11 @@ pre code { color: var(--text); }
 /* Responsive: single breakpoint, stacked nav */
 @media (max-width: 768px) {
   .header-inner { flex-wrap: wrap; gap: 0.75rem; }
+  .header-inner .btn-small {
+    order: 4;
+    flex-basis: 100%;
+    text-align: center;
+  }
   .site-nav {
     order: 3;
     flex-basis: 100%;
