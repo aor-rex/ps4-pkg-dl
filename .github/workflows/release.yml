@@ -47,7 +47,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          prerelease: true
+          # Stable tags (v1.0.0) publish as full releases; hyphenated tags
+          # (v1.1.0-beta.1) publish as pre-releases.
+          prerelease: ${{ contains(github.ref_name, '-') }}
           body_path: release-notes.md
           files: |
             dist/*.AppImage

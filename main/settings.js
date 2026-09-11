@@ -47,7 +47,7 @@ const DEFAULT_SETTINGS = {
   soundAlert: false,
   desktopNotification: true,
   // Updates (release channel shown in Settings → About)
-  updateChannel: 'prerelease', // 'prerelease' | 'stable'
+  updateChannel: 'stable', // 'prerelease' | 'stable'
   autoCheckUpdates: true,
 };
 

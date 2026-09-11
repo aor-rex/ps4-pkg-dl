@@ -1,5 +1,18 @@
 # Changelog
 
+## [v1.0.0] - 2026-09-11
+
+First stable release (Linux AppImage).
+
+### Changed
+- Update channel defaults to Stable; pre-releases remain one click away
+- Releases publish as full releases; hyphenated tags (v1.1.0-beta.1) publish as pre-releases
+
+### Hardening
+- Automated test suites: backend (`npm test`, 8 tests) and renderer (`vitest`, 8 tests) covering settings migration, download slot accounting, catalog mapping, and formatting
+- Global safety nets: main-process rejection/exception logging, app-wide error boundary
+- Beta series fixes included: completed-download detection, metadata filenames, blank-title hardening, secrets masking, traversal guard, updater reliability
+
 ## [v0.2.0] - 2026-09-11 (beta)
 
 ### Security

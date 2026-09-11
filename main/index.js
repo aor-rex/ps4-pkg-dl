@@ -5,6 +5,15 @@ const { bootstrap, registerIpcHandlers, setBroadcaster, setMainWindow, broadcast
 
 let mainWindow = null;
 
+// Last-resort safety net: a stray async error must never take down the app
+// with a main-process crash dialog. Log it loudly instead.
+process.on('unhandledRejection', (reason) => {
+  console.error('[main] unhandled rejection:', reason instanceof Error ? reason.stack || reason.message : reason);
+});
+process.on('uncaughtException', (error) => {
+  console.error('[main] uncaught exception:', error instanceof Error ? error.stack || error.message : error);
+});
+
 // Dev flag: `electron . --dev` loads the Vite dev server instead of built UI
 const DEV = process.argv.includes('--dev') || process.env.PS4DL_DEV === '1';
 const VITE_URL = 'http://localhost:5173';

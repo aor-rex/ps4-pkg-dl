@@ -213,7 +213,7 @@ export const defaultSettings: Settings = {
   cardSize: 'medium',
   showSizeOnCards: true,
   compactMode: false,
-  updateChannel: 'prerelease',
+  updateChannel: 'stable',
   autoCheckUpdates: true,
 };
 

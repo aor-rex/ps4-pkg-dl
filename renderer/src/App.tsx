@@ -74,6 +74,13 @@ export default function App() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      <ErrorBoundary
+        key={`shell-${currentView}`}
+        onReset={() => {
+          setSelectedGame(null);
+          setCurrentView('home');
+        }}
+      >
       {/* Top Navigation Bar - Fixed 56px */}
       <TopNavBar />
 
@@ -114,6 +121,7 @@ export default function App() {
 
       {/* Toast Notifications */}
       <ToastContainer />
+      </ErrorBoundary>
     </div>
   );
 }

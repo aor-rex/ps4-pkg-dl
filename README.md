@@ -4,13 +4,13 @@
 
 Browse your own PS4 PKG catalog, enrich it with artwork and metadata, and download packages with pause/resume and history — as a desktop app for Linux.
 
-[![beta](https://img.shields.io/github/v/release/aor-rex/ps4-pkg-dl?include_prereleases&label=beta)](https://github.com/aor-rex/ps4-pkg-dl/releases)
+[![release](https://img.shields.io/github/v/release/aor-rex/ps4-pkg-dl)](https://github.com/aor-rex/ps4-pkg-dl/releases)
 [![platform](https://img.shields.io/badge/platform-linux-lightgrey)](https://github.com/aor-rex/ps4-pkg-dl/releases)
 [![license](https://img.shields.io/github/license/aor-rex/ps4-pkg-dl)](./LICENSE)
 
 </div>
 
-> **Beta.** Expect rough edges — please report them on the [Issues page](../../issues).
+> **v1.0.** If something misbehaves, please report it on the [Issues page](../../issues) with the app version (Settings → About) and what you were doing.
 
 ## Install
 
@@ -52,7 +52,7 @@ Some hosts (e.g. login-gated archive.org items) need your own login cookie: Sett
 
 ## Updating
 
-- **Inside the app** (desktop): it checks on launch and offers updates from Settings → About. The **Pre-release** channel tracks every beta; **Stable** only offers stable releases — while none exist, checking on Stable simply reports that.
+- **Inside the app** (desktop): it checks on launch and offers updates from Settings → About. The **Stable** channel tracks tested releases; **Pre-release** gets every beta as it lands.
 - **Via script**: re-run the install command above; it replaces the AppImage in place.
 
 ## Data & config
