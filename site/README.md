@@ -5,14 +5,12 @@ Static landing page deployed to https://aor-rex.github.io/ps4-pkg-dl/ via
 
 ## Per-release checklist
 
-1. **Release pill** — update the `release-pill` text in `index.html`
-   to the new tag (e.g. `v1.1.0`).
-2. **Changelog excerpt** — hand-sync the three `changelog-entry` blocks
-   in `index.html` from the top three sections of `CHANGELOG.md`
-   (1–2 lines each, keep the link to the full log).
-3. **Re-run** — commit on `main` touching `site/**`, `install.sh`, or
+1. **Re-run** — commit on `main` touching `site/**`, `install.sh`, or
    `assets/icon.png` triggers the Pages workflow automatically;
    verify with `gh run watch` and a `curl` check.
+2. **Copy audit** — page copy follows `docs/POSITIONING.md`. If the
+   README Features section changes, mirror the outcome wording in the
+   six `bento-card` blocks of `index.html`.
 
 ## Notes
 

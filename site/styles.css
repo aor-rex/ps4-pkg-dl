@@ -7,7 +7,6 @@
   --accent: #0cf1ca;
   --accent-hover: #0ad3b1;
   --accent-dim: rgba(12, 241, 202, 0.12);
-  --pill-bg: rgba(39, 39, 42, 0.5);
   --border: #1a1a1a;
   --border-soft: rgba(255, 255, 255, 0.1);
   --radius: 12px;
@@ -160,19 +159,6 @@ main { display: block; }
 /* Hero */
 .hero { text-align: center; padding: 4rem 1.25rem 3rem; }
 .hero h1, .hero .lede, .hero-cta { max-width: 640px; margin-left: auto; margin-right: auto; }
-.release-pill {
-  display: inline-block;
-  background: var(--pill-bg);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  border-radius: 9999px;
-  padding: 0.4rem 1rem;
-  font-size: 0.9rem;
-  text-decoration: none;
-  margin-bottom: 1.5rem;
-}
-.release-pill:hover { color: var(--accent); border-color: var(--accent); }
-.release-pill strong { color: var(--accent); }
 .hero .lede {
   font-size: 1.05rem;
   color: var(--text-muted);
@@ -180,6 +166,13 @@ main { display: block; }
   margin-bottom: 1.5rem;
 }
 .hero-cta { display: flex; gap: 1rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
+.stakes {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
 .hero-shot { margin: 0; }
 .hero-shot img {
   width: 100%;
@@ -192,64 +185,10 @@ main { display: block; }
   box-shadow: 0 24px 90px rgba(0, 0, 0, 0.55);
 }
 
-/* Marquee */
-.marquee {
-  overflow: hidden;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  padding: 0.9rem 0;
-  white-space: nowrap;
-}
-.marquee-track {
-  display: inline-block;
-  padding-left: 100%;
-  animation: marquee 28s linear infinite;
-  color: var(--text-muted);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-}
-.marquee-track span { color: var(--accent); padding: 0 0.75rem; }
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
 section { scroll-margin-top: 4.5rem; }
-section h2 { text-align: center; margin-bottom: 0.5rem; }
-.eyebrow {
-  display: table;
-  margin: 0 auto 1rem;
-  background: var(--pill-bg);
-  border: 1px solid var(--border);
-  border-radius: 9999px;
-  padding: 0.35rem 1rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-.section-sub {
-  text-align: center;
-  color: var(--text-muted);
-  max-width: 40rem;
-  margin: 0 auto 2rem;
-  font-size: 1.05rem;
-}
+section h2 { text-align: center; margin: 0 0 2rem; }
 
-/* Top feature trio: borderless icon rows */
-.feature-trio {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  list-style: none;
-  margin: 0 0 2.5rem;
-  padding: 0;
-  text-align: left;
-}
-.feature-trio h3 { font-size: 1.25rem; margin: 0 0 0.5rem; }
-.feature-trio p { color: var(--text-muted); margin: 0; font-size: 0.95rem; }
-
-/* Bento features */
+/* Feature cards */
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -264,7 +203,6 @@ section h2 { text-align: center; margin-bottom: 0.5rem; }
   border-radius: var(--radius);
   padding: 1.75rem;
 }
-.bento-card.featured { grid-column: span 2; }
 .bento-card p { color: var(--text-muted); margin: 0; font-size: 0.95rem; }
 .bento-icon {
   display: inline-flex;
@@ -292,32 +230,46 @@ figure img {
 }
 figcaption { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.6rem; text-align: center; }
 
-/* Stats band */
-.stats-band { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  text-align: center;
-}
-.stat strong { display: block; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; }
-.stat span { color: var(--text-muted); font-size: 0.9rem; }
-
-/* Download band */
+/* Install plan */
 .download-band { text-align: center; }
-.download-band .install-block {
+.plan-steps {
+  list-style: none;
+  counter-reset: step;
   max-width: 46rem;
-  margin: 0 auto 1.25rem;
+  margin: 0 auto 1.5rem;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
   text-align: left;
 }
-.install-block {
+.plan-steps > li {
+  counter-increment: step;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.75rem;
-  margin-bottom: 1.25rem;
+  padding: 1.5rem 1.5rem 1.5rem 4rem;
+  position: relative;
 }
-.install-block h3 { margin-bottom: 0.75rem; }
+.plan-steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 1.25rem;
+  top: 1.25rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plan-steps .cmd-bar { margin-top: 0.75rem; }
+.agreement {
+  color: var(--text-muted);
+  font-weight: 700;
+}
 pre {
   background: #070707;
   border: 1px solid var(--border);
@@ -329,18 +281,6 @@ pre {
 }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 pre code { color: var(--text); }
-
-/* Changelog */
-.changelog-list { display: grid; gap: 1.25rem; max-width: 46rem; margin: 0 auto; }
-.changelog-entry {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-}
-.changelog-entry h3 { color: var(--accent); }
-.changelog-entry p, .changelog-entry li { color: var(--text-muted); font-size: 0.95rem; }
-.changelog-entry ul { margin: 0.5rem 0 0; padding-left: 1.25rem; }
 
 /* FAQ */
 .faq-list { display: grid; gap: 1rem; max-width: 46rem; margin: 0 auto; }
@@ -376,9 +316,6 @@ pre code { color: var(--text); }
     margin-left: 0;
   }
   .bento-grid { grid-template-columns: 1fr; }
-  .bento-card.featured { grid-column: span 1; }
-  .feature-trio { grid-template-columns: 1fr; gap: 1.5rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .wrap { padding: 2.5rem 1.25rem; }
   .hero { padding: 3rem 1.25rem 2rem; }
 }
@@ -386,5 +323,4 @@ pre code { color: var(--text); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none; animation: none; }
-  .marquee-track { animation: none; padding-left: 0; }
 }

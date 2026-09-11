@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PS4 PKG Downloader — Browse, enrich &amp; download your PS4 PKG catalog (Linux)</title>
-  <meta name="description" content="PS4 PKG Downloader is a free desktop app for Linux. Browse your own PS4 PKG catalog, enrich it with artwork and metadata, and download packages with pause/resume and history.">
+  <title>PS4 PKG Downloader — Stop babysitting your PS4 downloads (Linux)</title>
+  <meta name="description" content="PS4 PKG Downloader is a free Linux desktop app for your personal PS4 collection. Point it at your catalog and let it finish the job — covers, history, and downloads that resume.">
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 </head>
@@ -21,7 +21,6 @@
         <a href="#features">Features</a>
         <a href="#screenshots">Screenshots</a>
         <a href="#install">Install</a>
-        <a href="#changelog">Changelog</a>
         <a href="#faq">FAQ</a>
       </nav>
       <a class="btn btn-small" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
@@ -30,9 +29,9 @@
 
   <main id="main">
     <div class="hero wrap" id="top">
-      <a class="release-pill" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest"><strong>v1.0.0</strong> just released!</a>
       <h1>PS4 PKG Downloader</h1>
-      <p class="lede">The definitive way to run your personal PS4 PKG library on Linux. Browse your own catalog, enrich it with artwork and metadata, download packages with pause/resume and history — free, open-source desktop app.</p>
+      <p class="lede">Stop babysitting your PS4 downloads — point the app at your catalog and let it finish the job.</p>
+      <p class="stakes">Or keep re-downloading dead transfers by hand.</p>
       <div class="hero-cta">
         <a class="btn" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
         <a class="btn btn-ghost" href="https://github.com/aor-rex/ps4-pkg-dl">View on GitHub</a>
@@ -42,48 +41,33 @@
       </figure>
     </div>
 
-    <div class="marquee" aria-hidden="true">
-      <div class="marquee-track">browse <span>*</span> enrich <span>*</span> backfill <span>*</span> queue <span>*</span> pause <span>*</span> resume <span>*</span> retry <span>*</span> track <span>*</span> update <span>*</span> browse <span>*</span> enrich <span>*</span> backfill <span>*</span> queue <span>*</span> pause <span>*</span> resume <span>*</span> retry <span>*</span> track <span>*</span> update <span>*</span>&nbsp;</div>
-    </div>
-
     <section id="features" aria-labelledby="features-heading">
       <div class="wrap">
-        <p class="eyebrow">It keeps getting better!</p>
-        <h2 id="features-heading">Packed with everything you need</h2>
-        <p class="section-sub">The convenience of a modern launcher, built for your own collection.</p>
-        <ul class="feature-trio">
-          <li>
-            <span class="bento-icon" aria-hidden="true">⬇</span>
-            <h3>Embedded downloader</h3>
-            <p>Queue, pause/resume, cancel/retry, progress and ETA — every source in one place, at full speed.</p>
-          </li>
-          <li>
-            <span class="bento-icon" aria-hidden="true">◆</span>
-            <h3>Linux AppImage</h3>
-            <p>One file that runs anywhere. No dependency hell, no compromise — your library, your machine.</p>
-          </li>
-          <li>
-            <span class="bento-icon" aria-hidden="true">↻</span>
-            <h3>Constant updates</h3>
-            <p>Automatic check on launch with prompt, download progress and restart-to-install. Stable or Pre-release channels.</p>
-          </li>
-        </ul>
+        <h2 id="features-heading">What it does for you</h2>
         <ul class="bento-grid">
           <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">▤</span>Multi-catalog library</h3>
-            <p>Add several <code>games.json</code> URLs or local files, enable/disable per source, refresh individually.</p>
+            <h3><span class="bento-icon" aria-hidden="true">⬇</span>Resume dead transfers</h3>
+            <p>Queue, pause, retry — with progress and ETA. Interrupted downloads pick up where they died instead of starting over.</p>
           </li>
           <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">◉</span>RAWG enrichment</h3>
-            <p>Descriptions, genres, screenshots and trailers cached locally, with Fill-missing / Refresh-all scopes.</p>
+            <h3><span class="bento-icon" aria-hidden="true">▤</span>See your collection</h3>
+            <p>Browse covers with search and genres instead of a folder of cryptic filenames.</p>
           </li>
           <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">◈</span>Manual match resolution</h3>
-            <p>Games the matcher can&rsquo;t place land in a &ldquo;Needs attention&rdquo; list with RAWG candidates; pin the right match or ignore them persistently.</p>
+            <h3><span class="bento-icon" aria-hidden="true">◉</span>Bring your own catalog</h3>
+            <p>Add <code>games.json</code> URLs or local files, switch sources on and off, refresh each one separately.</p>
           </li>
           <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">✚</span>First-run changelog</h3>
-            <p>A &ldquo;What&rsquo;s new&rdquo; dialog on every update, re-openable from Settings &rarr; About.</p>
+            <h3><span class="bento-icon" aria-hidden="true">◎</span>Fill in artwork automatically</h3>
+            <p>Optional RAWG backfill: descriptions, genres, screenshots and trailers, cached on your machine.</p>
+          </li>
+          <li class="bento-card">
+            <h3><span class="bento-icon" aria-hidden="true">◈</span>Fix wrong matches yourself</h3>
+            <p>Unmatched games wait in a review list with candidates. Pin the right one or ignore it for good.</p>
+          </li>
+          <li class="bento-card">
+            <h3><span class="bento-icon" aria-hidden="true">↻</span>Stay current hands-free</h3>
+            <p>Update check on launch with Stable or Pre-release channels, restart-to-install, and a "What's new" note each version.</p>
           </li>
         </ul>
       </div>
@@ -91,82 +75,41 @@
 
     <section id="screenshots" aria-labelledby="screenshots-heading">
       <div class="wrap">
-        <p class="eyebrow">Take the tour</p>
-        <h2 id="screenshots-heading">Have a look around</h2>
-        <p class="section-sub">Inspect a game, then watch the queue do its thing.</p>
+        <h2 id="screenshots-heading">Screenshots</h2>
         <div class="shots">
           <figure>
             <img src="assets/screenshot-detail.png" alt="Game detail view: cover art, description, gallery screenshots and version picker" width="1280" height="670" loading="lazy">
-            <figcaption>Game detail with enriched metadata, gallery, and version picker.</figcaption>
+            <figcaption>Game detail: artwork, description, gallery, version picker.</figcaption>
           </figure>
           <figure>
             <img src="assets/screenshot-downloads.png" alt="Download manager: queued and completed downloads with progress bars" width="1280" height="670" loading="lazy">
-            <figcaption>Download manager with progress, pause/resume, and history.</figcaption>
+            <figcaption>Download manager: progress, pause/resume, history.</figcaption>
           </figure>
         </div>
       </div>
     </section>
 
-    <div class="stats-band">
-      <div class="wrap stats-grid">
-        <div class="stat"><strong>v1.0.0</strong><span>stable release</span></div>
-        <div class="stat"><strong>MIT</strong><span>open-source license</span></div>
-        <div class="stat"><strong>16</strong><span>automated tests</span></div>
-        <div class="stat"><strong>Linux</strong><span>AppImage build</span></div>
-      </div>
-    </div>
-
     <section id="install" aria-labelledby="install-heading">
       <div class="wrap download-band">
-        <p class="eyebrow">Get set up in a minute</p>
-        <h2 id="install-heading">Get up and running in one command</h2>
-        <p class="section-sub">One line installs a launcher entry. Re-run it any time to update.</p>
-        <div class="install-block">
-          <h3>One-line installer</h3>
-          <div class="cmd-bar">
-            <pre><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
-            <button class="copy-btn" type="button" data-copy-target="install-cmd" aria-label="Copy install command">Copy</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="changelog" aria-labelledby="changelog-heading">
-      <div class="wrap">
-        <p class="eyebrow">Fresh out</p>
-        <h2 id="changelog-heading">It keeps getting better</h2>
-        <p class="section-sub">Recent releases. <a href="https://github.com/aor-rex/ps4-pkg-dl/blob/main/CHANGELOG.md">Full changelog on GitHub</a>.</p>
-        <div class="changelog-list">
-          <article class="changelog-entry">
-            <h3>v1.0.0 — First stable release (Linux AppImage)</h3>
-            <ul>
-              <li>Update channel defaults to Stable; pre-releases one click away.</li>
-              <li>Automated backend + renderer test suites and app-wide safety nets.</li>
-            </ul>
-          </article>
-          <article class="changelog-entry">
-            <h3>v0.2.0 (beta) — Security and download reliability</h3>
-            <ul>
-              <li>Secrets masked from the renderer; catalog-title traversal guard closed.</li>
-              <li>Interrupted downloads resume after restart; honest download-slot accounting.</li>
-            </ul>
-          </article>
-          <article class="changelog-entry">
-            <h3>v0.1.10 (beta) — Restart-proof queue</h3>
-            <ul>
-              <li>Interrupted downloads survive restarts as resumable paused items.</li>
-              <li>Launch update checks can be switched off; cleaner filenames for new downloads.</li>
-            </ul>
-          </article>
-        </div>
+        <h2 id="install-heading">Running in three steps</h2>
+        <ol class="plan-steps">
+          <li>
+            <strong>Paste one command.</strong> It installs the app plus a launcher entry.
+            <div class="cmd-bar">
+              <pre><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
+              <button class="copy-btn" type="button" data-copy-target="install-cmd" aria-label="Copy install command">Copy</button>
+            </div>
+          </li>
+          <li><strong>Add your catalog.</strong> Settings &rarr; Library takes a <code>games.json</code> URL or a local file.</li>
+          <li><strong>Pick a game and download.</strong> Choose a version, watch the progress bar, get on with your evening.</li>
+        </ol>
+        <p class="agreement">Free. No account. Your files stay yours.</p>
       </div>
     </section>
 
     <section id="faq" aria-labelledby="faq-heading">
       <div class="wrap">
-        <p class="eyebrow">Fair questions</p>
-        <h2 id="faq-heading">Good questions, short answers</h2>
-        <p class="section-sub">Everything new users ask before installing.</p>
+        <h2 id="faq-heading">FAQ</h2>
         <div class="faq-list">
           <details>
             <summary>Where does the game catalog come from?</summary>
