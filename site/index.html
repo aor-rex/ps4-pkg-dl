@@ -17,13 +17,16 @@
         <img src="assets/icon.svg" alt="" width="28" height="28">
         <span>PS4 PKG DL</span>
       </a>
-      <nav class="site-nav" aria-label="Site sections">
+      <nav class="site-nav" id="site-nav" aria-label="Site sections">
         <a href="#features">Features</a>
         <a href="#screenshots">Screenshots</a>
         <a href="#install">Install</a>
         <a href="#faq">FAQ</a>
       </nav>
       <a class="btn btn-small" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5h16M2 10h16M2 15h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
     </div>
   </header>
 
@@ -143,6 +146,26 @@
     </div>
   </footer>
   <script>
+    document.documentElement.classList.add('js');
+    (function () {
+      var btn = document.querySelector('.menu-btn');
+      var nav = document.getElementById('site-nav');
+      if (!btn || !nav) return;
+      function setOpen(open) {
+        document.documentElement.classList.toggle('menu-open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      }
+      btn.addEventListener('click', function () {
+        setOpen(!document.documentElement.classList.contains('menu-open'));
+      });
+      nav.addEventListener('click', function (e) {
+        if (e.target.closest('a')) setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { setOpen(false); btn.blur(); }
+      });
+    })();
     document.querySelectorAll('[data-copy-target]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var el = document.getElementById(btn.getAttribute('data-copy-target'));

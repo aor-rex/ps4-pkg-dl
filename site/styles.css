@@ -97,6 +97,7 @@ a:hover { color: var(--accent-hover); }
   border-radius: 6px;
 }
 .site-nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
+.menu-btn { display: none; }
 
 .btn {
   display: inline-block;
@@ -316,7 +317,42 @@ pre code { color: var(--text); }
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
   }
-  .site-nav {
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+  /* No-JS fallback: nav stays visible as a swipe strip */
+  html.js .site-nav { display: none; }
+  html.js.menu-open .site-nav {
+    display: flex;
+    order: 3;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 0;
+    margin-left: 0;
+    background: #0c0c0e;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.5rem;
+  }
+  html.js.menu-open .site-nav a {
+    white-space: normal;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+  }
+  html:not(.js) .site-nav {
     order: 3;
     flex-basis: 100%;
     flex-direction: row;
@@ -325,7 +361,7 @@ pre code { color: var(--text); }
     overflow-x: auto;
     padding-bottom: 0.25rem;
   }
-  .site-nav a { white-space: nowrap; }
+  html:not(.js) .site-nav a { white-space: nowrap; }
   .bento-grid { grid-template-columns: 1fr; }
   .wrap { padding: 2.5rem 1.25rem; }
   .hero { padding: 3rem 1.25rem 2rem; }
