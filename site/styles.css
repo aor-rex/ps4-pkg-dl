@@ -372,6 +372,11 @@ pre code { color: var(--text); }
   }
   html:not(.js) .site-nav a { white-space: nowrap; }
   .bento-grid { grid-template-columns: 1fr; }
+  .cmd-bar pre code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
   .wrap { padding: 2.5rem 1.25rem; }
   .hero { padding: 3rem 1.25rem 2rem; }
 }
