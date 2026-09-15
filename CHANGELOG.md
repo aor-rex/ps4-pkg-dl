@@ -1,5 +1,24 @@
 # Changelog
 
+## [v1.1.0-beta.1] - 2026-09-15 (beta)
+
+First beta toward v1.1.0: landing page, codebase health, and a visual program. No breaking changes; Stable channel unaffected.
+
+### Marketing site
+- New Hydra-style landing page at https://aor-rex.github.io/ps4-pkg-dl/ (plain HTML+CSS, no trackers), deployed via GitHub Pages on every `site/` change
+- Installer is now self-hosted: `curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash` (CDN fallbacks removed everywhere, including inside the script)
+- Mobile hamburger menu, header-overflow and command-wrap fixes, one-tap copy button
+
+### Code health
+- Backend: IPC handlers split per domain, every swallowed error now logged with location, documented null/throw contracts, named timeout/size constants
+- Renderer: god store split into 5 slices, Settings view split, `callBackend()` replaces a dozen Electron-vs-HTTP branches, zero `any` left in `src/`
+- Shared `UpdateOffer`, hover/format/genre utilities, prettier baseline, and a CI check workflow (tests, typecheck, style, site validation)
+
+### Visual program
+- Hierarchy fixes: detail headings, segmented grid controls, sidenav wayfinding, unified download-bar progress, sticky app shell
+- Motion: working skeleton shimmer, modal exit animations, global focus rings, rAF-throttled sidebar resize, capped/deduplicated toasts with hover-pause
+- Themes: muted text now passes AA in all three themes, `color-mix` accent washes, `kinetic-vault` alias, tailwind config repaired; new `--error-hover` / `--on-error` tokens
+
 ## [v1.0.0] - 2026-09-11
 
 First stable release (Linux AppImage).
