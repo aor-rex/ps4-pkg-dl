@@ -35,6 +35,7 @@ export interface DownloadGroup {
 export interface Mirror {
   host: string;
   url: string;
+  label?: string | null;
   speed: 'Good' | 'Fast' | 'Medium' | 'Slow';
   reliability: 'High' | 'Medium' | 'Good' | 'Low';
 }

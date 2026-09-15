@@ -8,13 +8,9 @@
  *  3. No backend — offline empty states (never fake data).
  */
 
-export interface Mirror {
-  host: string;
-  url: string;
-  label?: string | null;
-  speed: 'Good' | 'Fast' | 'Medium' | 'Slow';
-  reliability: 'High' | 'Medium' | 'Good' | 'Low';
-}
+import type { Mirror } from '../types';
+
+export type { Mirror };
 
 export interface UiDownload {
   id: string;
@@ -197,7 +193,7 @@ interface Ps4DlApi {
   getSettings(): Promise<Record<string, unknown>>;
   updateSettings(partial: Record<string, unknown>): Promise<Record<string, unknown>>;
   chooseDirectory(): Promise<string | null>;
-  systemCheck(): Promise<any>;
+  systemCheck(): Promise<{ ytdlp?: { available?: boolean; version?: string; error?: string } } | null>;
   cacheStats(): Promise<Record<string, unknown>>;
   clearCache(): Promise<boolean>;
   listHistory(filter?: string): Promise<unknown[]>;
@@ -231,17 +227,7 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function fmtSpeed(bps: number): string {
-  if (!bps) return '';
-  return `${(bps / 1048576).toFixed(1)} MB/s`;
-}
-function fmtEta(s: number | null): string {
-  if (s == null || !isFinite(s)) return '';
-  const n = Math.round(s);
-  if (n < 60) return `${n}s`;
-  const m = Math.floor(n / 60);
-  return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`;
-}
+import { formatSpeed, formatEta } from './format';
 
 function displayTitleHttp(d: Record<string, unknown>): string {
   for (const c of [d.title, d.label]) {
@@ -270,8 +256,8 @@ function mapServerDownload(d: Record<string, unknown>): UiDownload {
     sizeBytes: Number(d.totalBytes ?? 0),
     source: 'Internet Archive',
     progress: Number(d.progress ?? 0),
-    speed: typeof d.speed === 'number' ? fmtSpeed(d.speed) : String(d.speed ?? ''),
-    eta: typeof d.eta === 'number' ? fmtEta(d.eta) : String(d.eta ?? ''),
+    speed: typeof d.speed === 'number' ? formatSpeed(d.speed) : String(d.speed ?? ''),
+    eta: typeof d.eta === 'number' ? formatEta(d.eta) : String(d.eta ?? ''),
     status,
     path: (d.path as string) ?? null,
     pkgUrl: (d.pkgUrl as string) ?? null,
@@ -379,4 +365,19 @@ export async function tryLive<T>(fn: (api: Ps4DlApi) => Promise<T>): Promise<T |
     console.error('[backend]', err);
     return null;
   }
+}
+
+/**
+ * Electron first, HTTP fallback. Replaces the 12× inline
+ * `backend ? (await tryLive(...)) ?? await httpApi.X : await httpApi.X` chain.
+ */
+export async function callBackend<T>(
+  electronCall: (api: Ps4DlApi) => Promise<T>,
+  httpCall: () => Promise<T>,
+): Promise<T> {
+  if (electronApi) {
+    const live = await tryLive(electronCall);
+    if (live !== null && live !== undefined) return live;
+  }
+  return httpCall();
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
+import type { Mirror } from '../../types';
 
 const getStatusColor = (reliability: string) => {
   switch (reliability) {
@@ -27,7 +28,7 @@ export default function MirrorModal() {
 
   if (!mirrorModalOpen || !selectedMirrors.length) return null;
 
-  const handleSelect = async (mirror: any) => {
+  const handleSelect = async (mirror: Mirror) => {
     setResolving(mirror.host);
     if (remember && mirror.host) setRememberedMirrorHost(mirror.host);
     await startDownload(mirror, selectedGame);

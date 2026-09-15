@@ -4,6 +4,7 @@ import { ArrowLeft01Icon, ArrowRight01Icon, Search01Icon } from '@hugeicons/core
 import { useAppStore } from '../../store/appStore';
 import GameCard from './GameCard';
 import GameCardList from './GameCardList';
+import type { Game } from '../../types';
 
 export default function GameGrid() {
   const { filteredGames, openGameDetail, setCurrentView, selectedGenre, sortBy, viewMode, currentPage, setCurrentPage, setViewMode, setSortBy, browseLoading, liveMode, searchQuery, setSettingsOpen, setSettingsCategory, settings } = useAppStore();
@@ -29,7 +30,7 @@ export default function GameGrid() {
   const startIndex = (currentPage - 1) * gamesPerPage;
   const paginatedGames = useMemo(() => sortedGames.slice(startIndex, startIndex + gamesPerPage), [sortedGames, startIndex, gamesPerPage]);
 
-  const handleGameClick = (game: any) => { void openGameDetail(game); setCurrentView('detail'); };
+  const handleGameClick = (game: Game) => { void openGameDetail(game); setCurrentView('detail'); };
   const sortOptions = [
     { value: 'newest', label: 'Newest' }, { value: 'oldest', label: 'Oldest' },
     { value: 'name-az', label: 'Name A-Z' }, { value: 'name-za', label: 'Name Z-A' },

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowLeft01Icon, Download02Icon, PlayIcon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
+import type { Mirror } from '../../types';
 import Spinner from '../common/Spinner';
 import { COVER_FALLBACK } from '../../lib/catalog';
 
@@ -33,7 +34,7 @@ export default function GameDetail() {
     setSelectedGame(null);
   };
 
-  const handleDownload = (mirrors: any[]) => {
+  const handleDownload = (mirrors: Mirror[]) => {
     const remembered = rememberedMirrorHost
       ? mirrors.find((m) => m.host === rememberedMirrorHost)
       : null;
@@ -152,7 +153,7 @@ export default function GameDetail() {
               {hasMultipleParts && (
                 <button
                   onClick={() => {
-                    const allMirrors = selectedGame.downloads.flatMap((d: any) => d.mirrors);
+                    const allMirrors = selectedGame.downloads.flatMap((d) => d.mirrors);
                     handleDownload(allMirrors);
                   }}
                   className="flex items-center gap-2 transition-colors"
@@ -301,7 +302,7 @@ export default function GameDetail() {
               Videos{selectedGame.videos.length > 1 ? ` (${selectedGame.videos.length})` : ''}
             </h2>
             <div className="space-y-6">
-              {selectedGame.videos.map((video: any, index: number) => (
+              {selectedGame.videos.map((video, index) => (
                 <div key={index}>
                   <div
                     className="relative cursor-pointer"
@@ -373,7 +374,7 @@ export default function GameDetail() {
               }}
             >
               <div className="space-y-6">
-                {selectedGame.downloads.map((downloadGroup: any, groupIndex: number) => (
+                {selectedGame.downloads.map((downloadGroup, groupIndex) => (
                   <div key={groupIndex}>
                     {selectedGame.downloads.length > 1 && (
                       <h3
@@ -388,7 +389,7 @@ export default function GameDetail() {
                       </h3>
                     )}
                     <div className="space-y-3">
-                      {downloadGroup.mirrors.map((mirror: any, mirrorIndex: number) => (
+                      {downloadGroup.mirrors.map((mirror, mirrorIndex) => (
                         <div
                           key={mirrorIndex}
                           className="flex items-center justify-between"

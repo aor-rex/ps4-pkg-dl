@@ -4,6 +4,7 @@ import { useAppStore } from '../../store/appStore';
 import { useState, useRef, useEffect } from 'react';
 import { COVER_FALLBACK } from '../../lib/catalog';
 import NotificationCenter from '../common/NotificationCenter';
+import type { Game } from '../../types';
 
 export default function TopNavBar() {
   const { searchQuery, setSearchQuery, setSettingsOpen, setDownloadManagerOpen, downloads, setCurrentView, setSelectedGame, filteredGames: storeFiltered, fetchLiveSearch, openGameDetail } = useAppStore();
@@ -34,7 +35,7 @@ export default function TopNavBar() {
     setSelectedGame(null);
   };
 
-  const handleGameSelect = (game: any) => {
+  const handleGameSelect = (game: Game) => {
     setSearchQuery('');
     setShowResults(false);
     void openGameDetail(game);
