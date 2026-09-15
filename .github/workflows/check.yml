@@ -23,6 +23,12 @@ jobs:
             package-lock.json
             renderer/package-lock.json
 
+      - name: Install root deps
+        run: npm ci
+
+      - name: Install renderer deps
+        run: npm ci --prefix renderer
+
       - name: Backend tests
         run: npm test
 
