@@ -18,7 +18,7 @@
     "dist": "electron-builder --linux AppImage --publish never",
     "test": "node --test tests/settings.test.js tests/manager.test.js",
     "test:all": "npm test && npm --prefix renderer test",
-    "typecheck": "npm --prefix renderer exec -- tsc --noEmit",
+    "typecheck": "npm --prefix renderer run typecheck",
     "format": "npx --yes prettier@3 --write site/ renderer/src/lib/ renderer/src/store/",
     "format:check": "npx --yes prettier@3 --check site/ renderer/src/lib/ renderer/src/store/",
     "validate:site": "python3 .github/validate-site.py"

@@ -36,8 +36,7 @@ jobs:
         run: npm run test --prefix renderer
 
       - name: Renderer typecheck
-        working-directory: renderer
-        run: npx tsc --noEmit
+        run: npm --prefix renderer run typecheck
 
       - name: Prettier check (site + cleaned renderer areas)
         run: npx --yes prettier@3 --check site/ renderer/src/lib/ renderer/src/store/

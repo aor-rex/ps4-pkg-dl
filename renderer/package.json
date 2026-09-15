@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "app": "npm --prefix .. run app",
     "app:dev": "npm --prefix .. run app:dev"
   },
