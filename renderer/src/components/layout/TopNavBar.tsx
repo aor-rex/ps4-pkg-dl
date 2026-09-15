@@ -103,7 +103,7 @@ export default function TopNavBar() {
             </div>
 
             {/* Search Results Dropdown - UI Spec 3.3 */}
-            {showResults && searchQuery && filteredGames.length > 0 && (
+            {showResults && searchQuery && (
               <div
                 className="absolute top-full left-0 right-0 mt-1 rounded overflow-hidden z-50"
                 style={{
@@ -112,7 +112,18 @@ export default function TopNavBar() {
                   boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 }}
               >
-                {filteredGames.map((game) => (
+                {filteredGames.length === 0 ? (
+                  <div style={{ padding: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                    No matches for &ldquo;{searchQuery}&rdquo; —{' '}
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', padding: 0 }}
+                    >
+                      clear search
+                    </button>
+                  </div>
+                ) : (
+                filteredGames.map((game) => (
                   <button
                     key={game.id}
                     onMouseDown={(e) => {
@@ -140,7 +151,8 @@ export default function TopNavBar() {
                       <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{game.size}</div>
                     </div>
                   </button>
-                ))}
+                ))
+                )}
               </div>
             )}
           </div>

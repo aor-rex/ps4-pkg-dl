@@ -8,7 +8,7 @@ import type { Game } from '../../types';
 import { timeOf } from '../../lib/genres';
 
 export default function GameGrid() {
-  const { filteredGames, openGameDetail, setCurrentView, selectedGenre, sortBy, viewMode, currentPage, setCurrentPage, setViewMode, setSortBy, browseLoading, liveMode, searchQuery, setSettingsOpen, setSettingsCategory, settings } = useAppStore();
+  const { filteredGames, openGameDetail, setCurrentView, selectedGenre, setSelectedGenre, setSearchQuery, sortBy, viewMode, currentPage, setCurrentPage, setViewMode, setSortBy, browseLoading, liveMode, searchQuery, setSettingsOpen, setSettingsCategory, settings } = useAppStore();
   const compact = settings.compactMode;
   const showSetupPrompt = liveMode && !searchQuery.trim() && !selectedGenre;
 
@@ -111,9 +111,17 @@ export default function GameGrid() {
           <div className="flex flex-col items-center justify-center py-20">
             <HugeiconsIcon icon={Search01Icon} strokeWidth={2} style={{ width: '64px', height: '64px', color: 'var(--border)', marginBottom: '16px' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '8px' }}>No games found</h3>
-            <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>
               {liveMode ? 'Try adjusting your search or filters' : 'Start the API server to browse the live catalog'}
             </p>
+            {(searchQuery.trim() || selectedGenre) && (
+              <button
+                onClick={() => { setSearchQuery(''); setSelectedGenre(null); }}
+                style={{ backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '14px', fontWeight: 600, padding: '10px 24px', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Clear search &amp; filters
+              </button>
+            )}
           </div>
         )
       ) : viewMode === 'grid' ? (

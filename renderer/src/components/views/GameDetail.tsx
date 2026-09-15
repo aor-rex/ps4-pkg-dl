@@ -65,7 +65,7 @@ export default function GameDetail() {
       <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Loading indicator when live detail fetch in progress */}
         {detailLoading && (
-          <div className="flex items-center gap-2 mb-4" style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+          <div className="flex items-center gap-2 mb-4" style={{ color: 'var(--text-muted)', fontSize: '14px' }} aria-busy="true" aria-live="polite">
             <Spinner size={14} /> Loading full details...
           </div>
         )}
@@ -190,7 +190,7 @@ export default function GameDetail() {
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                 onClick={() => {
                   const container = document.getElementById('screenshot-scroll');
-                  if (container) container.scrollLeft -= 200;
+                  if (container) container.scrollBy({ left: -320, behavior: 'smooth' });
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-hover)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--accent)')}
@@ -205,8 +205,8 @@ export default function GameDetail() {
                 {selectedGame.gallery.map((img: string, index: number) => (
                   <div
                     key={index}
-                    className="shrink-0 cursor-pointer transition-opacity"
-                    style={{ width: '180px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)' }}
+                    className="shrink-0 cursor-pointer"
+                    style={{ width: '180px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)', transition: 'opacity 0.2s ease, border-color 0.2s ease' }}
                     onClick={() => openLightbox(selectedGame.gallery, index)}
                     onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.borderColor = 'var(--border)'; }}
@@ -230,7 +230,7 @@ export default function GameDetail() {
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                 onClick={() => {
                   const container = document.getElementById('screenshot-scroll');
-                  if (container) container.scrollLeft += 200;
+                  if (container) container.scrollBy({ left: 320, behavior: 'smooth' });
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent-hover)')}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--accent)')}

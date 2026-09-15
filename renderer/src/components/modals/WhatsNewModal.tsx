@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAppStore } from '../../store/appStore';
 import UpdateOffer from '../common/UpdateOffer';
 import { useModalTransition } from '../common/useModalTransition';
+import { hoverOutline, hoverAccentFill } from '../../lib/hover';
 
 export function changelogSection(version: string): string {
   const md: string = typeof __CHANGELOG_MD__ !== 'undefined' ? __CHANGELOG_MD__ : '';
@@ -156,7 +157,9 @@ export default function WhatsNewModal() {
               padding: '8px 20px',
               borderRadius: '4px',
               cursor: 'pointer',
+              transition: 'border-color 0.2s ease, color 0.2s ease',
             }}
+            {...hoverOutline}
           >
             Open Settings
           </button>
@@ -171,7 +174,9 @@ export default function WhatsNewModal() {
               padding: '8px 20px',
               borderRadius: '4px',
               cursor: 'pointer',
+              transition: 'background-color 0.2s ease',
             }}
+            {...hoverAccentFill}
           >
             Got it
           </button>

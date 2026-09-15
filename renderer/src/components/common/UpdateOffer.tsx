@@ -43,8 +43,13 @@ export default function UpdateOffer() {
         </button>
       )}
       {updateStatus === 'downloading' && (
-        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
-          Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}
+        <div style={{ marginTop: '8px' }}>
+          <div style={{ height: '8px', borderRadius: '4px', backgroundColor: 'var(--bg-tertiary)', overflow: 'hidden' }}>
+            <div className="progress-fill" style={{ height: '100%', width: `${updateProgress}%`, backgroundColor: 'var(--accent)' }} />
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '6px' }}>
+            Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}
+          </div>
         </div>
       )}
       {updateStatus === 'stalled' && (
@@ -63,7 +68,7 @@ export default function UpdateOffer() {
         </button>
       )}
       {updateStatus === 'error' && updateError && (
-        <div style={{ fontSize: '13px', color: 'var(--warning)', marginTop: '8px' }}>{updateError}</div>
+        <div style={{ fontSize: '13px', color: 'var(--error)', marginTop: '8px' }}>{updateError}</div>
       )}
     </div>
   );

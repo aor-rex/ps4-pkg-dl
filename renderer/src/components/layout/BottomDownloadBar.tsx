@@ -232,6 +232,7 @@ export default function BottomDownloadBar() {
                           onClick={() => removeDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
+                          {...hoverOutline}
                         >
                           <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Remove
                         </button>
