@@ -134,9 +134,11 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: collapsed ? 'center' : 'flex-start',
+                backgroundColor: selectedGenre === genre.name ? 'rgba(102,192,244,0.15)' : 'transparent',
                 color: selectedGenre === genre.name ? 'var(--accent)' : 'var(--text-secondary)',
                 fontWeight: selectedGenre === genre.name ? 600 : 400,
                 fontSize: '14px',
+                borderLeft: selectedGenre === genre.name ? '3px solid var(--accent)' : '3px solid transparent',
               }}
               onMouseEnter={(e) => {
                 if (selectedGenre !== genre.name) {

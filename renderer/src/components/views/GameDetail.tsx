@@ -84,7 +84,7 @@ export default function GameDetail() {
           {/* Cover Image */}
           <div
             className="shrink-0"
-            style={{ width: '300px', height: '420px', borderRadius: '6px', overflow: 'hidden', marginRight: '24px', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,0.45)' }}
+            style={{ width: '300px', height: '420px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,0.45)' }}
           >
             <img
               src={selectedGame.cover || COVER_FALLBACK}
@@ -181,7 +181,7 @@ export default function GameDetail() {
         {/* 7.3 Screenshot Gallery */}
         {selectedGame.gallery && selectedGame.gallery.length > 0 && (
           <section className="mb-8">
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-primary)', marginBottom: '16px' }}>
               Screenshots
             </h2>
             <div className="flex items-center gap-4">
@@ -244,7 +244,7 @@ export default function GameDetail() {
         {/* 7.4 Description Section */}
         {selectedGame.description && (
           <section className="mb-8">
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-primary)', marginBottom: '12px' }}>
               Description
             </h2>
             <div
@@ -298,7 +298,7 @@ export default function GameDetail() {
         {/* 7.5 Videos Section */}
         {selectedGame.videos && selectedGame.videos.length > 0 && (
           <section className="mb-8">
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-primary)', marginBottom: '12px' }}>
               Videos{selectedGame.videos.length > 1 ? ` (${selectedGame.videos.length})` : ''}
             </h2>
             <div className="space-y-6">

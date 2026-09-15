@@ -21,7 +21,7 @@ export default function BottomDownloadBar() {
     { key: 'failed', label: 'Failed' },
   ].map((tab) => ({
     ...tab,
-    label: `${tab.label} (${tab.key === 'all' ? downloads.length : downloads.filter((d) => d.status === tab.key).length})`,
+    count: tab.key === 'all' ? downloads.length : downloads.filter((d) => d.status === tab.key).length,
   }));
   const filteredDownloads = downloads.filter((dl) => {
     if (downloadFilter === 'all') return true;
@@ -60,7 +60,7 @@ export default function BottomDownloadBar() {
         {primaryDownload && (
           <>
             <div className="flex items-center ml-4 flex-1">
-              <div className="rounded overflow-hidden mr-2" style={{ width: '120px', height: '4px', backgroundColor: 'var(--bg-tertiary)' }}>
+              <div className="rounded overflow-hidden mr-2" style={{ width: '120px', height: '6px', backgroundColor: 'var(--bg-tertiary)' }}>
                 <div className="h-full progress-fill" style={{ width: `${primaryDownload.progress}%`, backgroundColor: 'var(--accent)' }} />
               </div>
               <span className="text-xs mr-2" style={{ color: 'var(--text-muted)' }}>{primaryDownload.progress}%</span>
@@ -117,6 +117,9 @@ export default function BottomDownloadBar() {
                 onMouseLeave={(e) => { if (downloadFilter !== tab.key) e.currentTarget.style.color = 'var(--text-muted)'; }}
               >
                 {tab.label}
+                <sup style={{ marginLeft: '4px', fontSize: '10px', color: downloadFilter === tab.key ? 'var(--accent)' : 'var(--text-muted)' }}>
+                  {tab.count}
+                </sup>
               </button>
             ))}
           </div>
@@ -129,7 +132,7 @@ export default function BottomDownloadBar() {
               </div>
             ) : (
               filteredDownloads.map((dl) => (
-                <div key={dl.id} className="px-4" style={{ padding: '16px', borderBottom: `1px solid var(--border)` }}>
+                <div key={dl.id} style={{ padding: '16px', borderBottom: `1px solid var(--border)` }}>
                   <div className="flex justify-between items-start mb-1" style={{ gap: '12px' }}>
                     <div className="flex items-start" style={{ gap: '12px', flex: 1, minWidth: 0 }}>
                       <img
@@ -156,7 +159,7 @@ export default function BottomDownloadBar() {
                   </div>
 
                   {/* Progress Bar - UI Spec: 8px height, bg #2a475e, fill #66c0f4 */}
-                  <div className="mt-2 rounded overflow-hidden" style={{ height: '8px', backgroundColor: 'var(--bg-tertiary)' }}>
+                  <div className="mt-2 rounded overflow-hidden" style={{ height: '6px', backgroundColor: 'var(--bg-tertiary)' }}>
                     <div
                       className="h-full rounded progress-fill"
                       style={{

@@ -52,14 +52,16 @@ export default function GameGrid() {
           >
             {sortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <div className="flex gap-1">
-            <button onClick={() => setViewMode('grid')} className="p-2 rounded transition-colors"
-              style={{ color: viewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'grid' ? 'rgba(102,192,244,0.1)' : 'transparent' }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg>
+          <div className="flex gap-1" style={{ height: '32px', alignItems: 'center', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '0 2px' }}>
+            <button onClick={() => setViewMode('grid')} className="rounded transition-colors"
+              aria-label="Grid view" aria-pressed={viewMode === 'grid'}
+              style={{ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'grid' ? 'rgba(102,192,244,0.1)' : 'transparent', borderRadius: '3px' }}>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg>
             </button>
-            <button onClick={() => setViewMode('list')} className="p-2 rounded transition-colors"
-              style={{ color: viewMode === 'list' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'list' ? 'rgba(102,192,244,0.1)' : 'transparent' }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="3" width="16" height="2" rx="1"/><rect x="2" y="9" width="16" height="2" rx="1"/><rect x="2" y="15" width="16" height="2" rx="1"/></svg>
+            <button onClick={() => setViewMode('list')} className="rounded transition-colors"
+              aria-label="List view" aria-pressed={viewMode === 'list'}
+              style={{ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'list' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'list' ? 'rgba(102,192,244,0.1)' : 'transparent', borderRadius: '3px' }}>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="3" width="16" height="2" rx="1"/><rect x="2" y="9" width="16" height="2" rx="1"/><rect x="2" y="15" width="16" height="2" rx="1"/></svg>
             </button>
           </div>
         </div>
