@@ -16,17 +16,26 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
     { icon: Folder01Icon, label: 'All Games', view: 'all' },
   ];
 
-  const dragRef = useRef<{ startX: number; startW: number } | null>(null);
+  const dragRef = useRef<{ startX: number; startW: number; raf: number } | null>(null);
 
   const handleDragStart = (e: React.MouseEvent) => {
     e.preventDefault();
-    dragRef.current = { startX: e.clientX, startW: width };
+    dragRef.current = { startX: e.clientX, startW: width, raf: 0 };
     const onMove = (ev: MouseEvent) => {
-      if (!dragRef.current) return;
-      onWidthChange(dragRef.current.startW + (ev.clientX - dragRef.current.startX));
+      const drag = dragRef.current;
+      if (!drag) return;
+      // One React state commit per frame — mousemove fires far faster
+      // than 60fps and each commit reflows the whole content area.
+      if (drag.raf) return;
+      const target = drag.startW + (ev.clientX - drag.startX);
+      drag.raf = requestAnimationFrame(() => {
+        if (dragRef.current) dragRef.current.raf = 0;
+        onWidthChange(target);
+      });
     };
     const onUp = (ev: MouseEvent) => {
       if (dragRef.current) {
+        if (dragRef.current.raf) cancelAnimationFrame(dragRef.current.raf);
         const w = dragRef.current.startW + (ev.clientX - dragRef.current.startX);
         // Snap to the 64px icon rail below the threshold
         onWidthChange(w < 120 ? 64 : w);

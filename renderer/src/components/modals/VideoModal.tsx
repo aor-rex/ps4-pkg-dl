@@ -1,11 +1,24 @@
+import { useEffect } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Cancel01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
+import { useModalTransition } from '../common/useModalTransition';
 
 export default function VideoModal() {
   const { videoModalOpen, setVideoModalOpen, selectedVideo } = useAppStore();
 
-  if (!videoModalOpen || !selectedVideo) return null;
+  const { shouldRender, exiting } = useModalTransition(videoModalOpen);
+
+  useEffect(() => {
+    if (!videoModalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setVideoModalOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [videoModalOpen, setVideoModalOpen]);
+
+  if (!shouldRender || !selectedVideo) return null;
 
   // YouTube embed vs direct video file (RAWG trailers are mp4).
   // Only http(s) URLs are ever rendered — anything else is rejected outright.
@@ -32,9 +45,12 @@ export default function VideoModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center modal-enter"
+      className={`fixed inset-0 z-[1000] flex items-center justify-center ${exiting ? 'modal-exit' : 'modal-enter'}`}
       style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}
       onClick={() => setVideoModalOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Video player"
     >
       <div
         style={{ width: '960px', maxWidth: '90vw' }}

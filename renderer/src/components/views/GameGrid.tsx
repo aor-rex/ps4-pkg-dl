@@ -67,13 +67,31 @@ export default function GameGrid() {
         </div>
       </div>
 
-      {/* Loading Skeletons */}
+      {/* Loading Skeletons — shapes match the outgoing view to avoid layout shift */}
       {browseLoading ? (
-        <div className="flex flex-wrap gap-4 justify-start">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="w-[220px] h-[380px] rounded-lg overflow-hidden skeleton" style={{ backgroundColor: 'var(--bg-tertiary)' }} />
-          ))}
-        </div>
+        viewMode === 'list' ? (
+          <div style={{ borderTop: `1px solid var(--border)` }} aria-busy="true" aria-label="Loading games">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center" style={{ gap: '12px', padding: '12px 0', borderBottom: `1px solid var(--border)` }}>
+                <div className="skeleton" style={{ width: '60px', height: '80px', borderRadius: '4px', flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div className="skeleton" style={{ width: '40%', height: '14px', borderRadius: '4px', marginBottom: '8px' }} />
+                  <div className="skeleton" style={{ width: '25%', height: '11px', borderRadius: '4px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-4 justify-start" aria-busy="true" aria-label="Loading games">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} style={{ width: '220px' }}>
+                <div className="skeleton" style={{ width: '220px', height: '310px', borderRadius: '6px' }} />
+                <div className="skeleton" style={{ width: '140px', height: '12px', borderRadius: '4px', marginTop: '10px' }} />
+                <div className="skeleton" style={{ width: '90px', height: '10px', borderRadius: '4px', marginTop: '6px' }} />
+              </div>
+            ))}
+          </div>
+        )
       ) : paginatedGames.length === 0 ? (
         showSetupPrompt ? (
           <div className="flex flex-col items-center justify-center py-20">

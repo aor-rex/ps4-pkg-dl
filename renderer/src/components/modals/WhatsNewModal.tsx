@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { useAppStore } from '../../store/appStore';
 import UpdateOffer from '../common/UpdateOffer';
+import { useModalTransition } from '../common/useModalTransition';
 
 export function changelogSection(version: string): string {
   const md: string = typeof __CHANGELOG_MD__ !== 'undefined' ? __CHANGELOG_MD__ : '';
@@ -88,16 +90,31 @@ export function renderMarkdown(md: string, keyPrefix: string): React.ReactNode[]
 
 export default function WhatsNewModal() {
   const { whatsNewOpen, setWhatsNewOpen, setSettingsOpen, setSettingsCategory, updateStatus, updateVersion } = useAppStore();
-  if (!whatsNewOpen) return null;
+
+  const { shouldRender, exiting } = useModalTransition(whatsNewOpen);
+
+  useEffect(() => {
+    if (!whatsNewOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setWhatsNewOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [whatsNewOpen, setWhatsNewOpen]);
+
+  if (!shouldRender) return null;
   const version = appVersion();
   const notes = changelogSection(version);
   const updateReady = updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled' || updateStatus === 'error';
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center modal-enter"
+      className={`fixed inset-0 z-[1000] flex items-center justify-center ${exiting ? 'modal-exit' : 'modal-enter'}`}
       style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
       onClick={() => setWhatsNewOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="What's new"
     >
       <div
         style={{

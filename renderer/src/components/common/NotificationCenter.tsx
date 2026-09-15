@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Notification01Icon, CheckmarkCircle01Icon, Cancel01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
+import { useModalTransition } from './useModalTransition';
 
 function iconFor(type: string) {
   if (type === 'success') return <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={2} style={{ width: '16px', height: '16px', color: 'var(--success)', flexShrink: 0 }} />;
@@ -22,6 +23,7 @@ function timeAgo(at: number): string {
 export default function NotificationCenter() {
   const { notificationHistory, unreadNotifications, markNotificationsRead, clearNotificationHistory } = useAppStore();
   const [open, setOpen] = useState(false);
+  const { shouldRender: dropVisible, exiting: dropExiting } = useModalTransition(open);
 
   return (
     <div className="relative">
@@ -65,11 +67,11 @@ export default function NotificationCenter() {
         )}
       </button>
 
-      {open && (
+      {dropVisible && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 mt-2 z-50 rounded-lg overflow-hidden modal-enter"
+            className={`absolute right-0 mt-2 z-50 rounded-lg overflow-hidden ${dropExiting ? 'modal-exit' : 'modal-enter'}`}
             style={{
               width: '360px',
               maxHeight: '420px',

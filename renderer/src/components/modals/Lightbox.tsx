@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Cancel01Icon, ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
+import { useModalTransition } from '../common/useModalTransition';
 
 export default function Lightbox() {
   const {
@@ -39,13 +40,18 @@ export default function Lightbox() {
     }
   }, [lightboxOpen, handleKeyDown]);
 
-  if (!lightboxOpen || !lightboxImages.length) return null;
+  const { shouldRender, exiting } = useModalTransition(lightboxOpen);
+
+  if (!shouldRender || !lightboxImages.length) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex flex-col modal-enter"
+      className={`fixed inset-0 z-[1000] flex flex-col ${exiting ? 'modal-exit' : 'modal-enter'}`}
       style={{ backgroundColor: 'rgba(0,0,0,0.9)' }}
       onClick={() => setLightboxOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image viewer"
     >
       {/* Close Button */}
       <button

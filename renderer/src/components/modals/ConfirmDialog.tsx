@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Alert02Icon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
+import { useModalTransition } from '../common/useModalTransition';
 
 export default function ConfirmDialog() {
   const {
@@ -10,7 +12,18 @@ export default function ConfirmDialog() {
     confirmDialogOnConfirm,
   } = useAppStore();
 
-  if (!confirmDialogOpen) return null;
+  const { shouldRender, exiting } = useModalTransition(confirmDialogOpen);
+
+  useEffect(() => {
+    if (!confirmDialogOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setConfirmDialogOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [confirmDialogOpen, setConfirmDialogOpen]);
+
+  if (!shouldRender) return null;
 
   const handleConfirm = () => {
     if (confirmDialogOnConfirm) {
@@ -21,9 +34,12 @@ export default function ConfirmDialog() {
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center modal-enter"
+      className={`fixed inset-0 z-[1000] flex items-center justify-center ${exiting ? 'modal-exit' : 'modal-enter'}`}
       style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
       onClick={() => setConfirmDialogOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Confirm"
     >
       <div
         style={{

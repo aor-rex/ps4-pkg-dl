@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 import type { Mirror } from '../../types';
+import { useModalTransition } from '../common/useModalTransition';
 
 const getStatusColor = (reliability: string) => {
   switch (reliability) {
@@ -26,7 +27,18 @@ export default function MirrorModal() {
   const [resolving, setResolving] = useState<string | null>(null);
   const [remember, setRemember] = useState(false);
 
-  if (!mirrorModalOpen || !selectedMirrors.length) return null;
+  const { shouldRender, exiting } = useModalTransition(mirrorModalOpen);
+
+  useEffect(() => {
+    if (!mirrorModalOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMirrorModalOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [mirrorModalOpen, setMirrorModalOpen]);
+
+  if (!shouldRender || !selectedMirrors.length) return null;
 
   const handleSelect = async (mirror: Mirror) => {
     setResolving(mirror.host);
@@ -43,9 +55,12 @@ export default function MirrorModal() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center modal-enter"
+      className={`fixed inset-0 z-50 flex items-center justify-center ${exiting ? 'modal-exit' : 'modal-enter'}`}
       style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
       onClick={() => setMirrorModalOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Select mirror"
     >
       <div
         className="w-[520px] max-h-[80vh] overflow-hidden"

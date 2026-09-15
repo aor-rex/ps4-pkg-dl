@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { CheckmarkCircle01Icon, Cancel01Icon, InformationCircleIcon } from '@hugeicons/core-free-icons';
 import { useAppStore } from '../../store/appStore';
@@ -28,25 +28,59 @@ export default function ToastContainer() {
   };
 
   return (
-    <div className="fixed bottom-20 right-4 z-[100] space-y-2">
+    <div className="fixed bottom-20 right-4 z-[100] space-y-2" role="status" aria-live="polite">
       {toasts.map((toast) => (
+        <ToastItem key={toast.id} type={toast.type} message={toast.message} leaving={leaving.includes(toast.id)} onDone={() => dismiss(toast.id)} getIcon={getIcon} accentFor={accentFor} />
+      ))}
+    </div>
+  );
+}
+
+const TOAST_LIFETIME_MS = 5000;
+
+function ToastItem({
+  type, message, leaving, onDone, getIcon, accentFor,
+}: {
+  type: 'success' | 'error' | 'info';
+  message: string;
+  leaving: boolean;
+  onDone: () => void;
+  getIcon: (type: string) => React.ReactNode;
+  accentFor: (type: string) => string;
+}) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const arm = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(onDone, TOAST_LIFETIME_MS);
+  };
+  useEffect(() => {
+    arm();
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
         <div
-          key={toast.id}
-          className={`border rounded-lg px-4 py-3 flex items-center gap-3 min-w-[320px] shadow-lg ${leaving.includes(toast.id) ? 'toast-exit' : 'toast-enter'}`}
-          style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', borderLeft: `3px solid ${accentFor(toast.type)}`, opacity: 1, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
+          className={`border rounded-lg px-4 py-3 flex items-center gap-3 min-w-[320px] shadow-lg ${leaving ? 'toast-exit' : 'toast-enter'}`}
+          style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)', borderLeft: `3px solid ${accentFor(type)}`, opacity: 1, boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
+          onMouseEnter={() => {
+            if (timer.current) clearTimeout(timer.current);
+          }}
+          onMouseLeave={arm}
         >
-          {getIcon(toast.type)}
-          <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>{toast.message}</span>
+          {getIcon(type)}
+          <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>{message}</span>
           <button
-            onClick={() => dismiss(toast.id)}
+            onClick={onDone}
             className="p-1 rounded transition-colors"
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-bright)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            aria-label="Dismiss notification"
           >
             <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
           </button>
         </div>
-      ))}
-    </div>
   );
 }
