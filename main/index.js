@@ -52,7 +52,6 @@ function createWindow(ctx) {
 
   if (DEV) {
     mainWindow.loadURL(VITE_URL);
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     // Built UI lives at renderer/dist (repo-relative, works packaged too)
     mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'dist', 'index.html'));
