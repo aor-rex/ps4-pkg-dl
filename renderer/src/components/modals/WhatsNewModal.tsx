@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store/appStore';
-import { formatTransfer } from '../../lib/format';
+import UpdateOffer from '../common/UpdateOffer';
 
 export function changelogSection(version: string): string {
   const md: string = typeof __CHANGELOG_MD__ !== 'undefined' ? __CHANGELOG_MD__ : '';
@@ -87,11 +87,11 @@ export function renderMarkdown(md: string, keyPrefix: string): React.ReactNode[]
 }
 
 export default function WhatsNewModal() {
-  const { whatsNewOpen, setWhatsNewOpen, setSettingsOpen, setSettingsCategory, updateStatus, updateVersion, updateProgress, updateTransferred, updateTotal, downloadUpdate, restartToUpdate } = useAppStore();
+  const { whatsNewOpen, setWhatsNewOpen, setSettingsOpen, setSettingsCategory, updateStatus, updateVersion } = useAppStore();
   if (!whatsNewOpen) return null;
   const version = appVersion();
   const notes = changelogSection(version);
-  const updateReady = updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled';
+  const updateReady = updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled' || updateStatus === 'error';
 
   return (
     <div
@@ -121,39 +121,7 @@ export default function WhatsNewModal() {
         </div>
         {updateReady && updateVersion && (
           <div style={{ marginTop: '16px', padding: '12px 16px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '6px', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>
-              Update available: v{updateVersion}
-            </div>
-            {updateStatus === 'available' && (
-              <button
-                onClick={() => void downloadUpdate()}
-                style={{ backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '13px', fontWeight: 600, padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', marginTop: '8px' }}
-              >
-                Download update
-              </button>
-            )}
-            {updateStatus === 'downloading' && (
-              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}</div>
-            )}
-            {updateStatus === 'stalled' && (
-              <div style={{ marginTop: '8px' }}>
-                <div style={{ fontSize: '13px', color: 'var(--warning)' }}>Stalled at {formatTransfer(updateTransferred, updateTotal, updateProgress)} — check your connection.</div>
-                <button
-                  onClick={() => void downloadUpdate()}
-                  style={{ backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '13px', fontWeight: 600, padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', marginTop: '8px' }}
-                >
-                  Retry download
-                </button>
-              </div>
-            )}
-            {updateStatus === 'downloaded' && (
-              <button
-                onClick={() => void restartToUpdate()}
-                style={{ backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '13px', fontWeight: 600, padding: '8px 20px', borderRadius: '4px', cursor: 'pointer', marginTop: '8px' }}
-              >
-                Restart to install
-              </button>
-            )}
+            <UpdateOffer />
           </div>
         )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px' }}>

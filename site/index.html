@@ -1,195 +1,237 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PS4 PKG Downloader — Stop babysitting your PS4 downloads (Linux)</title>
-  <meta name="description" content="PS4 PKG Downloader is a free Linux desktop app for your personal PS4 collection. Point it at your catalog and let it finish the job — covers, history, and downloads that resume.">
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PS4 PKG Downloader — Stop babysitting your PS4 downloads (Linux)</title>
+    <meta
+      name="description"
+      content="PS4 PKG Downloader is a free Linux desktop app for your personal PS4 collection. Point it at your catalog and let it finish the job — covers, history, and downloads that resume."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="#top" aria-label="PS4 PKG Downloader home">
-        <img src="assets/icon.svg" alt="" width="28" height="28">
-        <span>PS4 PKG DL</span>
-      </a>
-      <nav class="site-nav" id="site-nav" aria-label="Site sections">
-        <a href="#features">Features</a>
-        <a href="#screenshots">Screenshots</a>
-        <a href="#install">Install</a>
-        <a href="#faq">FAQ</a>
-        <a class="menu-cta" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
-      </nav>
-      <a class="btn btn-small" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
-      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
-        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 5h16M2 10h16M2 15h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </button>
-    </div>
-  </header>
-
-  <main id="main">
-    <div class="hero wrap" id="top">
-      <h1>PS4 PKG Downloader</h1>
-      <p class="lede">Stop babysitting your PS4 downloads — point the app at your catalog and let it finish the job.</p>
-      <p class="stakes">Or keep re-downloading dead transfers by hand.</p>
-      <div class="hero-cta">
-        <a class="btn" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
-        <a class="btn btn-ghost" href="https://github.com/aor-rex/ps4-pkg-dl">View on GitHub</a>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="#top" aria-label="PS4 PKG Downloader home">
+          <img src="assets/icon.svg" alt="" width="28" height="28" />
+          <span>PS4 PKG DL</span>
+        </a>
+        <nav class="site-nav" id="site-nav" aria-label="Site sections">
+          <a href="#features">Features</a>
+          <a href="#screenshots">Screenshots</a>
+          <a href="#install">Install</a>
+          <a href="#faq">FAQ</a>
+          <a class="menu-cta" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest"
+            >Download for Linux</a
+          >
+        </nav>
+        <a class="btn btn-small" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest"
+          >Download for Linux</a
+        >
+        <button
+          class="menu-btn"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          aria-label="Open menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M2 5h16M2 10h16M2 15h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
       </div>
-      <figure class="hero-shot">
-        <img src="assets/screenshot-browse.png" alt="PS4 PKG Downloader browse view: grid of game covers with search and genre sidebar" width="1280" height="670">
-      </figure>
-    </div>
+    </header>
 
-    <section id="features" aria-labelledby="features-heading">
-      <div class="wrap">
-        <h2 id="features-heading">What it does for you</h2>
-        <ul class="bento-grid">
-          <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">⬇</span>Resume dead transfers</h3>
-            <p>Queue, pause, retry — with progress and ETA. Interrupted downloads pick up where they died instead of starting over.</p>
-          </li>
-          <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">▤</span>See your collection</h3>
-            <p>Browse covers with search and genres instead of a folder of cryptic filenames.</p>
-          </li>
-          <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">◉</span>Bring your own catalog</h3>
-            <p>Add <code>games.json</code> URLs or local files, switch sources on and off, refresh each one separately.</p>
-          </li>
-          <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">◎</span>Fill in artwork automatically</h3>
-            <p>Optional RAWG backfill: descriptions, genres, screenshots and trailers, cached on your machine.</p>
-          </li>
-          <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">◈</span>Fix wrong matches yourself</h3>
-            <p>Unmatched games wait in a review list with candidates. Pin the right one or ignore it for good.</p>
-          </li>
-          <li class="bento-card">
-            <h3><span class="bento-icon" aria-hidden="true">↻</span>Stay current hands-free</h3>
-            <p>Update check on launch with Stable or Pre-release channels, restart-to-install, and a "What's new" note each version.</p>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section id="screenshots" aria-labelledby="screenshots-heading">
-      <div class="wrap">
-        <h2 id="screenshots-heading">Screenshots</h2>
-        <div class="shots">
-          <figure>
-            <img src="assets/screenshot-detail.png" alt="Game detail view: cover art, description, gallery screenshots and version picker" width="1280" height="670" loading="lazy">
-            <figcaption>Game detail: artwork, description, gallery, version picker.</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/screenshot-downloads.png" alt="Download manager: queued and completed downloads with progress bars" width="1280" height="670" loading="lazy">
-            <figcaption>Download manager: progress, pause/resume, history.</figcaption>
-          </figure>
+    <main id="main">
+      <div class="hero wrap" id="top">
+        <h1>PS4 PKG Downloader</h1>
+        <p class="lede">
+          Stop babysitting your PS4 downloads — point the app at your catalog and let it finish the job.
+        </p>
+        <p class="stakes">Or keep re-downloading dead transfers by hand.</p>
+        <div class="hero-cta">
+          <a class="btn" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
+          <a class="btn btn-ghost" href="https://github.com/aor-rex/ps4-pkg-dl">View on GitHub</a>
         </div>
+        <figure class="hero-shot">
+          <img
+            src="assets/screenshot-browse.png"
+            alt="PS4 PKG Downloader browse view: grid of game covers with search and genre sidebar"
+            width="1280"
+            height="670"
+          />
+        </figure>
       </div>
-    </section>
 
-    <section id="install" aria-labelledby="install-heading">
-      <div class="wrap download-band">
-        <h2 id="install-heading">Running in three steps</h2>
-        <ol class="plan-steps">
-          <li>
-            <strong>Paste one command.</strong> It installs the app plus a launcher entry.
-            <div class="cmd-bar">
-              <pre><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
-              <button class="copy-btn" type="button" data-copy-target="install-cmd" aria-label="Copy install command">Copy</button>
-            </div>
-          </li>
-          <li><strong>Add your catalog.</strong> Settings &rarr; Library takes a <code>games.json</code> URL or a local file.</li>
-          <li><strong>Pick a game and download.</strong> Choose a version, watch the progress bar, get on with your evening.</li>
-        </ol>
-        <p class="agreement">Free. No account. Your files stay yours.</p>
-      </div>
-    </section>
-
-    <section id="faq" aria-labelledby="faq-heading">
-      <div class="wrap">
-        <h2 id="faq-heading">FAQ</h2>
-        <div class="faq-list">
-          <details>
-            <summary>Where does the game catalog come from?</summary>
-            <p>The app ships with no catalog. You add your own <code>games.json</code> URL (FPKGi format) or local file under Settings &rarr; Library. Maintained sources (mirror + curated extras) live in the companion <a href="https://gitlab.com/aor-rex/ps4-pkg-catalog">ps4-pkg-catalog</a> repo.</p>
-          </details>
-          <details>
-            <summary>Do I need a RAWG key?</summary>
-            <p>Only for artwork and metadata enrichment, and it&rsquo;s optional. Paste a free key from <a href="https://rawg.io/apidocs">rawg.io/apidocs</a> and press Start backfill; browsing and downloading work without it.</p>
-          </details>
-          <details>
-            <summary>Why does archive.org ask for a cookie?</summary>
-            <p>Some archive.org items are login-gated. The app can&rsquo;t log in for you, so you supply your own login cookie under Settings &rarr; Library &rarr; archive.org login and the app reuses it for those downloads.</p>
-          </details>
-          <details>
-            <summary>Where does the app store its data?</summary>
-            <p>Everything lives under <code>~/.config/ps4-pkg-dl/</code> (XDG-aware): settings, the metadata cache database, your pinned/ignored matches, uploaded catalogs, and logs. Note the RAWG key and archive.org cookie are stored in plaintext — don&rsquo;t share the folder.</p>
-          </details>
+      <section id="features" aria-labelledby="features-heading">
+        <div class="wrap">
+          <h2 id="features-heading">What it does for you</h2>
+          <ul class="bento-grid">
+            <li class="bento-card">
+              <h3><span class="bento-icon" aria-hidden="true">⬇</span>Resume dead transfers</h3>
+              <p>
+                Queue, pause, retry — with progress and ETA. Interrupted downloads pick up where they died
+                instead of starting over.
+              </p>
+            </li>
+            <li class="bento-card">
+              <h3><span class="bento-icon" aria-hidden="true">▤</span>See your collection</h3>
+              <p>Browse covers with search and genres instead of a folder of cryptic filenames.</p>
+            </li>
+            <li class="bento-card">
+              <h3><span class="bento-icon" aria-hidden="true">◉</span>Bring your own catalog</h3>
+              <p>
+                Add <code>games.json</code> URLs or local files, switch sources on and off, refresh each one
+                separately.
+              </p>
+            </li>
+            <li class="bento-card">
+              <h3><span class="bento-icon" aria-hidden="true">◎</span>Fill in artwork automatically</h3>
+              <p>
+                Optional RAWG backfill: descriptions, genres, screenshots and trailers, cached on your
+                machine.
+              </p>
+            </li>
+            <li class="bento-card">
+              <h3><span class="bento-icon" aria-hidden="true">◈</span>Fix wrong matches yourself</h3>
+              <p>
+                Unmatched games wait in a review list with candidates. Pin the right one or ignore it for
+                good.
+              </p>
+            </li>
+            <li class="bento-card">
+              <h3><span class="bento-icon" aria-hidden="true">↻</span>Stay current hands-free</h3>
+              <p>
+                Update check on launch with Stable or Pre-release channels, restart-to-install, and a "What's
+                new" note each version.
+              </p>
+            </li>
+          </ul>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <p>This software hosts no files. All download links come from a catalog file you provide. Game content belongs to its respective publishers — use for personal, educational, and preservation purposes in accordance with the laws of your country. Not affiliated with Sony/PlayStation, the Internet Archive, or RAWG.</p>
-      <nav aria-label="Footer">
-        <a href="https://github.com/aor-rex/ps4-pkg-dl">GitHub</a>
-        <a href="https://github.com/aor-rex/ps4-pkg-dl/blob/main/LICENSE">MIT license</a>
-        <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases</a>
-      </nav>
-    </div>
-  </footer>
-  <script>
-    document.documentElement.classList.add('js');
-    (function () {
-      var btn = document.querySelector('.menu-btn');
-      var nav = document.getElementById('site-nav');
-      if (!btn || !nav) return;
-      function setOpen(open) {
-        document.documentElement.classList.toggle('menu-open', open);
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-      }
-      btn.addEventListener('click', function () {
-        setOpen(!document.documentElement.classList.contains('menu-open'));
-      });
-      nav.addEventListener('click', function (e) {
-        if (e.target.closest('a')) setOpen(false);
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') { setOpen(false); btn.blur(); }
-      });
-    })();
-    document.querySelectorAll('[data-copy-target]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var el = document.getElementById(btn.getAttribute('data-copy-target'));
-        if (!el) return;
-        var text = el.textContent;
-        function done() {
-          var label = btn.textContent;
-          btn.textContent = 'Copied!';
-          setTimeout(function () { btn.textContent = label; }, 1500);
-        }
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(done).catch(function () { fallback(); });
-        } else { fallback(); }
-        function fallback() {
-          var ta = document.createElement('textarea');
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand('copy'); done(); } catch (e) { /* no-op */ }
-          document.body.removeChild(ta);
-        }
-      });
-    });
-  </script>
-</body>
+      <section id="screenshots" aria-labelledby="screenshots-heading">
+        <div class="wrap">
+          <h2 id="screenshots-heading">Screenshots</h2>
+          <div class="shots">
+            <figure>
+              <img
+                src="assets/screenshot-detail.png"
+                alt="Game detail view: cover art, description, gallery screenshots and version picker"
+                width="1280"
+                height="670"
+                loading="lazy"
+              />
+              <figcaption>Game detail: artwork, description, gallery, version picker.</figcaption>
+            </figure>
+            <figure>
+              <img
+                src="assets/screenshot-downloads.png"
+                alt="Download manager: queued and completed downloads with progress bars"
+                width="1280"
+                height="670"
+                loading="lazy"
+              />
+              <figcaption>Download manager: progress, pause/resume, history.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="install" aria-labelledby="install-heading">
+        <div class="wrap download-band">
+          <h2 id="install-heading">Running in three steps</h2>
+          <ol class="plan-steps">
+            <li>
+              <strong>Paste one command.</strong> It installs the app plus a launcher entry.
+              <div class="cmd-bar">
+                <pre><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
+                <button
+                  class="copy-btn"
+                  type="button"
+                  data-copy-target="install-cmd"
+                  aria-label="Copy install command"
+                >
+                  Copy
+                </button>
+              </div>
+            </li>
+            <li>
+              <strong>Add your catalog.</strong> Settings &rarr; Library takes a <code>games.json</code> URL
+              or a local file.
+            </li>
+            <li>
+              <strong>Pick a game and download.</strong> Choose a version, watch the progress bar, get on with
+              your evening.
+            </li>
+          </ol>
+          <p class="agreement">Free. No account. Your files stay yours.</p>
+        </div>
+      </section>
+
+      <section id="faq" aria-labelledby="faq-heading">
+        <div class="wrap">
+          <h2 id="faq-heading">FAQ</h2>
+          <div class="faq-list">
+            <details>
+              <summary>Where does the game catalog come from?</summary>
+              <p>
+                The app ships with no catalog. You add your own
+                <code>games.json</code> URL (FPKGi format) or local file under Settings &rarr; Library.
+                Maintained sources (mirror + curated extras) live in the companion
+                <a href="https://gitlab.com/aor-rex/ps4-pkg-catalog">ps4-pkg-catalog</a>
+                repo.
+              </p>
+            </details>
+            <details>
+              <summary>Do I need a RAWG key?</summary>
+              <p>
+                Only for artwork and metadata enrichment, and it&rsquo;s optional. Paste a free key from
+                <a href="https://rawg.io/apidocs">rawg.io/apidocs</a> and press Start backfill; browsing and
+                downloading work without it.
+              </p>
+            </details>
+            <details>
+              <summary>Why does archive.org ask for a cookie?</summary>
+              <p>
+                Some archive.org items are login-gated. The app can&rsquo;t log in for you, so you supply your
+                own login cookie under Settings &rarr; Library &rarr; archive.org login and the app reuses it
+                for those downloads.
+              </p>
+            </details>
+            <details>
+              <summary>Where does the app store its data?</summary>
+              <p>
+                Everything lives under
+                <code>~/.config/ps4-pkg-dl/</code> (XDG-aware): settings, the metadata cache database, your
+                pinned/ignored matches, uploaded catalogs, and logs. Note the RAWG key and archive.org cookie
+                are stored in plaintext — don&rsquo;t share the folder.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p>
+          This software hosts no files. All download links come from a catalog file you provide. Game content
+          belongs to its respective publishers — use for personal, educational, and preservation purposes in
+          accordance with the laws of your country. Not affiliated with Sony/PlayStation, the Internet
+          Archive, or RAWG.
+        </p>
+        <nav aria-label="Footer">
+          <a href="https://github.com/aor-rex/ps4-pkg-dl">GitHub</a>
+          <a href="https://github.com/aor-rex/ps4-pkg-dl/blob/main/LICENSE">MIT license</a>
+          <a href="https://github.com/aor-rex/ps4-pkg-dl/releases">Releases</a>
+        </nav>
+      </div>
+    </footer>
+    <script src="site.js" defer></script>
+  </body>
 </html>

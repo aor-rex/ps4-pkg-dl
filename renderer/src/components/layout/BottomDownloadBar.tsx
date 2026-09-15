@@ -4,6 +4,7 @@ import { useAppStore } from '../../store/appStore';
 import { tryLive } from '../../lib/backend';
 import { COVER_FALLBACK } from '../../lib/catalog';
 import type { Download as DownloadType } from '../../types';
+import { hoverAccentText, hoverOutline } from '../../lib/hover';
 
 export default function BottomDownloadBar() {
   const {
@@ -79,8 +80,7 @@ export default function BottomDownloadBar() {
           className="ml-4 p-1 rounded transition-colors"
           style={{ color: 'var(--text-muted)' }}
           onClick={(e) => { e.stopPropagation(); setDownloadManagerOpen(!downloadManagerOpen); }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
+          {...hoverAccentText}
           title={downloadManagerOpen ? 'Close downloads' : 'Open downloads'}
         >
           {downloadManagerOpen
@@ -189,8 +189,7 @@ export default function BottomDownloadBar() {
                           onClick={() => void pauseDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                          {...hoverOutline}
                         >
                           <HugeiconsIcon icon={PauseIcon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Pause
                         </button>
@@ -210,8 +209,7 @@ export default function BottomDownloadBar() {
                         onClick={() => void resumeDl(dl.id)}
                         className="flex items-center gap-1 px-3 rounded transition-colors"
                         style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
-                        onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                        onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                        {...hoverOutline}
                       >
                         <HugeiconsIcon icon={PlayIcon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Resume
                       </button>
@@ -246,8 +244,7 @@ export default function BottomDownloadBar() {
                         }}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                          {...hoverOutline}
                         >
                           <HugeiconsIcon icon={Folder01Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Open Folder
                         </button>
@@ -255,8 +252,7 @@ export default function BottomDownloadBar() {
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           title="Remove this record (keeps the downloaded game file)"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                          {...hoverOutline}
                         >
                           <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Remove
                         </button>
@@ -265,8 +261,7 @@ export default function BottomDownloadBar() {
                             className="flex items-center gap-1 px-3 rounded transition-colors"
                             title="Download this game again"
                             style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
-                            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                            {...hoverOutline}
                           >
                             <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Download again
                           </button>

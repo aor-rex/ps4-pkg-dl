@@ -38,9 +38,7 @@ export function entryToGame(e: CatalogEntry, index = 0): Game {
       {
         type: 'PKG',
         size: e.size,
-        mirrors: [
-          { host: 'Internet Archive', url: e.pkgUrl, speed: 'Good', reliability: 'High' },
-        ],
+        mirrors: [{ host: 'Internet Archive', url: e.pkgUrl, speed: 'Good', reliability: 'High' }],
       },
     ],
   };
@@ -68,7 +66,11 @@ export function applyMetadata(game: Game, meta: CatalogMetadata | null): Game {
 }
 
 /** Merge all variants of a CUSA id into one Game with per-variant groups. */
-export function variantsToGame(titleId: string, variants: CatalogEntry[], meta: CatalogMetadata | null = null): Game {
+export function variantsToGame(
+  titleId: string,
+  variants: CatalogEntry[],
+  meta: CatalogMetadata | null = null
+): Game {
   if (!variants || variants.length === 0) {
     return {
       id: titleId,
@@ -99,7 +101,9 @@ export function variantsToGame(titleId: string, variants: CatalogEntry[], meta: 
     downloads: variants.map((v) => ({
       type: `[${v.region}] v${v.version} — ${v.size}${showSource && v.source ? ` · ${v.source}` : ''}`,
       size: v.size,
-      mirrors: [{ host: 'Internet Archive', url: v.pkgUrl, speed: 'Good' as const, reliability: 'High' as const }],
+      mirrors: [
+        { host: 'Internet Archive', url: v.pkgUrl, speed: 'Good' as const, reliability: 'High' as const },
+      ],
     })),
   };
   return applyMetadata(game, meta);

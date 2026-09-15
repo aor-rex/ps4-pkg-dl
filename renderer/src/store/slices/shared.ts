@@ -2,7 +2,6 @@ import type { Download, Settings } from '../../types';
 import type { UiDownload } from '../../lib/backend';
 import { formatSpeed, formatEta } from '../../lib/format';
 
-
 export const defaultSettings: Settings = {
   downloadDir: '~/Downloads/PS4-PKGs',
   createSubfolder: true,

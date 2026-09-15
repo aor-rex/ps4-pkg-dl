@@ -140,7 +140,10 @@ export interface CatalogStatus {
 
 interface Ps4DlApi {
   browseGames(page?: number, limit?: number, genre?: string): Promise<unknown[]>;
-  searchGames(query: string, opts?: { page?: number; limit?: number; genre?: string; region?: string }): Promise<unknown[]>;
+  searchGames(
+    query: string,
+    opts?: { page?: number; limit?: number; genre?: string; region?: string }
+  ): Promise<unknown[]>;
   getGameDetail(slug: string): Promise<unknown>;
   getGenres(): Promise<{ name: string; count: number }[]>;
   catalogStatus(): Promise<unknown>;
@@ -188,7 +191,9 @@ interface Ps4DlApi {
   updateDownload(): Promise<unknown>;
   updateQuit(): Promise<unknown>;
   onUpdateEvent(cb: (event: string, payload: unknown) => void): () => void;
-  onDownloadEvent(cb: (e: { type: string; download: { id: string; url: string } | null }) => void): () => void;
+  onDownloadEvent(
+    cb: (e: { type: string; download: { id: string; url: string } | null }) => void
+  ): () => void;
   onDownloadsSnapshot(cb: (list: UiDownload[]) => void): () => void;
   getSettings(): Promise<Record<string, unknown>>;
   updateSettings(partial: Record<string, unknown>): Promise<Record<string, unknown>>;
@@ -235,18 +240,25 @@ function displayTitleHttp(d: Record<string, unknown>): string {
   }
   const src = String((d.filename as string) || (d.pkgUrl as string) || '');
   const base = src.split('?')[0].split('/').pop() || '';
-  const stem = base.replace(/\.(pkg|zip|rar|7z)$/i, '').replace(/[._-]+/g, ' ').trim();
+  const stem = base
+    .replace(/\.(pkg|zip|rar|7z)$/i, '')
+    .replace(/[._-]+/g, ' ')
+    .trim();
   return stem || 'Download';
 }
 
 function mapServerDownload(d: Record<string, unknown>): UiDownload {
   const state = String(d.status ?? 'queued');
   const status =
-    state === 'active' ? 'active'
-    : state === 'paused' ? 'paused'
-    : state === 'completed' ? 'completed'
-    : state === 'failed' ? 'failed'
-    : 'queued';
+    state === 'active'
+      ? 'active'
+      : state === 'paused'
+        ? 'paused'
+        : state === 'completed'
+          ? 'completed'
+          : state === 'failed'
+            ? 'failed'
+            : 'queued';
   return {
     id: String(d.id),
     gameId: (d.titleId as string) ?? null,
@@ -293,11 +305,17 @@ const httpApi = {
   catalogLoad: (url: string) =>
     http<CatalogStatus>('/api/catalog/load', { method: 'POST', body: JSON.stringify({ url }) }),
   catalogAddSource: (type: string, location: string, label?: string) =>
-    http<CatalogStatus>('/api/catalog/sources', { method: 'POST', body: JSON.stringify({ type, location, label }) }),
+    http<CatalogStatus>('/api/catalog/sources', {
+      method: 'POST',
+      body: JSON.stringify({ type, location, label }),
+    }),
   catalogRemoveSource: (id: string) =>
     http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   catalogToggleSource: (id: string, enabled: boolean) =>
-    http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ enabled }) }),
+    http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
+    }),
   catalogRefreshSource: (id: string) =>
     http<CatalogStatus>(`/api/catalog/sources/${encodeURIComponent(id)}/refresh`, { method: 'POST' }),
   catalogUploadFile: (name: string, data: string) =>
@@ -313,14 +331,20 @@ const httpApi = {
       `/api/metadata/candidates?titleId=${encodeURIComponent(titleId)}`
     ),
   metadataOverride: (titleId: string, slugOrId: string) =>
-    http<CatalogMetadata>('/api/metadata/override', { method: 'POST', body: JSON.stringify({ titleId, slugOrId }) }),
+    http<CatalogMetadata>('/api/metadata/override', {
+      method: 'POST',
+      body: JSON.stringify({ titleId, slugOrId }),
+    }),
   metadataIgnored: () => http<{ ignored: IgnoredTitle[] }>('/api/metadata/ignored').then((r) => r.ignored),
   metadataIgnore: (titleId: string, title?: string) =>
     http('/api/metadata/ignore', { method: 'POST', body: JSON.stringify({ titleId, title: title || '' }) }),
   metadataUnignore: (titleId: string) =>
     http(`/api/metadata/ignore/${encodeURIComponent(titleId)}`, { method: 'DELETE' }),
   queueDownload: (entry: { pkgUrl?: string; titleId?: string; id?: string; force?: boolean }) =>
-    http<{ id: string; alreadyQueued?: boolean; alreadyCompleted?: boolean; title?: string | null }>('/api/downloads', { method: 'POST', body: JSON.stringify(entry) }),
+    http<{ id: string; alreadyQueued?: boolean; alreadyCompleted?: boolean; title?: string | null }>(
+      '/api/downloads',
+      { method: 'POST', body: JSON.stringify(entry) }
+    ),
   listDownloads: () =>
     http<{ downloads: Record<string, unknown>[] }>('/api/downloads').then((r) =>
       r.downloads.map(mapServerDownload)
@@ -373,7 +397,7 @@ export async function tryLive<T>(fn: (api: Ps4DlApi) => Promise<T>): Promise<T |
  */
 export async function callBackend<T>(
   electronCall: (api: Ps4DlApi) => Promise<T>,
-  httpCall: () => Promise<T>,
+  httpCall: () => Promise<T>
 ): Promise<T> {
   if (electronApi) {
     const live = await tryLive(electronCall);

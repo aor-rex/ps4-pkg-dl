@@ -18,7 +18,8 @@ export const createSettingsSlice: StateCreator<AppState, [], [], SettingsSlice> 
   setSettings: (newSettings) => {
     set((state) => ({ settings: { ...state.settings, ...newSettings } as Settings }));
     if (backend) void tryLive((api) => api.updateSettings(newSettings as Record<string, unknown>));
-    else if (get().backendMode === 'http') void httpApi.updateSettings(newSettings as Record<string, unknown>).catch(() => {});
+    else if (get().backendMode === 'http')
+      void httpApi.updateSettings(newSettings as Record<string, unknown>).catch(() => {});
   },
   settingsOpen: false,
   setSettingsOpen: (settingsOpen) => set({ settingsOpen }),

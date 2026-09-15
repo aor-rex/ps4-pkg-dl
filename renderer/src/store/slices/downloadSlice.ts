@@ -30,12 +30,14 @@ export const createDownloadSlice: StateCreator<AppState, [], [], DownloadSlice> 
   downloadFilter: 'all',
   setDownloadFilter: (downloadFilter) => set({ downloadFilter }),
   addDownload: (download) => set((state) => ({ downloads: [...state.downloads, download] })),
-  updateDownload: (id, updates) => set((state) => ({
-    downloads: state.downloads.map((d) => (d.id === id ? { ...d, ...updates } : d)),
-  })),
-  removeDownload: (id) => set((state) => ({
-    downloads: state.downloads.filter((d) => d.id !== id),
-  })),
+  updateDownload: (id, updates) =>
+    set((state) => ({
+      downloads: state.downloads.map((d) => (d.id === id ? { ...d, ...updates } : d)),
+    })),
+  removeDownload: (id) =>
+    set((state) => ({
+      downloads: state.downloads.filter((d) => d.id !== id),
+    })),
 
   startDownload: async (mirror, game, fileType = 'PKG', force = false) => {
     const { addToast, backendMode } = get();
@@ -73,20 +75,22 @@ export const createDownloadSlice: StateCreator<AppState, [], [], DownloadSlice> 
       return;
     }
     addToast('info', `Queueing ${mirror.host} download...`);
-    const res = await tryLive((api) => api.addDownload({
-      pkgUrl: mirror.url,
-      titleId: game?.slug,
-      label: `${game?.title || 'Game'} - ${fileType}`,
-      source: mirror.host,
-      gameTitle: game?.title,
-      fileType,
-      size: game?.size,
-      region: game?.region,
-      version: game?.version,
-      cover: game?.cover,
-      gameId: game?.id ?? null,
-      force,
-    }));
+    const res = await tryLive((api) =>
+      api.addDownload({
+        pkgUrl: mirror.url,
+        titleId: game?.slug,
+        label: `${game?.title || 'Game'} - ${fileType}`,
+        source: mirror.host,
+        gameTitle: game?.title,
+        fileType,
+        size: game?.size,
+        region: game?.region,
+        version: game?.version,
+        cover: game?.cover,
+        gameId: game?.id ?? null,
+        force,
+      })
+    );
     if (res?.alreadyCompleted) {
       addToast('success', `Already downloaded${res.title ? ` — ${res.title}` : ''}`);
       showCompleted();
@@ -125,7 +129,7 @@ export const createDownloadSlice: StateCreator<AppState, [], [], DownloadSlice> 
       const ok =
         get().backendMode === 'http'
           ? await httpApi.pauseDownload(id).then(() => true)
-          : (await tryLive((api) => api.pauseDownload(id))) ?? false;
+          : ((await tryLive((api) => api.pauseDownload(id))) ?? false);
       if (!ok) throw new Error('pause rejected');
       get().updateDownload(id, { status: 'paused' });
     } catch (err) {
@@ -138,7 +142,7 @@ export const createDownloadSlice: StateCreator<AppState, [], [], DownloadSlice> 
       const ok =
         get().backendMode === 'http'
           ? await httpApi.resumeDownload(id).then(() => true)
-          : (await tryLive((api) => api.resumeDownload(id))) ?? false;
+          : ((await tryLive((api) => api.resumeDownload(id))) ?? false);
       if (!ok) throw new Error('resume rejected');
       get().updateDownload(id, { status: 'active' });
     } catch (err) {
@@ -169,7 +173,9 @@ export const createDownloadSlice: StateCreator<AppState, [], [], DownloadSlice> 
         try {
           const list = await httpApi.listDownloads();
           set({ downloads: list.map(uiToDownload) });
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       });
     } else if (!backend) get().removeDownload(id);
     else {

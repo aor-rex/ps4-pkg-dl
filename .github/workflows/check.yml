@@ -1,0 +1,39 @@
+name: Check (tests, types, style, site)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            renderer/package-lock.json
+
+      - name: Backend tests
+        run: npm test
+
+      - name: Renderer tests
+        run: npm run test --prefix renderer
+
+      - name: Renderer typecheck
+        run: npx --prefix renderer tsc --noEmit
+
+      - name: Prettier check (site + cleaned renderer areas)
+        run: npx --yes prettier@3 --check site/ renderer/src/lib/ renderer/src/store/
+
+      - name: Validate site
+        run: python3 .github/validate-site.py

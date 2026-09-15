@@ -4,9 +4,10 @@ import { Folder01Icon, Download02Icon, Package02Icon, GlobalIcon, Notification01
 import { useAppStore, defaultSettings } from '../../store/appStore';
 import { backend, tryLive } from '../../lib/backend';
 import { appVersion } from '../modals/WhatsNewModal';
-import { formatTransfer } from '../../lib/format';
 import { Toggle, SettingRow } from './settings/controls';
 import { LibrarySettings } from './settings/LibrarySettings';
+import UpdateOffer from '../common/UpdateOffer';
+import { hoverAccentFill, hoverFill, hoverOutline } from '../../lib/hover';
 
 const categories = [
   { icon: Database02Icon, key: 'library', label: 'Library' },
@@ -19,7 +20,7 @@ const categories = [
   { icon: InformationCircleIcon, key: 'about', label: 'About' },
 ];
 export default function Settings() {
-  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, updateVersion, updateProgress, updateTransferred, updateTotal, updateError, checkForUpdates, downloadUpdate, restartToUpdate } = useAppStore();
+  const { settings, setSettings, settingsCategory, setSettingsCategory, addToast, setWhatsNewOpen, updateStatus, checkForUpdates } = useAppStore();
   const [dirty, setDirty] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
@@ -103,8 +104,7 @@ export default function Settings() {
               cursor: 'pointer',
               transition: 'background-color 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+            {...hoverFill}
           >
             Browse
           </button>
@@ -125,8 +125,7 @@ export default function Settings() {
               cursor: 'pointer',
               transition: 'background-color 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+            {...hoverFill}
           >
             Open Folder
           </button>
@@ -182,48 +181,14 @@ export default function Settings() {
             cursor: 'pointer',
             transition: 'background-color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+          {...hoverFill}
         >
           Check for Updates
         </button>
       </div>
-      {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled') && updateVersion && (
+      {(updateStatus === 'available' || updateStatus === 'downloading' || updateStatus === 'downloaded' || updateStatus === 'stalled' || updateStatus === 'error') && (
         <div style={{ fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'left', marginBottom: '12px' }}>
-          Update available: v{updateVersion}
-          {updateStatus === 'available' && (
-            <button
-              onClick={() => void downloadUpdate()}
-              style={{ display: 'block', width: '220px', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-            >
-              Download update
-            </button>
-          )}
-          {updateStatus === 'downloading' && <div style={{ marginTop: '8px' }}>Downloading… {formatTransfer(updateTransferred, updateTotal, updateProgress)}</div>}
-          {updateStatus === 'stalled' && (
-            <div style={{ marginTop: '8px' }}>
-              <div style={{ color: 'var(--warning)' }}>Stalled at {formatTransfer(updateTransferred, updateTotal, updateProgress)} — check your connection.</div>
-              <button
-                onClick={() => void downloadUpdate()}
-                style={{ display: 'block', width: '220px', marginTop: '8px', backgroundColor: 'transparent', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Retry download
-              </button>
-            </div>
-          )}
-          {updateStatus === 'downloaded' && (
-            <button
-              onClick={() => void restartToUpdate()}
-              style={{ display: 'block', width: '220px', marginTop: '8px', backgroundColor: 'var(--accent)', border: 'none', color: 'var(--text-on-accent)', fontSize: '14px', fontWeight: 600, padding: '10px 20px', borderRadius: '4px', cursor: 'pointer' }}
-            >
-              Restart to install
-            </button>
-          )}
-        </div>
-      )}
-      {updateStatus === 'error' && updateError && (
-        <div style={{ fontSize: '13px', color: 'var(--warning)', textAlign: 'left', marginBottom: '12px', maxWidth: '420px' }}>
-          {updateError}
+          <UpdateOffer />
         </div>
       )}
     </div>
@@ -565,8 +530,7 @@ export default function Settings() {
             cursor: 'pointer',
             transition: 'border-color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+          {...hoverOutline}
         >
           Send test notification
         </button>
@@ -658,8 +622,7 @@ export default function Settings() {
             cursor: 'pointer',
             transition: 'background-color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+          {...hoverFill}
         >
           What&apos;s new
         </button>
@@ -679,8 +642,7 @@ export default function Settings() {
             cursor: 'pointer',
             transition: 'background-color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+          {...hoverFill}
         >
           Open Config Folder
         </button>
@@ -700,8 +662,7 @@ export default function Settings() {
             cursor: 'pointer',
             transition: 'background-color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--border)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
+          {...hoverFill}
         >
           Clear Cache
         </button>
@@ -817,8 +778,7 @@ export default function Settings() {
                     transition: 'background-color 0.2s ease',
                     border: 'none',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+                  {...hoverAccentFill}
                 >
                   Save
                 </button>

@@ -34,10 +34,12 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
   catalogStatus: null,
   refreshCatalogStatus: async () => {
     try {
-      set({ catalogStatus: await callBackend(
-        (api) => api.catalogStatus(),
-        () => httpApi.catalogStatus(),
-      ) as CatalogStatus });
+      set({
+        catalogStatus: (await callBackend(
+          (api) => api.catalogStatus(),
+          () => httpApi.catalogStatus()
+        )) as CatalogStatus,
+      });
     } catch {
       /* unreachable */
     }
@@ -47,7 +49,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const status = (await callBackend(
         (api) => api.catalogLoad(url),
-        () => httpApi.catalogLoad(url),
+        () => httpApi.catalogLoad(url)
       )) as CatalogStatus;
       set({ catalogStatus: status });
       addToast('success', `Catalog loaded: ${status.count} games`);
@@ -71,7 +73,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const status = (await callBackend(
         (api) => api.catalogAdd(type, location, label),
-        () => httpApi.catalogAddSource(type, location, label),
+        () => httpApi.catalogAddSource(type, location, label)
       )) as CatalogStatus;
       set({ catalogStatus: status });
       addToast('success', `Source added: ${status.count} games`);
@@ -87,7 +89,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const status = (await callBackend(
         (api) => api.catalogRemove(id),
-        () => httpApi.catalogRemoveSource(id),
+        () => httpApi.catalogRemoveSource(id)
       )) as CatalogStatus;
       set({ catalogStatus: status });
       addToast('success', 'Source removed');
@@ -103,7 +105,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const status = (await callBackend(
         (api) => api.catalogToggle(id, enabled),
-        () => httpApi.catalogToggleSource(id, enabled),
+        () => httpApi.catalogToggleSource(id, enabled)
       )) as CatalogStatus;
       set({ catalogStatus: status });
       await refreshCatalogView();
@@ -118,7 +120,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const status = (await callBackend(
         (api) => api.catalogRefreshSource(id),
-        () => httpApi.catalogRefreshSource(id),
+        () => httpApi.catalogRefreshSource(id)
       )) as CatalogStatus;
       set({ catalogStatus: status });
       addToast('success', `Source refreshed: ${status.count} games`);
@@ -134,7 +136,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const status = (await callBackend(
         (api) => api.catalogUpload(name, data),
-        () => httpApi.catalogUploadFile(name, data),
+        () => httpApi.catalogUploadFile(name, data)
       )) as CatalogStatus;
       set({ catalogStatus: status });
       addToast('success', `File catalog added: ${status.count} games`);
@@ -153,7 +155,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const state = (await callBackend(
         (api) => api.backfillStart(backfillScope),
-        () => httpApi.backfillStart(backfillScope),
+        () => httpApi.backfillStart(backfillScope)
       )) as BackfillState;
       set({ backfill: state });
       if (state.status === 'error') {
@@ -171,7 +173,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const state = (await callBackend(
         (api) => api.backfillStatus(),
-        () => httpApi.backfillStatus(),
+        () => httpApi.backfillStatus()
       )) as BackfillState;
       set({ backfill: state });
       if (state.status !== 'running') {
@@ -181,7 +183,10 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
           setBackfillTimer(null);
         }
         if (state.status === 'done') {
-          get().addToast('success', `Backfill done: ${state.exact + state.high} enriched, ${state.missedTotal ?? state.missed.length} missed`);
+          get().addToast(
+            'success',
+            `Backfill done: ${state.exact + state.high} enriched, ${state.missedTotal ?? state.missed.length} missed`
+          );
           void get().loadGenres();
         }
       }
@@ -193,7 +198,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const state = (await callBackend(
         (api) => api.backfillCancel(),
-        () => httpApi.backfillCancel(),
+        () => httpApi.backfillCancel()
       )) as BackfillState;
       set({ backfill: state });
     } catch {
@@ -211,7 +216,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const meta = (await callBackend(
         (api) => api.enrichOne(titleId),
-        () => httpApi.enrichOne(titleId),
+        () => httpApi.enrichOne(titleId)
       )) as { name?: string } | null;
       if (meta) {
         addToast('success', `Enriched ${meta.name || titleId}`);
@@ -223,7 +228,10 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
         void get().loadGenres();
       }
     } catch {
-      addToast('error', `Still no match for ${titleId} — try a RAWG id via CLI: ps4dl enrich ${titleId} --rawg-id <id>`);
+      addToast(
+        'error',
+        `Still no match for ${titleId} — try a RAWG id via CLI: ps4dl enrich ${titleId} --rawg-id <id>`
+      );
     }
   },
 
@@ -235,12 +243,24 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const res = (await callBackend(
         (api) => api.metadataCandidates(titleId),
-        () => httpApi.metadataCandidates(titleId),
+        () => httpApi.metadataCandidates(titleId)
       )) as { candidates: MetadataCandidate[] };
-      set((s) => ({ candidates: { ...s.candidates, [titleId]: { loading: false, items: res.candidates || [], error: null } } }));
+      set((s) => ({
+        candidates: {
+          ...s.candidates,
+          [titleId]: { loading: false, items: res.candidates || [], error: null },
+        },
+      }));
     } catch (err) {
       set((s) => ({
-        candidates: { ...s.candidates, [titleId]: { loading: false, items: [], error: err instanceof Error ? err.message : 'Search failed' } },
+        candidates: {
+          ...s.candidates,
+          [titleId]: {
+            loading: false,
+            items: [],
+            error: err instanceof Error ? err.message : 'Search failed',
+          },
+        },
       }));
     }
   },
@@ -249,11 +269,13 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const meta = (await callBackend(
         (api) => api.metadataOverride(titleId, slugOrId),
-        () => httpApi.metadataOverride(titleId, slugOrId),
+        () => httpApi.metadataOverride(titleId, slugOrId)
       )) as { name?: string };
       addToast('success', `Matched ${meta.name || titleId}`);
       set((s) => ({
-        backfill: s.backfill ? { ...s.backfill, missed: s.backfill.missed.filter((m) => m.titleId !== titleId) } : s.backfill,
+        backfill: s.backfill
+          ? { ...s.backfill, missed: s.backfill.missed.filter((m) => m.titleId !== titleId) }
+          : s.backfill,
       }));
       void get().loadGenres();
       return true;
@@ -267,10 +289,12 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       await callBackend(
         (api) => api.metadataIgnore(titleId, title),
-        () => httpApi.metadataIgnore(titleId, title),
+        () => httpApi.metadataIgnore(titleId, title)
       );
       set((s) => ({
-        backfill: s.backfill ? { ...s.backfill, missed: s.backfill.missed.filter((m) => m.titleId !== titleId) } : s.backfill,
+        backfill: s.backfill
+          ? { ...s.backfill, missed: s.backfill.missed.filter((m) => m.titleId !== titleId) }
+          : s.backfill,
       }));
       await get().loadIgnored();
       addToast('success', `Ignored ${titleId} — excluded from future runs`);
@@ -283,9 +307,9 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       const list = (await callBackend(
         (api) => api.metadataIgnored(),
-        () => httpApi.metadataIgnored(),
+        () => httpApi.metadataIgnored()
       )) as IgnoredTitle[] | { ignored: IgnoredTitle[] };
-      set({ ignored: Array.isArray(list) ? list : list.ignored ?? [] });
+      set({ ignored: Array.isArray(list) ? list : (list.ignored ?? []) });
     } catch {
       /* ignore — section stays hidden */
     }
@@ -295,7 +319,7 @@ export const createCatalogSlice: StateCreator<AppState, [], [], CatalogSlice> = 
     try {
       await callBackend(
         (api) => api.metadataUnignore(titleId),
-        () => httpApi.metadataUnignore(titleId),
+        () => httpApi.metadataUnignore(titleId)
       );
       await get().loadIgnored();
       addToast('success', `Unignored ${titleId} — back in the next run`);

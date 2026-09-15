@@ -3,6 +3,7 @@ import { Download02Icon, InformationCircleIcon } from '@hugeicons/core-free-icon
 import type { Game } from '../../types';
 import { useAppStore } from '../../store/appStore';
 import { COVER_FALLBACK } from '../../lib/catalog';
+import { hoverAccentFill, hoverOutline } from '../../lib/hover';
 
 interface GameCardListProps { game: Game; onClick: () => void; }
 
@@ -40,8 +41,7 @@ export default function GameCardList({ game, onClick }: GameCardListProps) {
           onClick={(e) => e.stopPropagation()}
           className="font-semibold rounded transition-colors flex items-center gap-2"
           style={{ fontSize: '13px', padding: '8px 16px', backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)', borderRadius: '4px', fontWeight: 600 }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+          {...hoverAccentFill}
         >
           <HugeiconsIcon icon={Download02Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Download
         </button>
@@ -49,8 +49,7 @@ export default function GameCardList({ game, onClick }: GameCardListProps) {
           onClick={(e) => { e.stopPropagation(); onClick(); }}
           className="rounded transition-colors flex items-center gap-2"
           style={{ fontSize: '13px', padding: '8px 12px', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '4px' }}
-          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+          {...hoverOutline}
         >
           <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Info
         </button>

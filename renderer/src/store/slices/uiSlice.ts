@@ -29,7 +29,8 @@ export interface UiSlice {
   whatsNewOpen: boolean;
   setWhatsNewOpen: (open: boolean) => void;
   maybeShowWhatsNew: () => void;
-  updateStatus: 'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'stalled' | 'error' | 'unavailable';
+  updateStatus:
+    'idle' | 'checking' | 'available' | 'downloading' | 'downloaded' | 'stalled' | 'error' | 'unavailable';
   updateVersion: string | null;
   updateProgress: number;
   updateTransferred: number;
@@ -105,7 +106,13 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
       return;
     }
     set({ updateStatus: 'checking', updateError: null });
-    const res = (await tryLive((api) => api.updateCheck())) as { status?: string; available?: boolean; version?: string | null; current?: string | null; error?: string } | null;
+    const res = (await tryLive((api) => api.updateCheck())) as {
+      status?: string;
+      available?: boolean;
+      version?: string | null;
+      current?: string | null;
+      error?: string;
+    } | null;
     if (!res || res.status === 'unavailable') {
       set({ updateStatus: 'unavailable' });
       if (manual) addToast('info', 'Auto-update is unavailable in this build');
@@ -151,7 +158,12 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
     set({ updateStatus: 'downloading', updateProgress: 0 });
     const res = (await tryLive((api) => api.updateDownload())) as { status?: string; error?: string } | null;
     if (!res || res.status === 'error') {
-      set({ updateStatus: 'idle', updateVersion: null, updateProgress: 0, updateError: (res && res.error) || 'download failed' });
+      set({
+        updateStatus: 'idle',
+        updateVersion: null,
+        updateProgress: 0,
+        updateError: (res && res.error) || 'download failed',
+      });
       addToast('error', `Update download failed: ${(res && res.error) || 'unknown'}`);
     }
   },
@@ -165,21 +177,23 @@ export const createUiSlice: StateCreator<AppState, [], [], UiSlice> = (set, get)
   unreadNotifications: 0,
   markNotificationsRead: () => set({ unreadNotifications: 0 }),
   clearNotificationHistory: () => set({ notificationHistory: [], unreadNotifications: 0 }),
-  addToast: (type, message) => set((state) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const entry = { id, type, message, at: Date.now() };
-    const newToasts = [...state.toasts, entry];
-    const history = [...state.notificationHistory, entry].slice(-50);
-    setTimeout(() => {
-      set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
-    }, 5000);
-    return {
-      toasts: newToasts,
-      notificationHistory: history,
-      unreadNotifications: state.unreadNotifications + 1,
-    };
-  }),
-  removeToast: (id) => set((state) => ({
-    toasts: state.toasts.filter((t) => t.id !== id),
-  })),
+  addToast: (type, message) =>
+    set((state) => {
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const entry = { id, type, message, at: Date.now() };
+      const newToasts = [...state.toasts, entry];
+      const history = [...state.notificationHistory, entry].slice(-50);
+      setTimeout(() => {
+        set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
+      }, 5000);
+      return {
+        toasts: newToasts,
+        notificationHistory: history,
+        unreadNotifications: state.unreadNotifications + 1,
+      };
+    }),
+  removeToast: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id),
+    })),
 });

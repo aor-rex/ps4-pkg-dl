@@ -27,6 +27,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate site (links, anchors, assets, syntax)
+        run: python3 .github/validate-site.py
+
+      - name: Prettier check
+        run: npx --yes prettier@3 --check site/
+
       - name: Sync install script and icon into site
         run: |
           cp install.sh site/install.sh

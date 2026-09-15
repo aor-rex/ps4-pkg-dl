@@ -5,16 +5,13 @@ import { useAppStore } from '../../store/appStore';
 import GameCard from './GameCard';
 import GameCardList from './GameCardList';
 import type { Game } from '../../types';
+import { timeOf } from '../../lib/genres';
 
 export default function GameGrid() {
   const { filteredGames, openGameDetail, setCurrentView, selectedGenre, sortBy, viewMode, currentPage, setCurrentPage, setViewMode, setSortBy, browseLoading, liveMode, searchQuery, setSettingsOpen, setSettingsCategory, settings } = useAppStore();
   const compact = settings.compactMode;
   const showSetupPrompt = liveMode && !searchQuery.trim() && !selectedGenre;
 
-  const timeOf = (d: unknown) => {
-    const t = new Date(String(d || '')).getTime();
-    return Number.isFinite(t) ? t : 0;
-  };
   const sortedGames = useMemo(() => [...filteredGames].sort((a, b) => {
     if (sortBy === 'newest') return timeOf(b.date) - timeOf(a.date);
     if (sortBy === 'oldest') return timeOf(a.date) - timeOf(b.date);

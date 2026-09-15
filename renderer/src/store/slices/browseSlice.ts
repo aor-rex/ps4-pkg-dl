@@ -66,7 +66,7 @@ export const createBrowseSlice: StateCreator<AppState, [], [], BrowseSlice> = (s
         try {
           const s = (await callBackend(
             (api) => api.backfillStatus(),
-            () => httpApi.backfillStatus(),
+            () => httpApi.backfillStatus()
           )) as BackfillState | null;
           if (s && (s.status === 'running' || s.status === 'done' || s.status === 'cancelled')) {
             set({ backfill: s });
@@ -85,10 +85,19 @@ export const createBrowseSlice: StateCreator<AppState, [], [], BrowseSlice> = (s
           set({ downloads: list.map(uiToDownload) });
         });
         backend.onUpdateEvent((event, payload) => {
-          const p = (payload || {}) as { version?: string; percent?: number; transferred?: number; total?: number; error?: string };
+          const p = (payload || {}) as {
+            version?: string;
+            percent?: number;
+            transferred?: number;
+            total?: number;
+            error?: string;
+          };
           if (event === 'update:available') {
             set({ updateStatus: 'available', updateVersion: p.version || null });
-            get().addToast('info', `Update available${p.version ? `: v${p.version}` : ''} — see Settings → About`);
+            get().addToast(
+              'info',
+              `Update available${p.version ? `: v${p.version}` : ''} — see Settings → About`
+            );
           } else if (event === 'update:progress') {
             set({
               updateStatus: 'downloading',
@@ -102,7 +111,11 @@ export const createBrowseSlice: StateCreator<AppState, [], [], BrowseSlice> = (s
               get().addToast('info', 'Update download stalled — check your connection, retry if it persists');
             }
           } else if (event === 'update:downloaded') {
-            set({ updateStatus: 'downloaded', updateVersion: p.version || get().updateVersion, updateProgress: 100 });
+            set({
+              updateStatus: 'downloaded',
+              updateVersion: p.version || get().updateVersion,
+              updateProgress: 100,
+            });
             get().addToast('success', 'Update downloaded — restart to install');
           } else if (event === 'update:error') {
             set({ updateStatus: 'error', updateError: p.error || 'update failed' });
@@ -115,27 +128,30 @@ export const createBrowseSlice: StateCreator<AppState, [], [], BrowseSlice> = (s
         });
         // extraction progress -> map to download
         if (backend.onExtractEvent) {
-        backend.onExtractEvent((event, payload: unknown) => {
-          // Manual runs carry the archive path as id; auto runs carry the download id.
-          // Match either so both flows update the right row.
-          const matchId = (payload as { id?: string } | null)?.id;
-          const matchPath = (payload as { archive?: string } | null)?.archive;
-          const target = get().downloads.find((d) => d.id === matchId || (matchPath && d.path === matchPath));
-          const tid = target ? target.id : matchId;
-          const percent = (payload as { percent?: number; progress?: number } | null)?.percent
-            ?? (payload as { progress?: number } | null)?.progress;
-          const errText = (payload as { error?: string } | null)?.error || 'unknown';
-          if (event === 'extract:started' && tid) {
-            get().updateDownload(tid, { status: 'extracting', extractProgress: 0 });
-          } else if (event === 'extract:progress' && tid) {
-            get().updateDownload(tid, { status: 'extracting', extractProgress: percent });
-          } else if (event === 'extract:complete' && tid) {
-            get().updateDownload(tid, { status: 'completed', extractProgress: 100 });
-          } else if (event === 'extract:failed' && tid) {
-            get().updateDownload(tid, { status: 'failed' });
-            get().addToast('error', `Extraction failed: ${errText}`);
-          }
-        });
+          backend.onExtractEvent((event, payload: unknown) => {
+            // Manual runs carry the archive path as id; auto runs carry the download id.
+            // Match either so both flows update the right row.
+            const matchId = (payload as { id?: string } | null)?.id;
+            const matchPath = (payload as { archive?: string } | null)?.archive;
+            const target = get().downloads.find(
+              (d) => d.id === matchId || (matchPath && d.path === matchPath)
+            );
+            const tid = target ? target.id : matchId;
+            const percent =
+              (payload as { percent?: number; progress?: number } | null)?.percent ??
+              (payload as { progress?: number } | null)?.progress;
+            const errText = (payload as { error?: string } | null)?.error || 'unknown';
+            if (event === 'extract:started' && tid) {
+              get().updateDownload(tid, { status: 'extracting', extractProgress: 0 });
+            } else if (event === 'extract:progress' && tid) {
+              get().updateDownload(tid, { status: 'extracting', extractProgress: percent });
+            } else if (event === 'extract:complete' && tid) {
+              get().updateDownload(tid, { status: 'completed', extractProgress: 100 });
+            } else if (event === 'extract:failed' && tid) {
+              get().updateDownload(tid, { status: 'failed' });
+              get().addToast('error', `Extraction failed: ${errText}`);
+            }
+          });
         }
         tryLive((api) => api.listDownloads()).then((list) => {
           if (list) set({ downloads: list.map(uiToDownload) });
@@ -230,7 +246,7 @@ export const createBrowseSlice: StateCreator<AppState, [], [], BrowseSlice> = (s
     const applyDetail = (items: unknown[], meta: unknown) =>
       variantsToGame(
         game.slug,
-        (items as Parameters<typeof variantsToGame>[1]),
+        items as Parameters<typeof variantsToGame>[1],
         (meta as Parameters<typeof variantsToGame>[2]) ?? null
       );
     try {
@@ -285,9 +301,7 @@ export const createBrowseSlice: StateCreator<AppState, [], [], BrowseSlice> = (s
       return;
     }
     set((state) => {
-      const filtered = state.games.filter((game) =>
-        game.title.toLowerCase().includes(query.toLowerCase())
-      );
+      const filtered = state.games.filter((game) => game.title.toLowerCase().includes(query.toLowerCase()));
       return { searchQuery: query, filteredGames: filtered, currentPage: 1 };
     });
   },

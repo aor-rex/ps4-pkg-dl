@@ -5,6 +5,7 @@ import { useAppStore } from '../../store/appStore';
 import type { Mirror } from '../../types';
 import Spinner from '../common/Spinner';
 import { COVER_FALLBACK } from '../../lib/catalog';
+import { hoverAccentFill, hoverOutline } from '../../lib/hover';
 
 export default function GameDetail() {
   const {
@@ -144,8 +145,7 @@ export default function GameDetail() {
                   border: 'none',
                   cursor: 'pointer',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+                {...hoverAccentFill}
               >
                 <HugeiconsIcon icon={Download02Icon} strokeWidth={2} className="w-4 h-4" />
                 Download
@@ -399,8 +399,7 @@ export default function GameDetail() {
                             borderRadius: '4px',
                             border: '1px solid var(--border)',
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+                          {...hoverOutline}
                         >
                           <div>
                             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -423,8 +422,7 @@ export default function GameDetail() {
                               border: 'none',
                               cursor: 'pointer',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent-hover)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--accent)')}
+                            {...hoverAccentFill}
                           >
                             <HugeiconsIcon icon={Download02Icon} strokeWidth={2} className="w-4 h-4" />
                             Download
