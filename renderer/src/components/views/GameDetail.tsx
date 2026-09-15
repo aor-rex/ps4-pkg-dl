@@ -167,7 +167,7 @@ export default function GameDetail() {
                     borderRadius: '4px',
                     cursor: 'pointer',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.1)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 10%, transparent)')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <HugeiconsIcon icon={Download02Icon} strokeWidth={2} className="w-4 h-4" />

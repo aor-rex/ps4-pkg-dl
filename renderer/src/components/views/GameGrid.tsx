@@ -55,12 +55,12 @@ export default function GameGrid() {
           <div className="flex gap-1" style={{ height: '32px', alignItems: 'center', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border)', borderRadius: '4px', padding: '0 2px' }}>
             <button onClick={() => setViewMode('grid')} className="rounded transition-colors"
               aria-label="Grid view" aria-pressed={viewMode === 'grid'}
-              style={{ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'grid' ? 'rgba(102,192,244,0.1)' : 'transparent', borderRadius: '3px' }}>
+              style={{ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'grid' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'grid' ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent', borderRadius: '3px' }}>
               <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="7" height="7" rx="1"/><rect x="11" y="2" width="7" height="7" rx="1"/><rect x="2" y="11" width="7" height="7" rx="1"/><rect x="11" y="11" width="7" height="7" rx="1"/></svg>
             </button>
             <button onClick={() => setViewMode('list')} className="rounded transition-colors"
               aria-label="List view" aria-pressed={viewMode === 'list'}
-              style={{ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'list' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'list' ? 'rgba(102,192,244,0.1)' : 'transparent', borderRadius: '3px' }}>
+              style={{ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: viewMode === 'list' ? 'var(--accent)' : 'var(--text-muted)', backgroundColor: viewMode === 'list' ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent', borderRadius: '3px' }}>
               <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="3" width="16" height="2" rx="1"/><rect x="2" y="9" width="16" height="2" rx="1"/><rect x="2" y="15" width="16" height="2" rx="1"/></svg>
             </button>
           </div>
@@ -140,7 +140,7 @@ export default function GameGrid() {
           <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1}
             className="rounded transition-colors flex items-center gap-1"
             style={{ padding: '8px 12px', fontSize: '14px', color: currentPage === 1 ? 'var(--border)' : 'var(--text-muted)', borderRadius: '4px' }}
-            onMouseEnter={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.15)'; }}
+            onMouseEnter={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 15%, transparent)'; }}
             onMouseLeave={(e) => { if (currentPage !== 1) e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} /> Previous
@@ -160,7 +160,7 @@ export default function GameGrid() {
                   color: currentPage === page ? 'var(--bg-primary)' : 'var(--text-secondary)',
                   fontWeight: currentPage === page ? 600 : 400,
                 }}
-                onMouseEnter={(e) => { if (currentPage !== page) e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.15)'; }}
+                onMouseEnter={(e) => { if (currentPage !== page) e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 15%, transparent)'; }}
                 onMouseLeave={(e) => { if (currentPage !== page) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >{page}</button>
             );
@@ -168,7 +168,7 @@ export default function GameGrid() {
           <button onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages}
             className="rounded transition-colors flex items-center gap-1"
             style={{ padding: '8px 12px', fontSize: '14px', color: currentPage === totalPages ? 'var(--border)' : 'var(--text-muted)', borderRadius: '4px' }}
-            onMouseEnter={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.15)'; }}
+            onMouseEnter={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 15%, transparent)'; }}
             onMouseLeave={(e) => { if (currentPage !== totalPages) e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             Next <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} style={{ width: '14px', height: '14px' }} />

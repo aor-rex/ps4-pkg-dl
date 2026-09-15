@@ -27,7 +27,7 @@ export function Toggle({ checked, onChange }: { checked: boolean; onChange: (val
           width: '16px',
           height: '16px',
           borderRadius: '50%',
-          backgroundColor: checked ? '#ffffff' : 'var(--text-muted)',
+          backgroundColor: checked ? 'var(--on-primary-fixed)' : 'var(--text-muted)',
           transition: 'left 0.2s ease, background-color 0.2s ease',
         }}
       />

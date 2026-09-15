@@ -91,7 +91,7 @@ export default function GameCard({ game, onClick, compact = false }: GameCardPro
             {game.region && (
               <span
                 className="inline-block"
-                style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'rgba(102,192,244,0.15)', color: 'var(--accent)', borderRadius: '3px' }}
+                style={{ fontSize: '10px', padding: '2px 6px', backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)', color: 'var(--accent)', borderRadius: '3px' }}
               >
                 {game.region}
               </span>

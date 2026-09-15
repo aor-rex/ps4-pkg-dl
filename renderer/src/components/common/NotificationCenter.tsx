@@ -36,7 +36,7 @@ export default function NotificationCenter() {
         className="relative p-2 rounded transition-colors"
         onMouseEnter={(e) => {
           e.currentTarget.style.color = 'var(--accent)';
-          e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.1)';
+          e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 10%, transparent)';
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.color = 'var(--text-muted)';

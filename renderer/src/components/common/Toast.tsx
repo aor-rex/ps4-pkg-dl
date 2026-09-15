@@ -13,7 +13,7 @@ export default function ToastContainer() {
     switch (type) {
       case 'success': return <HugeiconsIcon icon={CheckmarkCircle01Icon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--success)' }} />;
       case 'error': return <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--error)' }} />;
-      case 'info': return <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--primary-container)' }} />;
+      case 'info': return <HugeiconsIcon icon={InformationCircleIcon} strokeWidth={2} className="w-5 h-5" style={{ color: 'var(--accent)' }} />;
       default: return null;
     }
   };
@@ -75,7 +75,7 @@ function ToastItem({
           <button
             onClick={onDone}
             className="p-1 rounded transition-colors"
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-bright)')}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             aria-label="Dismiss notification"
           >

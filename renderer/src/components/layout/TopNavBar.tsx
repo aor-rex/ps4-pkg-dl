@@ -75,7 +75,7 @@ export default function TopNavBar() {
                 height: '36px',
                 backgroundColor: 'var(--bg-tertiary)',
                 border: `1px solid ${searchFocused ? 'var(--accent)' : 'var(--border)'}`,
-                boxShadow: searchFocused ? '0 0 0 2px rgba(102,192,244,0.3)' : 'none',
+                boxShadow: searchFocused ? '0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent)' : 'none',
               }}
             >
               <HugeiconsIcon icon={Search01Icon} strokeWidth={2} className="ml-2 mr-1 flex-shrink-0" style={{ width: '16px', height: '16px', color: 'var(--text-muted)' }} />
@@ -166,7 +166,7 @@ export default function TopNavBar() {
             className="relative p-2 rounded transition-colors"
             onMouseEnter={(e) => {
               e.currentTarget.style.color = 'var(--accent)';
-              e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.1)';
+              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 10%, transparent)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = 'var(--text-muted)';
@@ -205,7 +205,7 @@ export default function TopNavBar() {
             className="p-2 rounded transition-colors"
             onMouseEnter={(e) => {
               e.currentTarget.style.color = 'var(--accent)';
-              e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.1)';
+              e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 10%, transparent)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = 'var(--text-muted)';

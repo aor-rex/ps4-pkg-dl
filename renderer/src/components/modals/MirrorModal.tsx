@@ -112,7 +112,7 @@ export default function MirrorModal() {
                 }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLDivElement).style.backgroundColor =
-                    'rgba(102,192,244,0.05)';
+                    'color-mix(in srgb, var(--accent) 5%, transparent)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLDivElement).style.backgroundColor =
@@ -158,7 +158,7 @@ export default function MirrorModal() {
                   }}
                   onMouseEnter={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                      'rgba(102,192,244,0.1)';
+                      'color-mix(in srgb, var(--accent) 10%, transparent)';
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.backgroundColor =

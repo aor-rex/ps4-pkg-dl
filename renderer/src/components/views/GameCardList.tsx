@@ -16,7 +16,7 @@ export default function GameCardList({ game, onClick }: GameCardListProps) {
       onClick={onClick}
       className="flex items-center w-full transition-colors cursor-pointer"
       style={{ height: compact ? '56px' : '80px', padding: compact ? '0 12px' : '0 16px', backgroundColor: 'transparent' }}
-      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.05)')}
+      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 5%, transparent)')}
       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
     >
       <img

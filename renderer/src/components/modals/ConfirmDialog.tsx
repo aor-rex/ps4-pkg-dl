@@ -121,7 +121,7 @@ export default function ConfirmDialog() {
             style={{
               backgroundColor: 'var(--error)',
               border: 'none',
-              color: 'var(--text-primary)',
+              color: 'var(--on-error)',
               fontSize: '14px',
               fontWeight: 600,
               padding: '8px 20px',
@@ -130,7 +130,7 @@ export default function ConfirmDialog() {
               transition: 'background-color 0.2s ease',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#d32f2f';
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--error-hover)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor =

@@ -158,7 +158,7 @@ export default function BottomDownloadBar() {
                     </div>
                   </div>
 
-                  {/* Progress Bar - UI Spec: 8px height, bg #2a475e, fill #66c0f4 */}
+                  {/* Progress Bar: 6px height, tertiary track, status-colored fill */}
                   <div className="mt-2 rounded overflow-hidden" style={{ height: '6px', backgroundColor: 'var(--bg-tertiary)' }}>
                     <div
                       className="h-full rounded progress-fill"
@@ -200,7 +200,7 @@ export default function BottomDownloadBar() {
                           onClick={() => void cancelDl(dl.id)}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--error)', color: 'var(--error)', borderRadius: '4px' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(244,67,54,0.1)')}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--error) 10%, transparent)')}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
                           <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} style={{ width: '12px', height: '12px' }} /> Cancel
@@ -223,7 +223,7 @@ export default function BottomDownloadBar() {
                           onClick={() => { const { retryDl } = useAppStore.getState(); void retryDl(dl.id); }}
                           className="flex items-center gap-1 px-3 rounded transition-colors"
                           style={{ fontSize: '12px', padding: '4px 12px', border: '1px solid var(--warning)', color: 'var(--warning)', borderRadius: '4px' }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(234,179,8,0.1)')}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--warning) 10%, transparent)')}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
                           Retry

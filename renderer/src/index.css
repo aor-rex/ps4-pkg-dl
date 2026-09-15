@@ -7,7 +7,7 @@
    Per UI Specification
    =========================== */
 
-:root {
+:root, [data-theme="kinetic-vault"] {
   /* Primary Colors - UI Spec Section 1.1 */
   --bg-primary: #1b2838;
   --bg-secondary: #1e2a3a;
@@ -23,7 +23,7 @@
   /* Text */
   --text-primary: #ffffff;
   --text-secondary: #c7d5e0;
-  --text-muted: #8f98a0;
+  --text-muted: #a9b6c6;
 
   /* Borders & Dividers */
   --border: #3a5068;
@@ -32,6 +32,8 @@
   --success: #4caf50;
   --warning: #ff9800;
   --error: #f44336;
+  --error-hover: #d32f2f;
+  --on-error: #ffffff;
 
   /* Aliases for component consistency */
   --bg-surface: #1b2838;
@@ -73,13 +75,15 @@
 
   --text-primary: #ffffff;
   --text-secondary: #b0b0b0;
-  --text-muted: #666666;
+  --text-muted: #9e9e9e;
 
   --border: rgba(255,255,255,0.12);
 
   --success: #4caf50;
   --warning: #ff9800;
   --error: #f44336;
+  --error-hover: #d32f2f;
+  --on-error: #ffffff;
 
   --bg-surface: #000000;
   --bg-surface-low: #050505;
@@ -120,13 +124,15 @@
 
   --text-primary: #1a1a2e;
   --text-secondary: #4a4a5a;
-  --text-muted: #888899;
+  --text-muted: #5b5b70;
 
   --border: #d0d5dd;
 
   --success: #2e7d32;
   --warning: #f57c00;
   --error: #c62828;
+  --error-hover: #a91f1f;
+  --on-error: #ffffff;
 
   --bg-surface: #ffffff;
   --bg-surface-low: #f5f5f5;

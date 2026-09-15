@@ -94,13 +94,13 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
                 height: '40px',
                 padding: collapsed ? '0' : '0 16px',
                 justifyContent: collapsed ? 'center' : 'flex-start',
-                backgroundColor: isActive ? 'rgba(102,192,244,0.15)' : 'transparent',
+                backgroundColor: isActive ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
                 color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
                 borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
-                  e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.08)';
+                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 8%, transparent)';
                   e.currentTarget.style.color = 'var(--accent)';
                 }
               }}
@@ -142,7 +142,7 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: collapsed ? 'center' : 'flex-start',
-                backgroundColor: selectedGenre === genre.name ? 'rgba(102,192,244,0.15)' : 'transparent',
+                backgroundColor: selectedGenre === genre.name ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
                 color: selectedGenre === genre.name ? 'var(--accent)' : 'var(--text-secondary)',
                 fontWeight: selectedGenre === genre.name ? 600 : 400,
                 fontSize: '14px',
@@ -151,7 +151,7 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
               onMouseEnter={(e) => {
                 if (selectedGenre !== genre.name) {
                   e.currentTarget.style.color = 'var(--accent)';
-                  e.currentTarget.style.backgroundColor = 'rgba(102,192,244,0.08)';
+                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent) 8%, transparent)';
                 }
               }}
               onMouseLeave={(e) => {
