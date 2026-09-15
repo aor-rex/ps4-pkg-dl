@@ -93,7 +93,10 @@ class DownloadManager extends EventEmitter {
     if (this._acquire(engine.id)) {
       try {
         engine.start();
-      } catch (_) {
+      } catch (error) {
+        // The release IS the handling: the slot must not leak when start
+        // throws synchronously. The failure itself surfaces via the
+        // download:error event emitted by the engine.
         this._release(engine.id);
       }
     } else {
@@ -226,7 +229,10 @@ class DownloadManager extends EventEmitter {
       this.queue.shift();
       try {
         next.engine.start();
-      } catch (_) {
+      } catch {
+        // The release IS the handling: the slot must not leak when start
+        // throws synchronously. The engine surfaces the failure itself via
+        // the download:error event (see context.js listener).
         this._release(next.engine.id);
       }
     }
@@ -236,6 +242,7 @@ class DownloadManager extends EventEmitter {
    * Pause a download. Frees its concurrency slot so queued items can start.
    * Idle (never-started) engines are marked paused + dequeued; already-paused
    * is a no-op success.
+   * @returns {Promise<boolean>} false when the id is unknown
    */
   async pause(id) {
     const engine = this.downloads.get(id);
@@ -255,6 +262,7 @@ class DownloadManager extends EventEmitter {
   /**
    * Resume a download. Takes a slot when free; otherwise the engine waits in
    * the queue and starts automatically (never runs over the limit).
+   * @returns {Promise<boolean>} false when the id is unknown or not paused
    */
   async resume(id) {
     const engine = this.downloads.get(id);
@@ -273,6 +281,8 @@ class DownloadManager extends EventEmitter {
   /**
    * Cancel a download. Idle engines never held a slot; the explicit emit
    * keeps persistence/UI in sync where the engine itself stays silent.
+   * @param {boolean} [deleteFile=true] also delete the partial file
+   * @returns {Promise<boolean>} false when the id is unknown
    */
   async cancel(id, deleteFile = true) {
     const engine = this.downloads.get(id);
@@ -297,6 +307,7 @@ class DownloadManager extends EventEmitter {
 
   /**
    * Retry a failed download (slot-gated like resume).
+   * @returns {Promise<boolean>} false when the id is unknown
    */
   async retry(id) {
     const engine = this.downloads.get(id);
@@ -328,7 +339,8 @@ class DownloadManager extends EventEmitter {
   }
   
   /**
-   * Get status of a specific download
+   * Get status of a specific download.
+   * @returns {object|null} status object, or null when the id is unknown
    */
   getStatus(id) {
     const engine = this.downloads.get(id);
@@ -392,7 +404,8 @@ class DownloadManager extends EventEmitter {
   }
   
   /**
-   * Clear completed downloads
+   * Clear completed downloads.
+   * @returns {number} how many records were cleared
    */
   clearCompleted() {
     const count = this.completed.length;
@@ -401,7 +414,8 @@ class DownloadManager extends EventEmitter {
   }
 
   /**
-   * Live engine currently handling a PKG url (re-download detection)
+   * Live engine currently handling a PKG url (re-download detection).
+   * @returns {object|null} engine, or null when no live engine has the url
    */
   findByUrl(pkgUrl) {
     if (!pkgUrl) return null;
@@ -421,7 +435,8 @@ class DownloadManager extends EventEmitter {
   }
 
   /**
-   * Merge persisted completed rows back after restart (idempotent)
+   * Merge persisted completed rows back after restart (idempotent).
+   * @returns {number} how many rows were newly added
    */
   restoreCompleted(items) {
     const seen = new Set(this.completed.map((d) => d && d.id));
@@ -436,7 +451,8 @@ class DownloadManager extends EventEmitter {
   }
   
   /**
-   * Clear failed downloads
+   * Clear failed downloads.
+   * @returns {number} how many records were cleared
    */
   clearFailed() {
     const count = this.failed.length;

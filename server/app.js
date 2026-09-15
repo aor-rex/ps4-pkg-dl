@@ -462,21 +462,29 @@ function createApp(ctx) {
         ctx.downloadManager.setDefaultHeaders(
           patch.iaCookie && String(patch.iaCookie).trim() ? { Cookie: String(patch.iaCookie).trim() } : null
         );
-      } catch (_) {}
+      } catch (error) {
+        ctx.logger.warn(`[api] ignored failure applying iaCookie: ${error.message}`);
+      }
     }
     if ((patch.rawgApiKey !== undefined && patch.rawgApiKey !== '***set***') || patch.metadataTtlDays) {
       try {
         ctx.metadata.refreshConfig();
-      } catch (_) {}
+      } catch (error) {
+        ctx.logger.warn(`[api] ignored failure refreshing metadata config: ${error.message}`);
+      }
     }
     if (patch.maxConcurrentDownloads) {
       try {
         ctx.downloadManager.setMaxConcurrent(patch.maxConcurrentDownloads);
-      } catch (_) {}
+      } catch (error) {
+        ctx.logger.warn(`[api] ignored failure applying maxConcurrentDownloads: ${error.message}`);
+      }
     }
     try {
       if (ctx.syncNotificationPrefs) ctx.syncNotificationPrefs();
-    } catch (_) {}
+    } catch (error) {
+      ctx.logger.warn(`[api] ignored failure syncing notification prefs: ${error.message}`);
+    }
     res.json(publicSettings());
   });
 

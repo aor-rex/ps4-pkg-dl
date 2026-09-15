@@ -12,8 +12,11 @@ function dataDir() {
   return dir;
 }
 
+const DEFAULT_THROTTLE_DELAY_MS = 1200;
+const MAX_MISS_LIST = 500;
+
 class BackfillJob {
-  constructor({ archive, metadata, delayMs = 1200 } = {}) {
+  constructor({ archive, metadata, delayMs = DEFAULT_THROTTLE_DELAY_MS } = {}) {
     this.archive = archive;
     this.metadata = metadata;
     this.delayMs = delayMs;
@@ -46,7 +49,7 @@ class BackfillJob {
   /** Bounded miss recording — the list caps, the counter doesn't. */
   _recordMiss(miss) {
     this.state.missedTotal = (this.state.missedTotal || 0) + 1;
-    if (this.state.missed.length < 500) this.state.missed.push(miss);
+    if (this.state.missed.length < MAX_MISS_LIST) this.state.missed.push(miss);
   }
 
   _loadState() {
@@ -55,16 +58,16 @@ class BackfillJob {
         const s = JSON.parse(fs.readFileSync(this.statePath, 'utf8'));
         if (s && typeof s === 'object' && s.status !== 'running') this.state = { ...this._freshState(), ...s };
       }
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.error(`[backfill] cannot load state: ${error.message}`);
     }
   }
 
   _persist() {
     try {
       fs.writeFileSync(this.statePath, JSON.stringify(this.state));
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.error(`[backfill] cannot persist state: ${error.message}`);
     }
   }
 

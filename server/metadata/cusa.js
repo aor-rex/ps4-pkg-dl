@@ -4,6 +4,8 @@ const path = require('path');
 
 const DEFAULT_SNAPSHOT_URL =
   'https://raw.githubusercontent.com/andshrew/PlayStation-Titles/master/Json/PS4_Titles.json';
+const MS_PER_DAY = 86400000;
+const SNAPSHOT_FETCH_TIMEOUT_MS = 120000;
 
 function dataDir() {
   const dir = require('../../main/settings').getConfigDir();
@@ -43,7 +45,7 @@ class CusaTable {
       entries: this.index.size,
       loaded: this.loaded,
       fetchedAt,
-      stale: fetchedAt ? Date.now() - fetchedAt > this.ttlDays * 86400000 : true,
+      stale: fetchedAt ? Date.now() - fetchedAt > this.ttlDays * MS_PER_DAY : true,
     };
   }
 
@@ -55,7 +57,7 @@ class CusaTable {
     }
     console.error(`[cusa] downloading snapshot (${this.snapshotUrl})…`);
     const res = await axios.get(this.snapshotUrl, {
-      timeout: 120000,
+      timeout: SNAPSHOT_FETCH_TIMEOUT_MS,
       maxRedirects: 5,
       headers: { 'User-Agent': 'ps4-pkg-dl/0.1.0', Accept: 'application/json' },
     });

@@ -85,10 +85,14 @@ function armStallWatchdog() {
           updateStallSent = true;
           broadcast('update:stalled', { percent: updaterState.percent });
         }
-      } catch (_) {}
+      } catch (error) {
+        console.error(`[updater] stall watchdog tick failed: ${error.message}`);
+      }
     }, 10000);
     if (updateStallTimer.unref) updateStallTimer.unref();
-  } catch (_) {}
+  } catch (error) {
+    console.error(`[updater] cannot arm stall watchdog: ${error.message}`);
+  }
 }
 
 let ctxRef = null;
@@ -107,7 +111,8 @@ function wireAutoUpdater(ctx) {
   const applyChannel = () => {
     try {
       autoUpdater.allowPrerelease = ctx.settings.get('updateChannel') !== 'stable';
-    } catch (_) {
+    } catch (error) {
+      console.error(`[updater] cannot read update channel, defaulting to prerelease: ${error.message}`);
       autoUpdater.allowPrerelease = true;
     }
   };
@@ -132,18 +137,24 @@ function wireAutoUpdater(ctx) {
     updaterState = { status: 'downloaded', version: (info && info.version) || updaterState.version, percent: 100, transferred: updaterState.transferred, total: updaterState.total, error: null };
     try {
       ctx.updateDownloadActive = false;
-    } catch (_) {}
+    } catch (error) {
+      console.error(`[updater] cannot clear download flag: ${error.message}`);
+    }
     updateStallSent = false;
     broadcast('update:downloaded', { version: updaterState.version });
     try {
       if (ctx.notifications) ctx.notifications.send(`Update ${updaterState.version || ''} downloaded`.trim(), 'Restart the app to install it');
-    } catch (_) {}
+    } catch (error) {
+      console.error(`[updater] cannot send downloaded notification: ${error.message}`);
+    }
   });
   autoUpdater.on('error', (error) => {
     updaterState = { status: 'error', version: null, percent: 0, transferred: 0, total: 0, error: (error && error.message) || String(error) };
     try {
       ctx.updateDownloadActive = false;
-    } catch (_) {}
+    } catch (error) {
+      console.error(`[updater] cannot clear download flag: ${error.message}`);
+    }
     broadcast('update:error', { error: updaterState.error });
   });
   return autoUpdater;
@@ -161,8 +172,12 @@ app.whenReady().then(() => {
     let autoCheck = true;
     try {
       autoCheck = ctx.settings.get('autoCheckUpdates') !== false;
-    } catch (_) {}
-    if (autoCheck) updater.checkForUpdates().catch(() => {});
+    } catch (error) {
+      console.error(`[updater] cannot read autoCheckUpdates, defaulting to on: ${error.message}`);
+    }
+    if (autoCheck) updater.checkForUpdates().catch((error) => {
+      console.error(`[updater] silent launch check failed: ${error.message}`);
+    });
   }
 
   app.on('activate', () => {

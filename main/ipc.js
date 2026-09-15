@@ -1,10 +1,18 @@
 /**
  * Electron IPC — thin layer over the shared server context
  * (archive catalog + direct PKG downloads). No scrapers.
+ *
+ * Handlers are grouped per domain; registerIpcHandlers only wires them.
  */
 const { ipcMain, dialog, shell, app } = require('electron');
 const { bootstrapContext } = require('../server/context');
 const { attachMeta, titleIdsForGenre, genreCounts, attachAdded } = require('../server/metaView');
+
+const ERROR_PREVIEW_LENGTH = 220;
+
+// Secrets never leave the main process in readable form: mask on read,
+// skip masked/undefined values on write (empty string still clears).
+const SECRET_KEYS = ['iaCookie', 'rawgApiKey'];
 
 let broadcaster = () => {};
 let mainWindowRef = null;
@@ -14,14 +22,65 @@ function sendToWindow(channel, payload) {
     const win = mainWindowRef;
     if (!win || win.isDestroyed()) return;
     win.webContents.send(channel, payload);
-  } catch (_) {}
+  } catch {
+    // Benign by design: the window is gone (shutdown/navigation) and there
+    // is nowhere meaningful to report a UI-notify failure to.
+  }
 }
 
-function registerIpcHandlers(ctx) {
-  ctx.downloadManager.on('download:progress', (d) => broadcaster('progress', d));
-  ctx.downloadManager.on('download:complete', (d) => broadcaster('complete', d));
-  ctx.downloadManager.on('download:failed', (d) => broadcaster('failed', d));
+/** Best-effort diagnostic for intentionally non-fatal failures. */
+function logIgnored(ctx, where, error) {
+  try {
+    ctx.logger.warn(`[ipc] ignored failure in ${where}: ${String((error && error.message) || error || 'unknown')}`);
+  } catch {
+    /* logger itself unavailable — nothing left to report to */
+  }
+}
 
+function maskSecrets(all) {
+  const out = { ...(all || {}) };
+  for (const k of SECRET_KEYS) {
+    if (out[k]) out[k] = '***set***';
+  }
+  return out;
+}
+
+// One-line messages only — never stacks, headers or cookies to the UI
+function shortError(error) {
+  const msg = String((error && error.message) || error || 'unknown error');
+  const first = msg.split('\n')[0].trim();
+  return first.length > ERROR_PREVIEW_LENGTH ? `${first.slice(0, ERROR_PREVIEW_LENGTH)}…` : first;
+}
+
+// Channel-aware friendly mapping for update failures (one line, no stacks)
+function friendlyUpdateError(error, channel) {
+  const raw = String((error && error.message) || error || '');
+  const code = String((error && (error.code || error.errno)) || '');
+  const hay = `${code} ${raw}`;
+  if (/production release|status code 406|\b406\b/.test(hay)) {
+    return channel === 'stable'
+      ? 'No stable releases published yet — switch to Pre-release to keep getting betas.'
+      : 'Update feed unreachable right now — try again shortly.';
+  }
+  if (/ENOTFOUND|ECONNRESET|ETIMEDOUT|fetch failed|network|ERR_INTERNET|offline/i.test(hay)) {
+    return 'Update server unreachable — check your connection and retry.';
+  }
+  if (/403|rate limit|rate-limit|rate_limit/i.test(hay)) {
+    return 'GitHub rate-limited the check — try again in a few minutes.';
+  }
+  return shortError(error);
+}
+
+function resolveUpdateChannel(ctx) {
+  try {
+    return ctx.settings.get('updateChannel') === 'stable' ? 'stable' : 'prerelease';
+  } catch (error) {
+    logIgnored(ctx, 'resolveUpdateChannel', error);
+    return 'prerelease';
+  }
+}
+
+function registerGameHandlers(ctx) {
   ipcMain.handle('games:browse', async (_e, { page = 1, limit = 50, genre = '' } = {}) => {
     const onlyIds = genre ? titleIdsForGenre(genre) : null;
     const r = await ctx.archive.list({ page, limit, onlyIds });
@@ -38,64 +97,27 @@ function registerIpcHandlers(ctx) {
     let metadata = null;
     try {
       metadata = ctx.metadata.getCached(titleId.toUpperCase());
-    } catch {
-      /* ignore */
+    } catch (error) {
+      logIgnored(ctx, 'games:detail cached metadata', error);
     }
-    if (!metadata) ctx.metadata.get(titleId.toUpperCase(), variants[0].title).catch(() => {});
+    if (!metadata) {
+      ctx.metadata.get(titleId.toUpperCase(), variants[0].title)
+        .catch((error) => logIgnored(ctx, 'games:detail background enrich', error));
+    }
     return { titleId: titleId.toUpperCase(), count: variants.length, items: attachAdded(attachMeta(variants)), metadata };
   });
   ipcMain.handle('games:genres', async () => genreCounts());
+}
+
+function registerCatalogHandlers(ctx) {
   ipcMain.handle('catalog:status', async () => {
-    await ctx.archive.ensure().catch(() => {});
+    await ctx.archive.ensure().catch((error) => logIgnored(ctx, 'catalog:status ensure', error));
     return ctx.archive.status();
   });
   ipcMain.handle('catalog:load', async (_e, { url }) => {
     const status = await ctx.archive.loadUrl(url);
     ctx.settings.set('catalogUrl', status.catalogUrl);
     return status;
-  });
-  ipcMain.handle('backfill:start', async (_e, { scope }) => ctx.backfill.start(scope || 'missing'));
-  ipcMain.handle('backfill:status', async () => ctx.backfill.snapshot());
-  ipcMain.handle('backfill:cancel', async () => ctx.backfill.cancel());
-  ipcMain.handle('metadata:enrich', async (_e, { titleId }) => {
-    const variants = await ctx.archive.getVariants(titleId).catch(() => []);
-    const meta = await ctx.metadata.get(titleId, variants[0]?.title || '');
-    if (!meta) throw new Error(`No metadata match for ${titleId}`);
-    return meta;
-  });
-  ipcMain.handle('metadata:candidates', async (_e, { titleId } = {}) => {
-    const id = String(titleId || '').toUpperCase();
-    if (!/^CUSA\d{5}$/.test(id)) throw new Error('titleId (CUSA) required');
-    const variants = await ctx.archive.getVariants(id).catch(() => []);
-    if (!variants.length) throw new Error(`No game found for ${id}`);
-    const pool = await ctx.metadata.rawg.candidates(variants[0].title).catch(() => []);
-    return {
-      titleId: id,
-      title: variants[0].title,
-      candidates: pool.map((c) => ({
-        rawgId: c.rawgId, slug: c.slug, name: c.name,
-        released: c.released, image: c.backgroundImage, rating: c.rating, ps4: !!c.ps4,
-      })),
-    };
-  });
-  ipcMain.handle('metadata:override', async (_e, { titleId, slugOrId } = {}) => {
-    if (!titleId || slugOrId === undefined || String(slugOrId).trim() === '') {
-      throw new Error('Provide {titleId, slugOrId} (RAWG slug or numeric id)');
-    }
-    const pinned = ctx.metadata.setOverride(titleId, String(slugOrId).trim());
-    const variants = await ctx.archive.getVariants(pinned.titleId).catch(() => []);
-    const meta = await ctx.metadata.get(pinned.titleId, variants[0]?.title || '');
-    if (!meta) throw new Error(`Override saved, but it resolves to nothing for ${pinned.titleId}`);
-    return meta;
-  });
-  ipcMain.handle('metadata:ignored', async () => ({ ignored: ctx.metadata.getIgnored() }));
-  ipcMain.handle('metadata:ignore', async (_e, { titleId, title } = {}) => {
-    if (!titleId) throw new Error('titleId (CUSA) required');
-    return ctx.metadata.ignore(titleId, title || '');
-  });
-  ipcMain.handle('metadata:unignore', async (_e, { titleId } = {}) => {
-    if (!titleId) throw new Error('titleId (CUSA) required');
-    return ctx.metadata.unignore(titleId);
   });
   ipcMain.handle('catalog:refresh', async () => ctx.archive.refresh(true));
   ipcMain.handle('catalog:add', async (_e, { type, location, label } = {}) => {
@@ -127,14 +149,71 @@ function registerIpcHandlers(ctx) {
     ctx.syncSources();
     return status;
   });
-  ipcMain.handle('dialog:chooseFile', async (_e, { filters } = {}) => {
-    const res = await dialog.showOpenDialog({
-      properties: ['openFile'],
-      filters: filters || [{ name: 'Catalog JSON', extensions: ['json'] }],
-    });
-    return res.canceled ? null : res.filePaths[0];
-  });
+}
 
+function registerMetadataHandlers(ctx) {
+  ipcMain.handle('backfill:start', async (_e, { scope }) => ctx.backfill.start(scope || 'missing'));
+  ipcMain.handle('backfill:status', async () => ctx.backfill.snapshot());
+  ipcMain.handle('backfill:cancel', async () => ctx.backfill.cancel());
+  ipcMain.handle('metadata:enrich', async (_e, { titleId }) => {
+    const variants = await ctx.archive.getVariants(titleId)
+      .catch((error) => {
+        logIgnored(ctx, 'metadata:enrich variants', error);
+        return [];
+      });
+    const meta = await ctx.metadata.get(titleId, variants[0]?.title || '');
+    if (!meta) throw new Error(`No metadata match for ${titleId}`);
+    return meta;
+  });
+  ipcMain.handle('metadata:candidates', async (_e, { titleId } = {}) => {
+    const id = String(titleId || '').toUpperCase();
+    if (!/^CUSA\d{5}$/.test(id)) throw new Error('titleId (CUSA) required');
+    const variants = await ctx.archive.getVariants(id)
+      .catch((error) => {
+        logIgnored(ctx, 'metadata:candidates variants', error);
+        return [];
+      });
+    if (!variants.length) throw new Error(`No game found for ${id}`);
+    const pool = await ctx.metadata.rawg.candidates(variants[0].title)
+      .catch((error) => {
+        logIgnored(ctx, 'metadata:candidates rawg', error);
+        return [];
+      });
+    return {
+      titleId: id,
+      title: variants[0].title,
+      candidates: pool.map((c) => ({
+        rawgId: c.rawgId, slug: c.slug, name: c.name,
+        released: c.released, image: c.backgroundImage, rating: c.rating, ps4: !!c.ps4,
+      })),
+    };
+  });
+  ipcMain.handle('metadata:override', async (_e, { titleId, slugOrId } = {}) => {
+    if (!titleId || slugOrId === undefined || String(slugOrId).trim() === '') {
+      throw new Error('Provide {titleId, slugOrId} (RAWG slug or numeric id)');
+    }
+    const pinned = ctx.metadata.setOverride(titleId, String(slugOrId).trim());
+    const variants = await ctx.archive.getVariants(pinned.titleId)
+      .catch((error) => {
+        logIgnored(ctx, 'metadata:override variants', error);
+        return [];
+      });
+    const meta = await ctx.metadata.get(pinned.titleId, variants[0]?.title || '');
+    if (!meta) throw new Error(`Override saved, but it resolves to nothing for ${pinned.titleId}`);
+    return meta;
+  });
+  ipcMain.handle('metadata:ignored', async () => ({ ignored: ctx.metadata.getIgnored() }));
+  ipcMain.handle('metadata:ignore', async (_e, { titleId, title } = {}) => {
+    if (!titleId) throw new Error('titleId (CUSA) required');
+    return ctx.metadata.ignore(titleId, title || '');
+  });
+  ipcMain.handle('metadata:unignore', async (_e, { titleId } = {}) => {
+    if (!titleId) throw new Error('titleId (CUSA) required');
+    return ctx.metadata.unignore(titleId);
+  });
+}
+
+function registerDownloadHandlers(ctx) {
   ipcMain.handle('downloads:add', async (_e, { pkgUrl, url, titleId, id, force, label, source, gameTitle, fileType, size, region, version, cover, gameId } = {}) => {
     const resolvedUrl = pkgUrl || url;
     let entry = null;
@@ -171,22 +250,10 @@ function registerIpcHandlers(ctx) {
     else shell.openPath(ctx.settings.getDownloadDir());
     return true;
   });
-  ipcMain.handle('settings:openConfigFolder', async () => {
-    shell.openPath(require('./settings').getConfigDir());
-    return true;
-  });
+  ipcMain.handle('history:list', async (_e, filter = 'all') => ctx.downloadHistory.getAll(filter, 100));
+}
 
-  // Secrets never leave the main process in readable form: mask on read,
-  // skip masked/undefined values on write (empty string still clears).
-  const SECRET_KEYS = ['iaCookie', 'rawgApiKey'];
-  const maskSecrets = (all) => {
-    const out = { ...(all || {}) };
-    for (const k of SECRET_KEYS) {
-      if (out[k]) out[k] = '***set***';
-    }
-    return out;
-  };
-
+function registerSettingsHandlers(ctx) {
   ipcMain.handle('settings:get', async () => maskSecrets(ctx.settings.getAll()));
   ipcMain.handle('settings:set', async (_e, partial) => {
     for (const [k, v] of Object.entries(partial || {})) {
@@ -198,60 +265,45 @@ function registerIpcHandlers(ctx) {
     // one-way migration in server/context.js remains the only path.
     try {
       if (ctx.syncNotificationPrefs) ctx.syncNotificationPrefs();
-    } catch (_) {}
+    } catch (error) {
+      logIgnored(ctx, 'settings:set syncNotificationPrefs', error);
+    }
     return maskSecrets(ctx.settings.getAll());
   });
   ipcMain.handle('settings:chooseDirectory', async () => {
     const res = await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'] });
     return res.canceled ? null : res.filePaths[0];
   });
+  ipcMain.handle('settings:openConfigFolder', async () => {
+    shell.openPath(require('./settings').getConfigDir());
+    return true;
+  });
+  ipcMain.handle('dialog:chooseFile', async (_e, { filters } = {}) => {
+    const res = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: filters || [{ name: 'Catalog JSON', extensions: ['json'] }],
+    });
+    return res.canceled ? null : res.filePaths[0];
+  });
+}
 
+function registerSystemHandlers(ctx) {
   ipcMain.handle('system:check', async () => ({
     version: app.getVersion(),
     platform: process.platform,
     catalog: ctx.archive.status(),
   }));
+}
 
-  // One-line messages only — never stacks, headers or cookies to the UI
-  const shortError = (error) => {
-    const msg = String((error && error.message) || error || 'unknown error');
-    const first = msg.split('\n')[0].trim();
-    return first.length > 220 ? `${first.slice(0, 220)}…` : first;
-  };
-
-  // Channel-aware friendly mapping for update failures (one line, no stacks)
-  const friendlyUpdateError = (error, channel) => {
-    const raw = String((error && error.message) || error || '');
-    const code = String((error && (error.code || error.errno)) || '');
-    const hay = `${code} ${raw}`;
-    if (/production release|status code 406|\b406\b/.test(hay)) {
-      return channel === 'stable'
-        ? 'No stable releases published yet — switch to Pre-release to keep getting betas.'
-        : 'Update feed unreachable right now — try again shortly.';
-    }
-    if (/ENOTFOUND|ECONNRESET|ETIMEDOUT|fetch failed|network|ERR_INTERNET|offline/i.test(hay)) {
-      return 'Update server unreachable — check your connection and retry.';
-    }
-    if (/403|rate limit|rate-limit|rate_limit/i.test(hay)) {
-      return 'GitHub rate-limited the check — try again in a few minutes.';
-    }
-    return shortError(error);
-  };
-
-  const updateChannel = () => {
-    try {
-      return ctx.settings.get('updateChannel') === 'stable' ? 'stable' : 'prerelease';
-    } catch (_) {
-      return 'prerelease';
-    }
-  };
-
+function registerUpdateHandlers(ctx) {
   ipcMain.handle('update:check', async () => {
     if (!ctx.appUpdater) return { status: 'unavailable' };
-    const channel = updateChannel();
+    const channel = resolveUpdateChannel(ctx);
     try {
       ctx.appUpdater.allowPrerelease = channel !== 'stable';
-    } catch (_) {}
+    } catch (error) {
+      logIgnored(ctx, 'update:check allowPrerelease', error);
+    }
     try {
       // NOTE: checkForUpdates() resolves non-null even when up-to-date —
       // the real signal is res.isUpdateAvailable, not res truthiness.
@@ -272,7 +324,9 @@ function registerIpcHandlers(ctx) {
     // Timestamp (not boolean): doubles as the watchdog's grace-period start
     try {
       ctx.updateDownloadActive = Date.now();
-    } catch (_) {}
+    } catch (error) {
+      logIgnored(ctx, 'update:download timestamp', error);
+    }
     try {
       await ctx.appUpdater.downloadUpdate();
       return { status: 'downloading' };
@@ -291,6 +345,9 @@ function registerIpcHandlers(ctx) {
     ctx.appUpdater.quitAndInstall(false, true);
     return { status: 'restarting' };
   });
+}
+
+function registerExtractHandlers(ctx) {
   ipcMain.handle('extract:run', async (_e, archivePath) => {
     if (!archivePath || typeof archivePath !== 'string') throw new Error('Provide an archive path');
     // Forward extractor lifecycle to the renderer's extract:* channels.
@@ -309,7 +366,9 @@ function registerIpcHandlers(ctx) {
     } finally {
       try {
         ctx.extractor.removeListener('progress', onProgress);
-      } catch (_) {}
+      } catch (error) {
+        logIgnored(ctx, 'extract:run removeListener', error);
+      }
     }
   });
   ipcMain.handle('cache:stats', async () => ctx.cacheStats());
@@ -317,7 +376,21 @@ function registerIpcHandlers(ctx) {
     const cleared = ctx.clearCache();
     return !!cleared;
   });
-  ipcMain.handle('history:list', async (_e, filter = 'all') => ctx.downloadHistory.getAll(filter, 100));
+}
+
+function registerIpcHandlers(ctx) {
+  ctx.downloadManager.on('download:progress', (d) => broadcaster('progress', d));
+  ctx.downloadManager.on('download:complete', (d) => broadcaster('complete', d));
+  ctx.downloadManager.on('download:failed', (d) => broadcaster('failed', d));
+
+  registerGameHandlers(ctx);
+  registerCatalogHandlers(ctx);
+  registerMetadataHandlers(ctx);
+  registerDownloadHandlers(ctx);
+  registerSettingsHandlers(ctx);
+  registerSystemHandlers(ctx);
+  registerUpdateHandlers(ctx);
+  registerExtractHandlers(ctx);
 }
 
 module.exports = {

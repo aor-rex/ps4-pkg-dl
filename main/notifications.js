@@ -16,7 +16,9 @@ function appIconPath() {
     let configDir = null;
     try {
       configDir = require('./settings').getConfigDir();
-    } catch (_) {}
+    } catch (error) {
+      console.error(`[notifications] cannot resolve config dir: ${error.message}`);
+    }
     if (!configDir) return undefined;
     if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true });
     const dest = path.join(configDir, 'app-icon.png');
@@ -25,7 +27,9 @@ function appIconPath() {
       if (fs.existsSync(src)) fs.copyFileSync(src, dest);
     }
     if (fs.existsSync(dest)) cachedIconPath = dest;
-  } catch (_) {}
+  } catch (error) {
+    console.error(`[notifications] cannot stage app icon: ${error.message}`);
+  }
   return cachedIconPath;
 }
 

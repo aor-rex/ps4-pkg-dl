@@ -4,6 +4,11 @@ const path = require('path');
 const crypto = require('crypto');
 
 const DEFAULT_CATALOG_URL = '';
+const CATALOG_FETCH_TIMEOUT_MS = 60000;
+const MS_PER_HOUR = 3_600_000;
+
+// Naming convention in this file: fetch* = network, load* = disk,
+// get* = in-memory lookup, refresh/ensure = cache policy, list = query.
 
 function catalogCachePaths() {
   const dir = require('../main/settings').getConfigDir();
@@ -153,7 +158,7 @@ class ArchiveProvider {
     let res;
     try {
       res = await axios.get(source.location, {
-        timeout: 60000,
+        timeout: CATALOG_FETCH_TIMEOUT_MS,
         maxRedirects: 5,
         headers: { 'User-Agent': 'ps4-pkg-dl/0.1.0', Accept: 'application/json' },
       });
@@ -230,7 +235,7 @@ class ArchiveProvider {
   _sourceGames = new Map(); // id -> games[] (in-memory per-source lists)
 
   isStale(id = null) {
-    const ttl = this.ttlHours * 3_600_000;
+    const ttl = this.ttlHours * MS_PER_HOUR;
     if (id) {
       const st = this.sourceState.get(id);
       if (!st || !st.fetchedAt) return true;

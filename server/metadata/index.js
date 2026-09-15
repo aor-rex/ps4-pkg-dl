@@ -11,6 +11,8 @@ const { getConfigDir } = require('../../main/settings');
 const { RawgClient } = require('./rawg');
 const { CusaTable, normalizeCusa } = require('./cusa');
 
+const MS_PER_DAY = 86400000;
+
 function overridesPath() {
   const dir = getConfigDir();
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -30,7 +32,7 @@ function resolveApiKey(settings) {
     const k = settings.get('rawgApiKey');
     if (k && String(k).trim() && String(k).trim() !== '***set***') return String(k).trim();
   } catch {
-    /* ignore */
+    /* no key configured — enrichment stays disabled, not an error */
   }
   return '';
 }
@@ -70,7 +72,7 @@ class MetadataService {
     if (row.fetched_at) {
       // SQLite datetime('now') is UTC "YYYY-MM-DD HH:MM:SS" — parse as UTC
       const t = Date.parse(String(row.fetched_at).replace(' ', 'T') + 'Z');
-      stale = !isFinite(t) || Date.now() - t > this.ttlDays * 86400000;
+      stale = !isFinite(t) || Date.now() - t > this.ttlDays * MS_PER_DAY;
     }
     return {
       titleId: row.title_id,
@@ -163,6 +165,10 @@ class MetadataService {
     return { titleId: id, ignored: false };
   }
 
+  /**
+   * Cached metadata only — never touches the network.
+   * @returns {object|null} fresh cached entry, or null on miss/stale/error
+   */
   getCached(titleId) {
     const id = normalizeCusa(titleId);
     if (!id) return null;
@@ -181,6 +187,8 @@ class MetadataService {
    * @param {string} titleId CUSA id
    * @param {string} catalogTitle fallback title from archive catalog
    * @param {{rawgId?: number}} opts manual override (one-shot, not persisted)
+   * @returns {object|null} metadata, or null when nothing resolves (override
+   *   misses fail loudly via console.error and still return null)
    */
   async get(titleId, catalogTitle = '', opts = {}) {
     const id = normalizeCusa(titleId);

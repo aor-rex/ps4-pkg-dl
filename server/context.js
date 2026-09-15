@@ -44,7 +44,9 @@ function bootstrapContext() {
         extractComplete: settings.get('notifyOnExtractComplete'),
         soundAlert: settings.get('soundAlert'),
       });
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('syncNotificationPrefs', error);
+    }
   };
   syncNotificationPrefs();
 
@@ -73,6 +75,15 @@ function bootstrapContext() {
     return msg;
   }
 
+  /** Best-effort diagnostic for intentionally non-fatal failures. */
+  function logIgnored(where, error) {
+    try {
+      logger.warn(`[context] ignored failure in ${where}: ${String((error && error.message) || error || 'unknown')}`);
+    } catch {
+      /* logger unavailable — nothing left to report to */
+    }
+  }
+
   const extractor = new Extractor({
     extractTo: settings.get('extractTo'),
     customDir: settings.get('customExtractDir') || null,
@@ -92,7 +103,9 @@ function bootstrapContext() {
         'catalogs',
         archive.sources.map((s) => ({ id: s.id, type: s.type, location: s.location, label: s.label, enabled: s.enabled }))
       );
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('syncSources', error);
+    }
   }
 
   const { MetadataService } = require('./metadata');
@@ -126,7 +139,8 @@ function bootstrapContext() {
     let rows = [];
     try {
       rows = downloadHistory.getActive() || [];
-    } catch (_) {
+    } catch (error) {
+      logIgnored('hydrateInterrupted getActive', error);
       return 0;
     }
     let restored = 0;
@@ -157,7 +171,9 @@ function bootstrapContext() {
               // keep row title below in sync via meta below
             }
           }
-        } catch (_) {}
+        } catch (error) {
+          logIgnored('hydrateInterrupted catalog lookup', error);
+        }
         const id = downloadManager.restorePaused({
           url,
           destination,
@@ -168,7 +184,9 @@ function bootstrapContext() {
         });
         meta.set(id, { historyId: row.id, titleId, title, pkgUrl: url, cover, region, version, size });
         restored++;
-      } catch (_) {}
+      } catch (error) {
+        logIgnored('hydrateInterrupted row restore', error);
+      }
     }
     return restored;
   }
@@ -179,7 +197,8 @@ function bootstrapContext() {
     let rows = [];
     try {
       rows = downloadHistory.getCompleted(200) || [];
-    } catch (_) {
+    } catch (error) {
+      logIgnored('hydrateCompleted getCompleted', error);
       return 0;
     }
     const items = [];
@@ -195,7 +214,9 @@ function bootstrapContext() {
             cover = entry.cover || entry.coverUrl || null;
             if (title === 'Download' && entry.title) title = entry.title;
           }
-        } catch (_) {}
+        } catch (error) {
+          logIgnored('hydrateCompleted catalog lookup', error);
+        }
         const total = Number(row.filesize) || 0;
         const id = `hist_${row.id}`;
         items.push({
@@ -211,11 +232,14 @@ function bootstrapContext() {
         if (!meta.has(id)) {
           meta.set(id, { historyId: row.id, titleId: null, title, pkgUrl: url, cover, region: null, version: null, size: null });
         }
-      } catch (_) {}
+      } catch (error) {
+        logIgnored('hydrateCompleted row restore', error);
+      }
     }
     try {
       return downloadManager.restoreCompleted(items);
-    } catch (_) {
+    } catch (error) {
+      logIgnored('hydrateCompleted restoreCompleted', error);
       return 0;
     }
   }
@@ -224,10 +248,14 @@ function bootstrapContext() {
     const m = meta.get(d.id) || {};
     try {
       downloadHistory.markCompleted(m.historyId, d.filePath || d.path || null, d.stats?.totalBytes ?? null);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:complete markCompleted', error);
+    }
     try {
       notifications.sendDownloadComplete(d.label || d.gameTitle || 'Download', d.filePath || null);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:complete notify', error);
+    }
     const archivePath = d.filePath || d.path;
     // PKGs from archive.org are not archives for 7z — skip auto-extract for .pkg
     if (settings.get('autoExtract') && archivePath && extractor.isArchive(archivePath)) {
@@ -236,12 +264,16 @@ function bootstrapContext() {
         .then(() => {
           try {
             notifications.sendExtractComplete(path.basename(archivePath), path.dirname(archivePath));
-          } catch (_) {}
+          } catch (error) {
+            logIgnored('download:complete extract notify', error);
+          }
         })
         .catch((err) => {
           try {
             notifications.sendExtractFailed(path.basename(archivePath), err && err.message);
-          } catch (_) {}
+          } catch (error) {
+            logIgnored('download:complete extract-failed notify', error);
+          }
         });
     }
   });
@@ -251,29 +283,39 @@ function bootstrapContext() {
     const err = friendlyError(d.url || m.pkgUrl, d.error);
     try {
       downloadHistory.markFailed(m.historyId, err);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:failed markFailed', error);
+    }
     try {
       notifications.sendDownloadFailed(d.label || d.gameTitle || 'Download', err);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:failed notify', error);
+    }
   });
   // Persist pause/cancel/resume so interrupted downloads restore after restart
   downloadManager.on('download:paused', (d) => {
     const m = meta.get(d.id) || {};
     try {
       if (m.historyId) downloadHistory.markPaused(m.historyId);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:paused persist', error);
+    }
   });
   downloadManager.on('download:cancelled', (d) => {
     const m = meta.get(d.id) || {};
     try {
       if (m.historyId) downloadHistory.markCancelled(m.historyId);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:cancelled persist', error);
+    }
   });
   downloadManager.on('download:resumed', (d) => {
     const m = meta.get(d.id) || {};
     try {
       if (m.historyId) downloadHistory.markStarted(m.historyId);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('download:resumed persist', error);
+    }
   });
   downloadManager.on('download:error', (d) => {
     // engine-level error (retryable) — surfaced via status polling
@@ -295,14 +337,18 @@ function bootstrapContext() {
         if (live && (liveState === 'idle' || liveState === 'downloading' || liveState === 'paused')) {
           return { id: live.id, alreadyQueued: true };
         }
-      } catch (_) {}
+      } catch (error) {
+        logIgnored('queuePkgDownload live lookup', error);
+      }
       // Already finished on disk? Surface the completed record, don't re-download.
       try {
         const row = downloadHistory.findCompletedByUrl(pkgUrl);
         if (row && row.filepath && fs.existsSync(row.filepath)) {
           return { id: `hist_${row.id}`, alreadyCompleted: true, title: row.game_title || title || null };
         }
-      } catch (_) {}
+      } catch (error) {
+        logIgnored('queuePkgDownload completed lookup', error);
+      }
     }
     let destination = settings.getDownloadDir();
     if (settings.get('createSubfolder') && title) {
@@ -342,7 +388,9 @@ function bootstrapContext() {
         directUrl: pkgUrl,
         status: 'queued',
       });
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('queuePkgDownload history create', error);
+    }
     meta.set(id, { historyId, titleId: titleId || null, title: title || null, pkgUrl, cover: cover || null, region: region || null, version: version || null, size: size || null });
     return { id, historyId };
   }
@@ -396,7 +444,9 @@ function bootstrapContext() {
       const base = String(src).split('?')[0].split('/').pop() || '';
       const stem = base.replace(/\.(pkg|zip|rar|7z)$/i, '').replace(/[._-]+/g, ' ').trim();
       if (stem) return stem;
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('displayTitle filename fallback', error);
+    }
     return 'Download';
   }
 
@@ -417,14 +467,20 @@ function bootstrapContext() {
     let metadataRows = 0;
     try {
       metadataRows = ctx.metadata.clearCache();
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('clearCache metadata', error);
+    }
     try {
       ctx.backfill.state = ctx.backfill._freshState();
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('clearCache backfill state', error);
+    }
     try {
       const p = ctx.backfill.statePath;
       if (p && fs.existsSync(p)) fs.unlinkSync(p);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('clearCache state file', error);
+    }
     return { metadataRows, backfillReset: true };
   }
 
@@ -432,11 +488,15 @@ function bootstrapContext() {
     let metadata = { enriched: 0, lowConfidence: 0, catalogTotal: 0 };
     try {
       metadata = ctx.metadata.stats(ctx.archive.games.length);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('cacheStats metadata', error);
+    }
     let backfill = null;
     try {
       backfill = ctx.backfill.snapshot();
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('cacheStats backfill', error);
+    }
     return { metadata, backfill };
   }
 
@@ -444,29 +504,36 @@ function bootstrapContext() {
   async function removeDownload(id) {
     try {
       await downloadManager.cancel(id, false);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('removeDownload cancel', error);
+    }
     try {
       downloadManager.downloads.delete(id);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('removeDownload map delete', error);
+    }
     try {
       downloadManager.removeCompleted(id);
-    } catch (_) {}
+    } catch (error) {
+      logIgnored('removeDownload completed delete', error);
+    }
     const m = meta.get(id);
     if (m) {
       try {
         if (m.historyId) downloadHistory.delete(m.historyId);
         else if (String(id).startsWith('hist_')) downloadHistory.delete(Number(String(id).slice(5)));
-      } catch (_) {}
+      } catch (error) {
+        logIgnored('removeDownload history delete', error);
+      }
       meta.delete(id);
     }
     return { id, removed: true };
   }
 
-  // Rebuild tabs from history (fire-and-forget: sync boot stays fast)
-  try {
-    void hydrateCompleted();
-    void hydrateInterrupted();
-  } catch (_) {}
+  // Rebuild tabs from history (fire-and-forget: sync boot stays fast).
+  // Async rejections are logged — try/catch alone cannot catch them.
+  void hydrateCompleted().catch((error) => logIgnored('boot hydrateCompleted', error));
+  void hydrateInterrupted().catch((error) => logIgnored('boot hydrateInterrupted', error));
 
   return {
     settings,
