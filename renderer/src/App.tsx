@@ -84,17 +84,16 @@ export default function App() {
       {/* Top Navigation Bar - Fixed 56px */}
       <TopNavBar />
 
-      <div className="flex flex-1 overflow-hidden" style={{ marginTop: '56px' }}>
+      <div className="flex flex-1 min-h-0">
         {/* Sidebar - drag-resizable, snaps to 64px icon rail */}
         <SideNavBar width={sidebarWidth} collapsed={sidebarCollapsed} onWidthChange={handleSidebarWidth} />
 
         {/* Main Content Area - fills remaining space, scrollable */}
         <main
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-y-auto min-w-0"
           style={{
-            marginLeft: `${sidebarWidth}px`,
-            height: 'calc(100vh - 56px - 48px)',
             backgroundColor: 'var(--bg-primary)',
+            paddingBottom: '48px',
           }}
         >
           <ErrorBoundary

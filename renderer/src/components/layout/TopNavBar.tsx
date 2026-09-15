@@ -45,7 +45,7 @@ export default function TopNavBar() {
     <>
       {/* Top Nav - UI Spec Section 3: 56px, #171d25, 1px border-bottom */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4"
+        className="sticky top-0 left-0 right-0 z-50 flex items-center justify-between px-4"
         style={{
           height: '56px',
           backgroundColor: 'var(--bg-topnav)',
@@ -53,7 +53,7 @@ export default function TopNavBar() {
         }}
       >
         {/* Left: Logo Area - UI Spec 3.2 */}
-        <div className="flex items-center" style={{ width: '200px' }}>
+        <div className="flex items-center shrink-0">
           <button
             onClick={handleLogoClick}
             className="flex items-center gap-3 px-4 transition-opacity"
@@ -147,7 +147,7 @@ export default function TopNavBar() {
         </div>
 
         {/* Right: Actions - UI Spec 3.4, 3.5 */}
-        <div className="flex items-center" style={{ width: '200px', justifyContent: 'flex-end' }}>
+        <div className="flex items-center shrink-0" style={{ justifyContent: 'flex-end' }}>
           {/* Downloads Button - UI Spec 3.5 */}
           <button
             onClick={() => setDownloadManagerOpen(!useAppStore.getState().downloadManagerOpen)}
@@ -173,7 +173,7 @@ export default function TopNavBar() {
                   width: '16px',
                   height: '16px',
                   backgroundColor: 'var(--error)',
-                  color: '#ffffff',
+                  color: 'var(--on-error)',
                   fontSize: '10px',
                   fontWeight: 700,
                   borderRadius: '50%',

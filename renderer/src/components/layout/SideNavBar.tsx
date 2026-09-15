@@ -46,9 +46,8 @@ export default function SideNavBar({ width, collapsed, onWidthChange }: { width:
 
   return (
     <aside
-      className="fixed left-0 flex flex-col overflow-y-auto overflow-x-hidden z-40"
+      className="sticky top-0 flex flex-col overflow-y-auto overflow-x-hidden z-40 shrink-0"
       style={{
-        top: '56px',
         width: `${width}px`,
         height: 'calc(100vh - 56px - 48px)',
         backgroundColor: 'var(--bg-sidebar)',
