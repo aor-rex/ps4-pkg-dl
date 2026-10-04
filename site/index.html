@@ -17,7 +17,7 @@
     <header class="site-header">
       <div class="header-inner">
         <a class="brand" href="#top" aria-label="PS4 PKG Downloader home">
-          <img src="assets/icon.svg" alt="" width="28" height="28" />
+          <span class="brand-badge" aria-hidden="true">◉</span>
           <span>PS4 PKG DL</span>
         </a>
         <nav class="site-nav" id="site-nav" aria-label="Site sections">
@@ -48,28 +48,71 @@
 
     <main id="main">
       <div class="hero wrap" id="top">
-        <h1>PS4 PKG Downloader</h1>
+        <h1>Stop babysitting your <span class="hl">PS4 downloads</span></h1>
         <p class="lede">
-          Stop babysitting your PS4 downloads — point the app at your catalog and let it finish the job.
+          Point the app at your catalog and let it finish the job — covers, history, and downloads that resume
+          where they died.
         </p>
-        <p class="stakes">Or keep re-downloading dead transfers by hand.</p>
-        <div class="hero-cta">
-          <a class="btn" href="https://github.com/aor-rex/ps4-pkg-dl/releases/latest">Download for Linux</a>
-          <a class="btn btn-ghost" href="https://github.com/aor-rex/ps4-pkg-dl">View on GitHub</a>
+        <div class="term">
+          <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>terminal</span></div>
+          <div class="term-body">
+            <span class="prompt" aria-hidden="true">$</span
+            ><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code
+            ><button
+              class="copy-btn"
+              type="button"
+              data-copy-target="install-cmd"
+              aria-label="Copy install command"
+            >
+              Copy
+            </button>
+          </div>
         </div>
-        <figure class="hero-shot">
-          <img
-            src="assets/screenshot-browse.png"
-            alt="PS4 PKG Downloader browse view: grid of game covers with search and genre sidebar"
-            width="1280"
-            height="670"
-          />
-        </figure>
+        <p class="term-sub">One command installs the app plus a launcher entry. Your files stay yours.</p>
       </div>
+
+      <section id="screenshots" aria-labelledby="screenshots-heading">
+        <div class="wrap">
+          <h2 id="screenshots-heading">Take a look</h2>
+          <p class="sec-sub">The real app, not a mockup.</p>
+          <div class="shots">
+            <figure>
+              <img
+                src="assets/screenshot-browse.png"
+                alt="PS4 PKG Downloader browse view: grid of game covers with search and genre sidebar"
+                width="1280"
+                height="670"
+              />
+              <figcaption><strong>Browse.</strong> Covers, search and genres.</figcaption>
+            </figure>
+            <figure>
+              <img
+                src="assets/screenshot-detail.png"
+                alt="Game detail view: cover art, description, gallery screenshots and version picker"
+                width="1280"
+                height="670"
+                loading="lazy"
+              />
+              <figcaption><strong>Detail.</strong> Artwork, versions, mirrors, gallery.</figcaption>
+            </figure>
+            <figure>
+              <img
+                src="assets/screenshot-downloads.png"
+                alt="Download manager: queued and completed downloads with progress bars"
+                width="1280"
+                height="670"
+                loading="lazy"
+              />
+              <figcaption><strong>Downloads.</strong> Progress, pause/resume, history.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
 
       <section id="features" aria-labelledby="features-heading">
         <div class="wrap">
           <h2 id="features-heading">What it does for you</h2>
+          <p class="sec-sub">Everything a download manager should do, scoped to your PS4 collection.</p>
           <ul class="bento-grid">
             <li class="bento-card">
               <h3><span class="bento-icon" aria-hidden="true">⬇</span>Resume dead transfers</h3>
@@ -106,65 +149,33 @@
             <li class="bento-card">
               <h3><span class="bento-icon" aria-hidden="true">↻</span>Stay current hands-free</h3>
               <p>
-                Update check on launch with Stable or Pre-release channels, restart-to-install, and a "What's
-                new" note each version.
+                Update check on launch with Stable or Pre-release channels, restart-to-install, and a
+                &ldquo;What&rsquo;s new&rdquo; note each version.
               </p>
             </li>
           </ul>
         </div>
       </section>
 
-      <section id="screenshots" aria-labelledby="screenshots-heading">
-        <div class="wrap">
-          <h2 id="screenshots-heading">Screenshots</h2>
-          <div class="shots">
-            <figure>
-              <img
-                src="assets/screenshot-detail.png"
-                alt="Game detail view: cover art, description, gallery screenshots and version picker"
-                width="1280"
-                height="670"
-                loading="lazy"
-              />
-              <figcaption>Game detail: artwork, description, gallery, version picker.</figcaption>
-            </figure>
-            <figure>
-              <img
-                src="assets/screenshot-downloads.png"
-                alt="Download manager: queued and completed downloads with progress bars"
-                width="1280"
-                height="670"
-                loading="lazy"
-              />
-              <figcaption>Download manager: progress, pause/resume, history.</figcaption>
-            </figure>
-          </div>
-        </div>
-      </section>
-
       <section id="install" aria-labelledby="install-heading">
-        <div class="wrap download-band">
+        <div class="wrap">
           <h2 id="install-heading">Running in three steps</h2>
+          <p class="sec-sub">From zero to downloading in under five minutes.</p>
           <ol class="plan-steps">
             <li>
+              <span class="step-n" aria-hidden="true">1</span>
               <strong>Paste one command.</strong> It installs the app plus a launcher entry.
               <div class="cmd-bar">
-                <pre><code id="install-cmd">curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
-                <button
-                  class="copy-btn"
-                  type="button"
-                  data-copy-target="install-cmd"
-                  aria-label="Copy install command"
-                >
-                  Copy
-                </button>
+                <pre><code>curl -fsSL https://aor-rex.github.io/ps4-pkg-dl/install.sh | bash</code></pre>
               </div>
             </li>
             <li>
+              <span class="step-n" aria-hidden="true">2</span>
               <strong>Add your catalog.</strong> Settings &rarr; Library takes a <code>games.json</code> URL
               or a local file.
             </li>
             <li>
+              <span class="step-n" aria-hidden="true">3</span>
               <strong>Pick a game and download.</strong> Choose a version, watch the progress bar, get on with
               your evening.
             </li>
@@ -176,6 +187,7 @@
       <section id="faq" aria-labelledby="faq-heading">
         <div class="wrap">
           <h2 id="faq-heading">FAQ</h2>
+          <p class="sec-sub">The stuff people actually ask.</p>
           <div class="faq-list">
             <details>
               <summary>Where does the game catalog come from?</summary>
